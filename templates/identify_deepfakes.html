@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Identify Deepfakes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+    
+    <section id="how-to-identify-deepfakes" class="content">
+        <h1>How to Identify Deepfakes</h1>
+        <p class="intro-text">Deepfakes are becoming increasingly sophisticated, making them difficult to detect with the naked eye. However, by understanding common signs and using the right tools, you can protect yourself from being fooled. Below are some key areas to focus on when trying to identify deepfakes.</p>
+
+        <div class="section" id="visual-clues">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/visual-icon.png') }}" alt="Visual Clues">
+            </div>
+            <div class="text-container">
+                <h2>Visual Clues</h2>
+                <p>Deepfakes often have subtle visual inconsistencies that can give them away. Here are some specific things to look out for:</p>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Lighting and Shadows:</strong> Check if the lighting on the face is consistent with the background or other parts of the video. Mismatched lighting or unnatural shadows can indicate manipulation.</p>
+                </div>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Facial Movements:</strong> Pay attention to eye movements and blinks. Deepfakes may have unnatural eye movements, or the eyes may not blink at all or blink too frequently.</p>
+                </div>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Lip Sync Issues:</strong> In many deepfakes, the synchronization between speech and lip movement is not perfect. If the lips don't match the words being spoken, it’s a red flag.</p>
+                </div>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Skin Texture and Detail:</strong> Deepfakes may lack fine details like skin texture, pores, or individual hair strands, making the face appear overly smooth or artificial.</p>
+                </div>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Background Artifacts:</strong> Sometimes, the background may show signs of distortion, blurring, or strange artifacts around the edges of the person, especially during fast movements.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section" id="audio-clues">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/audio-icon.png') }}" alt="Audio Clues">
+            </div>
+            <div class="text-container">
+                <h2>Audio Clues</h2>
+                <p>Audio is another area where deepfakes can slip up. Even if the visuals are convincing, the audio might not be. Consider the following:</p>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Speech Patterns:</strong> Listen for unnatural speech patterns, such as odd pauses, robotic intonation, or mismatched emotional tone. These can indicate synthetic audio.</p>
+                </div>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Background Noise:</strong> Real videos have consistent background noise. If the background sounds abruptly change, sound distorted, or don’t match the setting, the video might be altered.</p>
+                </div>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Voice Mismatches:</strong> Sometimes, the voice in a deepfake doesn’t quite match the person speaking. The pitch or tone might be slightly off, or the voice might sound too monotone.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section" id="technical-tools">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/tools-icon.png') }}" alt="Technical Tools">
+            </div>
+            <div class="text-container">
+                <h2>Technical Tools</h2>
+                <p>For a more thorough analysis, you can use specialized tools and software designed to detect deepfakes. Here are some of the most effective techniques:</p>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>AI-Based Detection Software:</strong> Tools like Sensity and Deepware use machine learning algorithms to detect subtle artifacts left by deepfake creation processes. These tools can analyze videos for inconsistencies that humans might miss.</p>
+                </div>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Reverse Image Search:</strong> Use reverse image search engines like Google Images or TinEye to see if the video or image has been used elsewhere or altered from its original form.</p>
+                </div>
+                <br>
+                <div class="highlight-box">
+                    <p><strong>Metadata Analysis:</strong> Checking the metadata of a video or image can sometimes reveal if it has been edited. Tools like ExifTool can help you examine metadata for any signs of manipulation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

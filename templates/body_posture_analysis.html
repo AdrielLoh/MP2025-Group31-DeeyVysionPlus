@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Posture Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+    
+    <section id="body-posture-analysis" class="content">
+        <h1>Body Posture Analysis</h1>
+        <p class="intro-text">Body posture analysis to detect deepfakes involves examining human posture, movement patterns, and skeletal structures to identify inconsistencies that may indicate synthetic content.</p>
+        
+        <div class="section" id="how-it-works">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/how-it-works-icon.png') }}" alt="How It Works">
+            </div>
+            <div class="text-container">
+                <h2>How It Works</h2>
+                <p>Body posture analysis detects deepfakes by tracking skeletal keypoints, detecting unnatural joint movements, and evaluating hand articulation. It checks spatial-temporal alignment, body symmetry, and occlusions. The AI model classify anomalies in motion patterns, ensuring accurate deepfake detection by identifying unnatural biomechanics and pose inconsistencies across video frames.</p>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="advantages">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/advantages-icon.png') }}" alt="Advantages">
+            </div>
+            <div class="text-container">
+                <h2>Advantages</h2>
+                <ul>
+                    <li>Detects subtle inconsistencies in body movement, joint articulation, and spatial alignment that deepfakes struggle to replicate accurately.
+                    </li>
+                    <li>Unlike facial recognition, it remains effective even when deepfake models manipulate facial features but fail to maintain natural body kinematics.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="challenges">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/challenges-icon.png') }}" alt="Challenges">
+            </div>
+            <div class="text-container">
+                <h2>Challenges</h2>
+                <ul>
+                    <li>Effectiveness can be influenced by video quality and lighting conditions.</li>
+                    <li>Human body movements naturally vary due to individual differences, occlusions, and camera angles, making it difficult to define a universal baseline for detecting anomalies.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="applications">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/applications-icon.png') }}" alt="Applications">
+            </div>
+            <div class="text-container">
+                <h2>Applications</h2>
+                <p>It helps verify the authenticity of video footage in media, cybersecurity, and forensic investigations to combat misinformation.</p>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section" id="try-it-out">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/try-it-out-icon.png') }}" alt="Try It Out">
+            </div>
+            <div class="text-container">
+                <h2>Try It Out</h2>
+                <a href="{{ url_for('body_posture_try') }}" class="try-button">Try Body Posture Analysis</a>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

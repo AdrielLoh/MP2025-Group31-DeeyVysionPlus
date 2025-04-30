@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepVision Challenges</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+
+    <section class="content" id="challenge-introduction">
+        <h1>DeepVision Challenges</h1>
+        <p class="intro-text">Welcome to the DeepVision Challenge Hub! Test your knowledge, engage with interactive activities, and dive deeper into the world of deepfake technology. Choose a challenge below to begin.</p>
+    </section>
+    
+    <div class="divider"></div>
+
+    <!-- Quiz Section -->
+    <section id="quiz-section" class="section challenge-section">
+        <div class="icon-container">
+            <img src="{{ url_for('static', filename='images/quiz.png') }}" alt="Quiz">
+        </div>
+        <div class="text-container">
+            <h2>Knowledge Quiz</h2>
+            <p class="intro-text">Test your understanding of deepfake technology with our comprehensive quiz. See how well you know the concepts and learn something new along the way!</p>
+            <div class="text-container">
+                <a href="{{ url_for('quiz') }}" class="try-button">Take the Quiz</a>
+            </div>
+        </div>
+    </section>
+    
+    <div class="divider"></div>
+
+    <!-- Drag-and-Drop Game Section -->
+    <section id="drag-drop-section" class="section challenge-section">
+        <div class="icon-container">
+            <img src="{{ url_for('static', filename='images/dragdrop.png') }}" alt="Drag and Drop">
+        </div>
+        <div class="text-container">
+            <h2>Deepfake or Real?</h2>
+            <p class="intro-text">Think you can spot the deepfakes? Drag and drop images into the correct category—deepfake or real. Challenge your observation skills!</p>
+            <div class="text-container">
+                <a href="{{ url_for('dragdrop') }}" class="try-button">Start the Challenge</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Street Fighter Style Deepfake Game Section -->
+    <section id="fight-challenge-section" class="section challenge-section">
+        <div class="icon-container">
+            <img src="{{ url_for('static', filename='images/fight.png') }}" alt="Deepfake Fight Challenge">
+        </div>
+        <div class="text-container">
+            <h2>Operation: Deepfake Showdown</h2>
+            <p class="intro-text">Prepare for the ultimate test of your skills. Engage in critical battles against the masterminds of deception. Each question is a strike against the enemy—will you emerge as the hero who secures our future?</p>
+            <div class="text-container">
+                <a href="{{ url_for('stages') }}" class="try-button">Begin Your Mission</a>
+            </div>
+        </div>
+    </section>
+
+
+    <div id="footer-placeholder"></div>
+
+    <script src="../static/js/scripts.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try Audio Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+    <section class="content">
+        <h1>Try Audio Analysis</h1>
+        <form id="upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('audio_analysis') }}" class="centered">
+            <div id="dropbox" class="dropbox">
+                <p>Drag & drop an audio file here, or click to select one</p>
+                <input type="file" name="file" id="file" accept="audio/*" required>
+                <audio id="audio-preview" controls style="display: none;"></audio>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        <div class="centered">
+            <form action="{{ url_for('start_real_time_audio_analysis') }}" method="POST">
+                <h3>Real-Time Detection</h3>
+                <p>Use your webcam to perform real-time deepfake detection.</p>
+                <button id="real-time-button" type="submit">Try Real-Time Detection</button>
+            </form>
+            <audio id="recorded-audio" controls style="display: none;"></audio>
+            <div id="real-time-detection-result"></div>
+        </div>
+    </section>
+    <footer>
+        <div id="footer-placeholder"></div>
+    </footer>
+
+    <!-- Modal for real-time recording -->
+    <div id="recording-modal" class="modal">
+        <div class="modal-content">
+            <span id="modal-close-button" class="close">&times;</span>
+            <div id="countdown">3</div>
+            <div class="volume-meter" id="volume-meter"></div>
+            <button onclick="stopRecording()">Stop Recording</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

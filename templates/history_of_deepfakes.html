@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History of Deepfakes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+
+    <section id="history-of-deepfakes" class="content">
+        <h1>History of Deepfakes</h1>
+        <p class="intro-text">Deepfake technology has rapidly evolved over the past few years. This section explores its origins, development, and milestones.</p>
+        
+        <div class="section" id="early-developments">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/early-development.png') }}" alt="Early Developments">
+            </div>
+            <div class="text-container">
+                <h2>Early Developments</h2>
+                <p>The concept of manipulating digital media dates back to the early 2000s. Initial advancements in AI and machine learning set the stage for the creation of deepfakes.</p>
+                <br>
+                <p>During this period, researchers focused on developing algorithms that could understand and generate human-like images and videos. The advent of neural networks and their ability to learn from large datasets was crucial in paving the way for future deepfake technology.</p>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="breakthroughs">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/breakthrough-icon.png') }}" alt="Breakthroughs">
+            </div>
+            <div class="text-container">
+                <h2>Breakthroughs</h2>
+                <p>In 2017, the term "deepfake" was coined. This period saw significant advancements in generative adversarial networks (GANs) and the public release of deepfake tools.</p>
+                <br>
+                <p>GANs, introduced by Ian Goodfellow and his colleagues in 2014, played a pivotal role in the development of deepfakes. These networks consist of two parts: a generator that creates fake content and a discriminator that evaluates its authenticity. The competition between these two networks leads to the creation of highly realistic fake images and videos.</p>
+                <br>
+                <p>The public release of deepfake tools on platforms like Reddit and GitHub enabled widespread access to this technology, leading to both creative applications and concerns over misuse.</p>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="current-state">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/current-icon.png') }}" alt="Current State">
+            </div>
+            <div class="text-container">
+                <h2>Current State</h2>
+                <p>Today, deepfake technology is widely accessible and continues to evolve. Researchers are focusing on improving the quality and realism of deepfakes while addressing ethical and legal concerns.</p>
+                <br>
+                <p>Recent advancements have made it possible to create deepfakes that are nearly indistinguishable from real content. This has sparked innovation in fields such as entertainment, education, and virtual reality, where realistic digital avatars can enhance user experiences.</p>
+                <br>
+                <p>However, the rise of deepfakes also poses significant challenges. Efforts are being made to develop detection tools and establish legal frameworks to mitigate the risks associated with deepfake misuse. Organizations and governments are collaborating to address the ethical and societal implications of this powerful technology.</p>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

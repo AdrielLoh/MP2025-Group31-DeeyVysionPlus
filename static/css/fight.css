@@ -1,0 +1,298 @@
+body {
+    font-family: 'Press Start 2P', cursive;
+    background-image: url('../images/game/backgrounds/fight-bg.webp');
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Adding padding to the fight-container to lower the content on the page */
+.fight-container {
+    width: 90%;
+    max-width: 1700px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 100px; /* Adjust this value to lower the content further */
+}
+
+/* Question Container */
+.question-container {
+    order: 1;
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80px; /* Ensure enough height to accommodate larger text */
+    padding: 10px; /* Add some padding for better text readability */
+    box-sizing: border-box; /* Ensure padding is included in the width */
+    flex-direction: column; /* Stack question and options vertically */
+}
+
+/* Timer */
+.timer {
+    font-size: 24px;
+    color: #ff5555;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+/* Health Bar */
+.health-bar-container {
+    order: 2;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+    margin-top: 40px; /* Additional margin to lower the health bar */
+}
+
+.avatar-health-bar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    position: relative;
+}
+
+.avatar-health-bar.enemy .avatar {
+    order: 2;
+}
+
+.avatar-health-bar.enemy .health-label {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #fff;
+    text-shadow: 1px 1px #000;
+    text-align: right;
+}
+
+.avatar-health-bar.enemy .hp-counter {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #fff;
+    text-shadow: 1px 1px #000;
+    text-align: left;
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 10px;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.health-bar {
+    flex-grow: 2;
+    height: 50px;
+    background-color: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.health-inner {
+    height: 100%;
+    background-color: #00ff00;
+    width: 100%;
+    transition: width 0.5s ease;
+}
+
+.health-label {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #fff;
+    text-shadow: 1px 1px #000;
+}
+
+.hp-counter {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #fff;
+    text-shadow: 1px 1px #000;
+}
+
+/* Battlefield */
+.battlefield {
+    order: 3;
+    width: 100%;
+    height: 400px;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    background-color: transparent;
+    margin-top: 40px; /* Additional margin to lower the battlefield */
+}
+
+.character-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    width: 500px;
+    height: 500px;
+    position: relative;
+    bottom: 0;
+}
+
+#player-character {
+    position: absolute;
+    left: 10%;
+    bottom: 40px;
+    width: 500px;
+    height: 500px;
+}
+
+#enemy-character {
+    position: absolute;
+    right: 10%;
+    bottom: 40px;
+    width: 500px;
+    height: 500px;
+}
+
+/* Ensure the canvas fits within the character container */
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Character styling */
+.character {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Answer Buttons */
+.answer-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    justify-content: center; /* Ensure buttons are centered */
+    align-items: center; /* Ensure buttons are centered */
+}
+
+.answer-button {
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    text-align: center;
+    width: 100%; /* Ensure all buttons take up full width */
+    min-height: 60px; /* Set a minimum height to ensure consistency */
+    box-sizing: border-box; /* Ensure padding is included in the width */
+}
+
+
+.answer-button.correct {
+    background-color: green !important;
+}
+
+.answer-button.incorrect {
+    background-color: red !important;
+}
+
+.answer-button:hover {
+    background-color: #555;
+    transform: scale(1.05);
+}
+
+/* Game Over Screen */
+.game-over-screen {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 1.5s;
+    line-height: 2;
+}
+
+.game-over-title {
+    font-size: 36px;
+    color: #ff5555;
+    margin-bottom: 20px;
+}
+
+.game-over-summary {
+    font-size: 24px;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.game-over-message {
+    font-size: 16px;
+    color: #ccc;
+    margin-bottom: 30px;
+}
+
+.game-over-buttons button {
+    padding: 10px 20px;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    font-size: 16px;
+    text-transform: uppercase;
+    margin: 5px;
+}
+
+.game-over-buttons button:hover {
+    background-color: #555;
+    transform: scale(1.05);
+}
+
+/* Add fade-in effect */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepVision Drag and Drop Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+
+    <section class="content" id="dragdrop-introduction">
+        <h1>Deepfake or Real?</h1>
+        <p class="intro-text">Test your ability to spot deepfakes! Drag and drop each image into the correct category: "Deepfake" or "Real". Can you correctly identify them all?</p>
+        <button class="next-button" id="start-button">Are you ready?</button>
+    </section>
+    
+    <div class="divider"></div>
+
+    <!-- Countdown Timer -->
+    <div class="countdown-timer" id="countdown-timer"></div>
+
+    <!-- Drag and Drop Game Section -->
+    <section id="game-section" class="section" style="display:none;">
+        <div class="game-container">
+            <div class="score-container">
+                <p>Score: <span id="score">0</span></p>
+            </div>
+    
+            <div class="dropzones">
+                <div id="deepfake-zone" class="dropzone" data-answer="deepfake">
+                    <h2>Deepfake</h2>
+                </div>
+                <div id="real-zone" class="dropzone" data-answer="real">
+                    <h2>Real</h2>
+                </div>
+            </div>
+    
+            <div class="draggable-container">
+                <div class="stacked-images">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample1.png') }}" alt="Sample 1" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample2.png') }}" alt="Sample 2" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample3.png') }}" alt="Sample 3" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample4.png') }}" alt="Sample 4" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample5.png') }}" alt="Sample 5" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample6.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample7.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample8.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample9.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample10.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample11.png') }}" alt="Sample 6" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample12.png') }}" alt="Sample 6" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample13.png') }}" alt="Sample 6" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample14.png') }}" alt="Sample 6" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample15.png') }}" alt="Sample 6" class="draggable" data-answer="real">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample16.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample17.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample18.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample19.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+                    <img src="{{ url_for('static', filename='images/dragdropgame/sample20.png') }}" alt="Sample 6" class="draggable" data-answer="deepfake">
+
+                    <!-- Add more images as needed -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Updated results section -->
+    <section id="results-section" class="section" style="display: none;">
+        <div class="results-container">
+            <div class="results-content">
+                <div class="results-image">
+                    <img id="results-image" src="path_to_your_image.png" alt="Result Image">
+                </div>
+                <div class="results-text">
+                    <h2 id="results-title"></h2>
+                    <p id="results-score"></p>
+                    <p id="results-message"></p>
+                    <button id="restart-button" class="next-button">Play Again</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    
+    <div id="footer-placeholder"></div>
+
+    <script src="../static/js/scripts.js"></script>
+</body>
+</html>

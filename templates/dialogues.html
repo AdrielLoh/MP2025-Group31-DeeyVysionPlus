@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storyline</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dialogues.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dialogue-container">
+        <div id="dialogue-box" class="dialogue-box">
+            <p id="dialogue-text">Welcome, Agent DV. Your mission is about to begin...</p>
+        </div>
+        <div class="controls">
+            <div class="next-button" id="next-button" onclick="nextDialogue()">Next</div>
+            <div id="skip-button" class="skip-button" onclick="skipDialogue()">Skip</div>
+        </div>
+        <div class="start-button" id="start-button" onclick="startFight()">Start Fight</div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dialogues.js') }}"></script>
+</body>
+</html>

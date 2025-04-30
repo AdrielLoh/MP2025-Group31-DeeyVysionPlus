@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Learning-Based Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+    
+    <section id="deep-learning-detection" class="content">
+        <h1>Deep Learning-Based Detection</h1>
+        <p class="intro-text">Deep learning-based detection methods use advanced neural networks to analyze video and image content for signs of manipulation. These methods leverage large datasets and sophisticated algorithms to detect subtle inconsistencies that are indicative of deepfakes.</p>
+        
+        <div class="section" id="how-it-works">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/how-it-works-icon.png') }}" alt="How It Works">
+            </div>
+            <div class="text-container">
+                <h2>How It Works</h2>
+                <p>Deep learning models, such as Convolutional Neural Networks (CNNs) and Recurrent Neural Networks (RNNs), are trained on large datasets of both real and fake media. The models learn to identify features that are characteristic of deepfakes, such as unnatural facial movements, inconsistent lighting, and irregular eye blinking patterns.</p>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="advantages">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/advantages-icon.png') }}" alt="Advantages">
+            </div>
+            <div class="text-container">
+                <h2>Advantages</h2>
+                <ul>
+                    <li>Highly accurate when trained on large, diverse datasets.</li>
+                    <li>Can continuously improve as more data becomes available.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="challenges">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/challenges-icon.png') }}" alt="Challenges">
+            </div>
+            <div class="text-container">
+                <h2>Challenges</h2>
+                <ul>
+                    <li>Requires significant computational resources for training and inference.</li>
+                    <li>Performance can degrade if the model is not exposed to a wide variety of deepfake techniques.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="applications">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/applications-icon.png') }}" alt="Applications">
+            </div>
+            <div class="text-container">
+                <h2>Applications</h2>
+                <p>Deep learning-based detection methods are widely used in social media platforms, news organizations, and law enforcement agencies to identify and mitigate the spread of deepfake content.</p>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section" id="try-it-out">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/try-it-out-icon.png') }}" alt="Try It Out">
+            </div>
+            <div class="text-container">
+                <h2>Try It Out</h2>
+                <a href="{{ url_for('deep_learning_based_try') }}" class="try-button">Try Deep Learning-Based Detection</a>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="../static/js/scripts.js"></script>
+</body>
+</html>

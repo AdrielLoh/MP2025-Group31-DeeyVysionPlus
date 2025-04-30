@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deepfake Creation - DeepVision</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+
+    <section id="deepfake-creation" class="content">
+        <h1>Deepfake Creation</h1>
+        <p class="intro-text">Deepfake technology uses artificial intelligence (AI) to create realistic videos and images that can depict someone doing or saying something they never did. Below, we will explore the intricate steps involved in creating deepfakes, from data collection to refinement.</p>
+        
+        <div class="section" id="how-it-works">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/how-it-works-icon.png') }}" alt="How It Works">
+            </div>
+            <div class="text-container">
+                <h2>How Deepfakes Are Made</h2>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="data-collection">
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/data-collection.png') }}" alt="Data Collection">
+            </div>
+            <div class="text-container">
+                <h2>Step 1: Data Collection</h2>
+                <p>The foundation of a deepfake lies in the quality and quantity of data collected. This step involves gathering extensive images and videos of the target individual. The dataset should cover various angles, lighting conditions, and facial expressions to train the AI model effectively. High-quality data ensures better accuracy and realism in the final deepfake.</p>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="training-the-model">
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/training.jpg') }}" alt="Training the AI Model">
+            </div>
+            <div class="text-container">
+                <h2>Step 2: Training the AI Model</h2>
+                <p>In this step, the collected data is used to train a deep learning model, often a Generative Adversarial Network (GAN). GANs consist of two neural networks:</p>
+                <div class="highlight-box">
+                    <strong>Generator</strong>: Creates fake images
+                </div>
+                <div class="highlight-box">
+                    <strong>Discriminator</strong>: Tries to distinguish between real and fake images
+                </div>
+                <br>
+                <p>Through continuous training, the generator improves its ability to produce realistic images that can fool the discriminator. This process requires substantial computational resources and can take from several hours to days, depending on the dataset size and the complexity of the model.</p>
+                <br>
+                <p>The training involves multiple iterations where the model learns to replicate the person's facial features and movements accurately.</p>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="creating-deepfake">
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/final-output.png') }}" alt="Creating the Deepfake">
+            </div>
+            <div class="text-container">
+                <h2>Step 3: Creating the Deepfake</h2>
+                <p>After the AI model is trained, it can be used to generate deepfake content. This involves:</p>
+                <div class="highlight-box">
+                    Selecting a source video where the target individual's face will be mapped
+                </div>
+                <div class="highlight-box">
+                    Processing the source video, replacing the original face with the target individual's face while preserving the movements and expressions
+                </div>
+                <div class="highlight-box">
+                    Using advanced techniques like face alignment and blending to enhance realism
+                </div>
+                <br>
+                <p>The generated deepfake video undergoes initial processing to ensure the facial features match seamlessly with the body movements and the surrounding environment. This step is crucial for maintaining the illusion of authenticity.</p>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="refinement">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/refine-icon.png') }}" alt="Refinement">
+            </div>
+            <div class="text-container">
+                <h2>Step 4: Refinement</h2>
+                <p>The final step involves refining the deepfake to improve its quality and realism. This includes manual editing and post-processing techniques such as:</p>
+                <div class="highlight-box">
+                    Color correction
+                </div>
+                <div class="highlight-box">
+                    Lighting adjustments
+                </div>
+                <div class="highlight-box">
+                    Noise reduction
+                </div>
+                <br>
+                <p>Advanced software tools can be used to fine-tune the details, ensuring that the deepfake is as convincing as possible. Refinement is essential to eliminate any artifacts or inconsistencies that might reveal the video as a deepfake. Experts often use high-resolution editing tools to scrutinize each frame and make necessary adjustments, creating a polished and believable end product.</p>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="section" id="applications-implications">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/applications-icon.png') }}" alt="Applications">
+            </div>
+            <div class="text-container">
+                <h2>Applications and Implications</h2>
+                <p>Deepfakes have a wide range of applications in various fields. In entertainment, they can be used to create realistic visual effects in movies and TV shows. In education, they can be used to create engaging and interactive content. In marketing, they can personalize advertisements by featuring potential customers.</p>
+                <br>
+                <p>However, deepfakes also pose significant ethical and security concerns. They can be used to spread misinformation, impersonate individuals, and damage reputations. Understanding the creation process is crucial for developing tools and techniques to detect and mitigate the misuse of deepfake technology.</p>
+            </div>
+        </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Mission</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stages.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <button id="back-to-challenge-button" onclick="location.href='/challenge'">Back to Challenge Hub</button>
+        <button id="reset-progress-button">Reset Progress</button>
+    </header>
+    <div class="container">
+        <h1>Missions</h1>
+    
+        <!-- Stage 1 - Unlocked with custom icon -->
+        <div id="stage1" class="stage unlocked" onclick="selectStage(1)">
+            <img src="{{ url_for('static', filename='images/game/icons/camera.png') }}" alt="Stage Icon" class="custom-icon">
+            <img src="{{ url_for('static', filename='images/game/ui/lock.png') }}" alt="Locked" class="lock-icon">
+            <span>1. Reconnaissance: Understanding the Enemy</span>
+            <span class="status ongoing">Ongoing</span>
+            <div class="details-modal">Mission Briefing: <br> - Basics of Deepfakes <br> - How Deepfakes are Created <br> - Impact of Deepfakes on Society</div>
+        </div>
+    
+        <!-- Stage 2 - Locked -->
+        <div id="stage2" class="stage locked">
+            <img src="{{ url_for('static', filename='images/game/icons/magnifying.png') }}" alt="Stage Icon" class="custom-icon">
+            <img src="{{ url_for('static', filename='images/game/ui/lock.png') }}" alt="Locked" class="lock-icon">
+            <span>2. Intel Gathering: Spotting the Fakes</span>
+            <span class="status">Not Completed</span>
+            <div class="details-modal">Mission Briefing: <br> - AI-based Detection Techniques <br> - Manual Detection Methods <br> - Tools for Identifying Deepfakes</div>
+        </div>
+    
+        <!-- Stage 3 - Unlocked with custom icon -->
+        <div id="stage3" class="stage locked" onclick="selectStage(3)">
+            <img src="{{ url_for('static', filename='images/game/icons/eye.png') }}" alt="Stage Icon" class="custom-icon">
+            <img src="{{ url_for('static', filename='images/game/ui/lock.png') }}" alt="Locked" class="lock-icon">
+            <span>3. Counterintelligence: Defeating the Illusion</span>
+            <span class="status">Not Completed</span>
+            <div class="details-modal">Mission Briefing: <br> - Identifying Fake Videos <br> - Recognizing Fake Images <br> - Spotting Deepfake Audios</div>
+        </div>
+    
+        <!-- Stage 4 - Locked -->
+        <div id="stage4" class="stage locked">
+            <img src="{{ url_for('static', filename='images/game/icons/shield.png') }}" alt="Stage Icon" class="custom-icon">
+            <img src="{{ url_for('static', filename='images/game/ui/lock.png') }}" alt="Locked" class="lock-icon">
+            <span>4. Defense Protocols: Establishing the Safeguards</span>
+            <span class="status">Not Completed</span>
+            <div class="details-modal">Mission Briefing: <br> - Legal Measures <br> - Technological Countermeasures <br> - Ethical Considerations</div>
+        </div>
+    
+        <!-- Stage 5 - Unlocked with custom icon -->
+        <div id="stage5" class="stage unlocked" onclick="selectStage(5)">
+            <img src="{{ url_for('static', filename='images/game/icons/bulb.png') }}" alt="Stage Icon" class="custom-icon">
+            <img src="{{ url_for('static', filename='images/game/ui/lock.png') }}" alt="Locked" class="lock-icon">
+            <span>5. Final Assault: Securing the Future</span>
+            <span class="status">Not Completed</span>
+            <div class="details-modal">Mission Briefing: <br> - Emerging Trends in Deepfakes <br> - Potential Future Threats <br> - Innovations in Deepfake Technology</div>
+        </div>
+    </div>
+
+    <!-- Modal for completed stage -->
+    <div id="completed-stage-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Mission Already Completed</h2>
+            <p>You have already completed this mission. You cannot retry it.</p>
+
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/stages.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,751 @@
+{
+  "frames": {
+    "boss_wujin_attack_000.png": {
+      "frame": "{{505,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_001.png": {
+      "frame": "{{1010,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_002.png": {
+      "frame": "{{1010,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_003.png": {
+      "frame": "{{1010,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_004.png": {
+      "frame": "{{1010,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_005.png": {
+      "frame": "{{909,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_006.png": {
+      "frame": "{{909,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_007.png": {
+      "frame": "{{909,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_008.png": {
+      "frame": "{{909,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_009.png": {
+      "frame": "{{909,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_010.png": {
+      "frame": "{{909,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_011.png": {
+      "frame": "{{909,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_012.png": {
+      "frame": "{{909,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_013.png": {
+      "frame": "{{909,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_014.png": {
+      "frame": "{{909,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_015.png": {
+      "frame": "{{808,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_016.png": {
+      "frame": "{{808,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_017.png": {
+      "frame": "{{808,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_018.png": {
+      "frame": "{{808,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_019.png": {
+      "frame": "{{808,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_020.png": {
+      "frame": "{{808,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_021.png": {
+      "frame": "{{808,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_022.png": {
+      "frame": "{{808,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_023.png": {
+      "frame": "{{808,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_024.png": {
+      "frame": "{{808,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_025.png": {
+      "frame": "{{707,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_026.png": {
+      "frame": "{{707,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_027.png": {
+      "frame": "{{707,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_028.png": {
+      "frame": "{{707,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_029.png": {
+      "frame": "{{707,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_030.png": {
+      "frame": "{{707,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_attack_031.png": {
+      "frame": "{{707,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_000.png": {
+      "frame": "{{707,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_001.png": {
+      "frame": "{{707,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_002.png": {
+      "frame": "{{707,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_003.png": {
+      "frame": "{{606,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_004.png": {
+      "frame": "{{606,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_005.png": {
+      "frame": "{{606,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_006.png": {
+      "frame": "{{606,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_007.png": {
+      "frame": "{{606,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_008.png": {
+      "frame": "{{606,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_009.png": {
+      "frame": "{{606,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_010.png": {
+      "frame": "{{606,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_011.png": {
+      "frame": "{{606,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_012.png": {
+      "frame": "{{606,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_breathing_013.png": {
+      "frame": "{{505,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_000.png": {
+      "frame": "{{505,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_001.png": {
+      "frame": "{{505,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_002.png": {
+      "frame": "{{505,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_003.png": {
+      "frame": "{{505,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_004.png": {
+      "frame": "{{505,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_005.png": {
+      "frame": "{{505,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_006.png": {
+      "frame": "{{1010,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_007.png": {
+      "frame": "{{505,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_008.png": {
+      "frame": "{{505,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_009.png": {
+      "frame": "{{404,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_010.png": {
+      "frame": "{{404,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_011.png": {
+      "frame": "{{404,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_012.png": {
+      "frame": "{{404,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_013.png": {
+      "frame": "{{404,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_014.png": {
+      "frame": "{{404,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_015.png": {
+      "frame": "{{404,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_016.png": {
+      "frame": "{{404,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_017.png": {
+      "frame": "{{404,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_018.png": {
+      "frame": "{{404,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_019.png": {
+      "frame": "{{303,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_020.png": {
+      "frame": "{{303,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_021.png": {
+      "frame": "{{303,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_022.png": {
+      "frame": "{{303,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_023.png": {
+      "frame": "{{303,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_024.png": {
+      "frame": "{{303,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_025.png": {
+      "frame": "{{303,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_026.png": {
+      "frame": "{{303,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_027.png": {
+      "frame": "{{303,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_028.png": {
+      "frame": "{{303,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_029.png": {
+      "frame": "{{303,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_death_030.png": {
+      "frame": "{{202,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_hit_000.png": {
+      "frame": "{{202,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_hit_001.png": {
+      "frame": "{{202,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_hit_002.png": {
+      "frame": "{{202,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_000.png": {
+      "frame": "{{202,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_001.png": {
+      "frame": "{{202,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_002.png": {
+      "frame": "{{202,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_003.png": {
+      "frame": "{{202,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_004.png": {
+      "frame": "{{202,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_005.png": {
+      "frame": "{{202,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_006.png": {
+      "frame": "{{101,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_007.png": {
+      "frame": "{{101,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_008.png": {
+      "frame": "{{101,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_009.png": {
+      "frame": "{{101,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_010.png": {
+      "frame": "{{101,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_011.png": {
+      "frame": "{{101,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_012.png": {
+      "frame": "{{101,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_013.png": {
+      "frame": "{{101,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_014.png": {
+      "frame": "{{101,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_015.png": {
+      "frame": "{{101,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_016.png": {
+      "frame": "{{0,909},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_idle_017.png": {
+      "frame": "{{0,808},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_run_000.png": {
+      "frame": "{{0,707},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_run_001.png": {
+      "frame": "{{0,606},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_run_002.png": {
+      "frame": "{{0,505},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_run_003.png": {
+      "frame": "{{0,404},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_run_004.png": {
+      "frame": "{{0,303},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_run_005.png": {
+      "frame": "{{0,202},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_run_006.png": {
+      "frame": "{{0,101},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    },
+    "boss_wujin_run_007.png": {
+      "frame": "{{0,0},{100,100}}",
+      "offset": "{0,0}",
+      "rotated": false,
+      "sourceColorRect": "{{0,0},{100,100}}",
+      "sourceSize": "{100,100}"
+    }
+  },
+  "metadata": {
+    "format": 2,
+    "size": "{2048,1024}",
+    "textureFileName": "boss_wujin.png"
+  }
+}

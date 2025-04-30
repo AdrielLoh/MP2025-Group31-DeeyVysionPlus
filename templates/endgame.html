@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congratulations, Agent DV!</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/endgame.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="endgame-container">
+        <div id="endgame-dialogue-box" class="dialogue-box">
+            <p id="endgame-dialogue-text"></p>
+        </div>
+        <div class="endgame-animations">
+            <img id="trophy" src="{{ url_for('static', filename='images/game/icons/trophy.png') }}" alt="Trophy">
+        </div>
+        <div class="next-button" id="endgame-next-button" onclick="nextEndgameDialogue()">Next</div>
+        <div class="endgame-buttons">
+            <button class="pixel-button" onclick="replayGame()">Replay</button>
+            <button class="pixel-button" onclick="backToStages()">Back to Stages</button> <!-- New Back to Stages button -->
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/endgame.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepVision Knowledge Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+
+    <section class="content" id="quiz-introduction">
+        <h1>The DeepVision Knowledge Quiz</h1>
+        <p class="intro-text">This quiz will test your understanding of deepfake technology, focusing on the information provided throughout our educational materials. Whether you're a beginner or a seasoned expert, this quiz will help you gauge your knowledge and learn more!</p>
+    </section>
+    
+    <div class="divider"></div>
+
+    <section class="section" id="learning-outcomes">
+        <div class="icon-container">
+            <img src="{{ url_for('static', filename='images/learning.png') }}" alt="Learning Outcomes">
+        </div>
+        <div class="text-container">
+            <h2>Learning Outcomes</h2>
+            <ul>
+                <li>Understand what deepfake technology is and how it works.</li>
+                <li>Identify the ethical concerns and potential misuse of deepfakes.</li>
+                <li>Learn about the methods used to detect deepfakes, including AI-based tools.</li>
+                <li>Comprehend the societal impact of deepfake technology in various fields.</li>
+            </ul>
+        </div>
+    </section>
+    
+    <div class="divider"></div>
+
+    <section id="quiz-section" class="section quiz-section">
+        <div class="icon-container">
+            <img src="{{ url_for('static', filename='images/quiz.png') }}" alt="Quiz">
+        </div>
+        <div class="text-container">
+            <h2>Test Your Knowledge</h2>
+            <p class="intro-text">Now that you've reviewed the key concepts, it's time to take the quiz. Answer the questions to the best of your ability, and see how well you understand deepfake technology!</p>
+
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+
+            <div id="quiz-container">
+                <!-- Quiz questions will be dynamically inserted here by the scripts.js file -->
+            </div>
+
+            <div id="feedback-message" class="feedback"></div>
+            
+            <div id="results-container">
+                <h2>Your Score: <span id="score"></span>/5</h2>
+                <p id="result-message"></p>
+                <button onclick="startQuiz()">Try Again</button>
+            </div>
+
+            <div id="cta-container">
+                <p>Want to learn more? <a href="/education" class="cta-link">Explore our educational resources!</a></p>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="../static/js/scripts.js"></script>
+</body>
+</html>

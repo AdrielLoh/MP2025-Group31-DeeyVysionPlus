@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deepfake Detection Methods</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+    
+    <section id="detection" class="content">
+        <h1>Deepfake Detection Methods</h1>
+        <p class="intro-text">Deepfake detection technology employs various methods to identify and mitigate the effects of deepfake content. Below, we will explore different techniques used in detecting deepfakes, from analyzing visual artifacts to deep learning-based approaches.</p>
+        <div class="clickable-boxes">
+            <a href="{{ url_for('deep_learning_based_detection') }}" class="box">
+                <h2>Deep Learning-Based Detection</h2>
+                <p>Learn about how deep learning techniques are used to identify deepfakes.</p>
+            </a>
+            <a href="{{ url_for('physiological_signal_analysis') }}" class="box">
+                <h2>Physiological Signal Analysis</h2>
+                <p>Discover how physiological signals can be analyzed to detect deepfakes.</p>
+            </a>
+            <a href="{{ url_for('visual_artifacts_detection') }}" class="box">
+                <h2>Visual Artifacts Detection</h2>
+                <p>Explore methods of detecting visual artifacts in deepfake content.</p>
+            </a>
+            <a href="{{ url_for('audio_analysis_page') }}" class="box">
+                <h2>Audio Analysis</h2>
+                <p>Understand how audio analysis can help in identifying deepfakes.</p>
+            </a>
+            <a href="{{ url_for('body_posture_analysis') }}" class="box"> 
+                <h2>Body Posture Analysis</h2>
+                <p>Find out how body posture can help determine deepfakes.</p>
+            </a>
+            <a href="{{ url_for('multi_detect') }}" class="box"> 
+                <h2>Multi-Detection</h2>
+                <p>Try a combination of methods to detect deepfakes</p>
+            </a>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+</body>
+</html>

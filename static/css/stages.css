@@ -1,0 +1,213 @@
+/* Styling for the header and button */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    z-index: 1000; /* Ensure it stays above other content */
+}
+
+#back-to-challenge-button {
+    background-color: transparent; /* No background color change */
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive; /* Use pixelated font */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#back-to-challenge-button:hover {
+    background-color: white;
+    color: black;
+}
+/* Ensure the rest of the page content is not hidden under the header */
+main {
+    padding-top: 60px; /* Adjust based on header height */
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; 
+    background-color: rgba(0, 0, 0, 0.7); /* Black background with opacity */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.modal-content {
+    background-color: #333;
+    color: white;
+    margin: 15% auto; 
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; 
+    max-width: 400px;
+    text-align: center;
+    border-radius: 10px;
+    line-height: 2;
+}
+
+.close-button{
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+.close-button:hover{
+    background-color: #555;
+}
+
+.modal.show {
+    display: block;
+    opacity: 1;
+}
+
+/* Styling for completed stages */
+.stage.completed {
+    opacity: 0.5;
+    pointer-events: none; /* Prevent interaction */
+    cursor: not-allowed;
+}
+
+.stage.completed .status {
+    color: gray;
+    font-weight: bold;
+}
+
+body {
+    font-family: 'Press Start 2P', cursive; /* A popular pixel art font */
+    background-color: #1d1d1d;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-image: url('../images/game/backgrounds/stages-bg.gif');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.container {
+    text-align: center;
+    width: 90%;
+    max-width: 1000px;
+}
+
+h1 {
+    margin-bottom: 30px;
+    font-size: 28px;
+    text-shadow: 2px 2px #000;
+}
+
+.stage {
+    display: flex;
+    justify-content: flex-start; /* Align items to the start (left) */
+    align-items: center;
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    background-color: rgba(34, 34, 34, 1); /* Slight transparency to make stages stand out */
+    border: 2px solid transparent;
+    position: relative;
+    width: 100%;
+    text-align: left; /* Ensure text starts from the left */
+    min-height: 80px; /* Ensures all boxes have the same height */
+}
+
+.stage .custom-icon,
+.stage .lock-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 15px;
+}
+
+.locked .custom-icon {
+    display: none;
+}
+
+.unlocked .lock-icon {
+    display: none;
+}
+
+.unlocked {
+    border-color: #00ff00;
+}
+
+.locked {
+    background-color: rgba(51, 51, 51, 0.8);
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.status {
+    font-size: 12px; /* Smaller font size for status */
+    margin-left: auto; /* Align status text to the right */
+}
+
+.status.completed {
+    color: #00ff00; /* Green for completed */
+}
+
+.status.ongoing {
+    color: #ffff00; /* Yellow for ongoing */
+}
+
+
+.details-modal {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 30px; /* Increased padding for more space */
+    border-radius: 15px; /* More rounded corners */
+    width: 600px; /* Increased width */
+    color: #fff;
+    text-align: left;
+    font-size: 16px; /* Slightly larger font size */
+    line-height: 1.5; /* Better line spacing */
+    z-index: 10;
+}
+
+.stage:hover .details-modal {
+    display: block;
+}
+
+/* Styling for the Reset Progress button */
+#reset-progress-button {
+    background-color: #444;
+    color: white;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: 'Press Start 2P', cursive; /* Match the rest of the styling */
+}
+
+#reset-progress-button:hover {
+    background-color: #555; /* Darker background on hover */
+    color: #ffd700; /* Gold text on hover */
+}

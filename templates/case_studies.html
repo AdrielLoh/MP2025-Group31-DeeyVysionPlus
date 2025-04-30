@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Studies</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+ 
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+    
+    <section id="case-studies" class="content">
+        <h1>Case Studies</h1>
+        <p class="intro-text">Examine real-world cases involving deepfake technology, including their creation, dissemination, and impact.</p>
+
+        <div class="section" id="political-case-study">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/political-icon.png') }}" alt="Political Case Study">
+            </div>
+            <div class="text-container">
+                <h2>Political Case Study</h2>
+                <p>In 2018, a deepfake video of a prominent politician was circulated online, causing widespread misinformation. The video depicted the politician making controversial statements, leading to public outrage and calls for their resignation.</p>
+                <br>
+                <p>This case highlighted the potential of deepfakes to disrupt political processes and the urgent need for effective detection and response strategies. Authorities eventually debunked the video, but the incident underscored the vulnerability of democratic institutions to deepfake manipulation.</p>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section" id="celebrity-case-study">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/celebrity-icon.png') }}" alt="Celebrity Case Study">
+            </div>
+            <div class="text-container">
+                <h2>Celebrity Case Study</h2>
+                <p>In 2020, a deepfake video featuring a famous actor was released without their consent. The video showed the actor endorsing a product they had no affiliation with, misleading fans and damaging the actor's reputation.</p>
+                <br>
+                <p>The incident sparked a legal battle over the unauthorized use of the actor's likeness and brought attention to the challenges of protecting personal and brand identities in the age of deepfakes. The actor successfully sued the creators of the deepfake, setting a precedent for future cases.</p>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section" id="corporate-case-study">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/corporate-icon.png') }}" alt="Corporate Case Study">
+            </div>
+            <div class="text-container">
+                <h2>Corporate Case Study</h2>
+                <p>A major corporation faced a deepfake crisis in 2021 when a fake video of their CEO making fraudulent statements was circulated. The video led to a significant drop in the company's stock price and caused panic among investors.</p>
+                <br>
+                <p>The corporation quickly responded by leveraging advanced deepfake detection tools to prove the video's inauthenticity. They also implemented stricter security measures to prevent future incidents. This case demonstrated the potential financial impact of deepfakes on businesses and the importance of preparedness and rapid response.</p>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section" id="educational-case-study">
+            <div class="icon-container">
+                <img src="{{ url_for('static', filename='images/educational-icon.png') }}" alt="Educational Case Study">
+            </div>
+            <div class="text-container">
+                <h2>Educational Case Study</h2>
+                <p>In 2022, a deepfake video was used in a classroom setting to educate students about the dangers of misinformation. The video, created with the cooperation of the school's faculty, showcased how easily deepfakes could be used to manipulate information.</p>
+                <br>
+                <p>The exercise was part of a larger curriculum focused on digital literacy and critical thinking. Students learned to identify deepfakes and understand their implications. This case study highlighted the potential of using deepfakes as educational tools to raise awareness about digital manipulation.</p>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

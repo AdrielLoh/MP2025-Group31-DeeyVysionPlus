@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite Animation Test</title>
+    <style>
+        #animationCanvas {
+            width: 120px;
+            height: 120px;
+            background-color: #f0f0f0; /* Optional: Add a background color for better visibility */
+        }
+        button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sprite Animation Test</h1>
+    <canvas id="animationCanvas"></canvas>
+    <div>
+        <button onclick="playAnimation('idle')">Idle</button>
+        <button onclick="playAnimation('attack')">Attack</button>
+        <button onclick="playAnimation('hit')">Hit</button>
+        <button onclick="playAnimation('run')">Run</button>
+        <button onclick="playAnimation('death')">Death</button>
+    </div>
+
+    <script>
+        // Set the canvas dimensions to match the sprite frame dimensions
+        const canvas = document.getElementById('animationCanvas');
+        canvas.width = 120;
+        canvas.height = 120;
+    </script>
+    <script src="../static/js/test-sprite.js"></script>
+</body>
+</html>

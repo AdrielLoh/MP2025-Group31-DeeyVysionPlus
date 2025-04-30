@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fight Scene</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fight.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="fight-container">
+        <!-- Question and Answers -->
+        <div class="question-container">
+            <p id="question-text">Loading question...</p>
+            <div id="timer" class="timer">5</div> <!-- Timer Display -->
+            <div class="answer-buttons">
+                <!-- Answer buttons will be dynamically generated here -->
+            </div>
+        </div>
+
+        <!-- Health Bar -->
+        <div class="health-bar-container">
+            <!-- Player Avatar and Health Bar -->
+            <div class="avatar-health-bar">
+                <div class="avatar">
+                    <img src="{{ url_for('static', filename='images/game/avatars/agent-dv.webp') }}" alt="Player Avatar">
+                </div>
+                <div class="health-bar">
+                    <div id="player-health-bar" class="health-inner"></div>
+                    <span class="health-label">Agent DV</span>
+                    <span id="player-hp" class="hp-counter">100/100 HP</span>
+                </div>
+            </div>
+
+            <!-- Enemy Health Bar and Avatar -->
+            <div class="avatar-health-bar enemy">
+                <div class="health-bar">
+                    <div id="enemy-health-bar" class="health-inner"></div>
+                    <span id="enemy-name" class="health-label">Enemy</span>
+                    <span id="enemy-hp" class="hp-counter">100/100 HP</span>
+                </div>
+                <div class="avatar">
+                    <img id="enemy-avatar" src="{{ url_for('static', filename='images/avatars/enemy-avatar.png') }}" alt="Enemy Avatar">
+                </div>
+            </div>
+        </div>
+
+        <!-- Battlefield -->
+        <div class="battlefield">
+            <!-- Player's Character -->
+            <div class="character-container">
+                <div id="player-character" class="character"></div>
+            </div>
+            <!-- Enemy's Character -->
+            <div class="character-container">
+                <div id="enemy-character" class="character"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="game-over-screen">
+        <div id="game-over-title" class="game-over-title">Game Over</div>
+        <div id="game-over-summary" class="game-over-summary"></div>
+        <div id="game-over-message" class="game-over-message"></div>
+        <div class="game-over-buttons"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/fight.js') }}"></script>
+</body>
+</html>

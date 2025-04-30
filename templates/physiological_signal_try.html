@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try Physiological Signal Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+    <section class="content">
+        <h1>Try Physiological Signal Detection</h1>
+        <form id="upload-form" method="POST" enctype="multipart/form-data">
+            <div id="dropbox" class="dropbox">
+                <p>Drag & drop a video file here, or click to select one</p>
+                <input type="file" name="file" id="file" accept="video/*" required>
+                <video id="video-preview" controls style="display: none;"></video>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        <form action="{{ url_for('start_real_time_detection') }}" method="POST">
+            <h3>Real-Time Detection</h3>
+            <p>Use your webcam to perform real-time deepfake detection.</p>
+            <button type="submit">Try Real-Time Detection</button>
+        </form>
+    </section>
+    <footer>
+        <div id="footer-placeholder"></div>
+    </footer>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

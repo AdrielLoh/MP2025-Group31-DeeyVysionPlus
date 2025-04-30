@@ -1,0 +1,88 @@
+body {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-image: url('../images/game/backgrounds/dialogue-bg.jpeg');
+    background-size: cover;
+}
+
+.dialogue-container {
+    width: 80%;
+    max-width: 800px;
+    text-align: center;
+}
+
+.dialogue-box {
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.dialogue-box p {
+    font-size: 18px;
+    line-height: 1.5;
+    white-space: pre-wrap; /* Ensure text doesn't collapse whitespace */
+    overflow: hidden; /* Hide overflowing text */
+}
+
+/* Controls for the buttons */
+.controls {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Space between Next and Skip buttons */
+    margin-top: 20px; /* Space above buttons */
+}
+
+/* Pixelated Button Styling */
+.next-button, 
+.skip-button, 
+.start-button {
+    border: 3px solid #fff;
+    color: #fff;
+    text-shadow: 2px 2px #000;
+    box-shadow: 4px 4px 0 #000, 8px 8px 0 #666;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 10px 30px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+/* Green Start Button */
+.start-button {
+    background: linear-gradient(to bottom, #28a745, #218838);
+}
+
+.start-button:hover {
+    background: linear-gradient(to bottom, #218838, #1e7e34);
+    box-shadow: 2px 2px 0 #000, 4px 4px 0 #666;
+}
+
+/* Red Skip Button */
+.skip-button {
+    background: linear-gradient(to bottom, #ff4444, #cc0000);
+}
+
+.skip-button:hover {
+    background: linear-gradient(to bottom, #ff6666, #d60000);
+    box-shadow: 2px 2px 0 #000, 4px 4px 0 #666;
+}
+
+/* Default Grey Next Button */
+.next-button {
+    background: linear-gradient(to bottom, #444, #333);
+}
+
+.next-button:hover {
+    background: linear-gradient(to bottom, #555, #444);
+    box-shadow: 2px 2px 0 #000, 4px 4px 0 #666;
+}

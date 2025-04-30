@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try Body Posture Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let form = document.getElementById("upload-form");
+            let spinner = document.getElementById("loadingSpinner");
+
+            form.addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                // Disable the button and change text
+                submitButton.disabled = true;
+                submitButton.innerText = "Processing...";
+
+                // Show the spinner
+                spinner.style.display = "block";
+
+                // Submit the form normally
+                form.setAttribute("action", "/body_posture_detect");
+                form.setAttribute("method", "POST");
+                form.submit();
+            });
+        });
+    </script>
+
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+    <section class="content">
+        <h1>Try Body Posture Detection</h1>
+        <form id="upload-form"  enctype="multipart/form-data">
+            <div id="dropbox" class="dropbox">
+                <p>Drag & drop a video file here, or click to select one</p>
+                <input type="file" name="file" id="file" accept="video/*" required>
+                <video id="video-preview" controls style="display: none;"></video>
+            </div>
+            <button id="submitButton" type="submit">Submit</button>
+                <div id="loadingSpinner">
+                    <div class="spinner"></div>
+                    <p>Processing video... Please wait.</p>
+                </div>
+
+        </form>
+        <form action="{{ url_for('start_real_time_body_posture_detection') }}" method="POST">
+            <h3>Real-Time Detection</h3>
+            <p>Use your webcam to perform real-time deepfake detection.</p>
+            <button type="submit">Try Real-Time Detection</button>
+        </form>
+    </section>
+    <footer>
+        <div id="footer-placeholder"></div>
+    </footer>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
