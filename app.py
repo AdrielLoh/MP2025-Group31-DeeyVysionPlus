@@ -263,7 +263,7 @@ def audio_analysis():
             logging.debug(f"File saved: {filename}")
             
             prediction_class, mel_spectrogram_path = predict_audio(filename, output_folder)
-            result = "Bonafide" if prediction_class == 1 else "Spoof"
+            result = "Spoof" if prediction_class == 1 else "Bonafide"
             logging.debug(f"Prediction: {result}, Mel Spectrogram Path: {mel_spectrogram_path}")
             
             return render_template('result.html', analysis_type='audio', result=result, mel_spectrogram_path=mel_spectrogram_path)
