@@ -77,7 +77,7 @@ def predict_audio(file_path, output_folder):
     features = scaler.transform(features.reshape(-1, features.shape[-1]))
     input_data = features[..., np.newaxis][np.newaxis, ...]
     pred_prob = model.predict(input_data).flatten()[0]
-    prediction_class = 1 if pred_prob >= 0.372 else 0
+    prediction_class = 1 if pred_prob >= 0.3368 else 0
 
     mel = features[:N_MELS].reshape(N_MELS, MAX_TIME_STEPS)
     mel_spectrogram_path = os.path.join(output_folder, 'mel_spectrogram.png')
