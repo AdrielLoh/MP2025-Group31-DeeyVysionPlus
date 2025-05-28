@@ -276,7 +276,7 @@ def start_real_time_audio_analysis():
         os.makedirs(output_folder, exist_ok=True)
         
         prediction_class, mel_spectrogram_path = predict_real_time_audio(output_folder)
-        result = "Bonafide" if prediction_class == 1 else "Spoof"
+        result = "Spoof" if prediction_class == 1 else "Bonafide"
         logging.debug(f"Real-time Prediction: {result}, Mel Spectrogram Path: {mel_spectrogram_path}")
         
         if prediction_class is not None:

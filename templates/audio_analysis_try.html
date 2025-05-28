@@ -6,6 +6,28 @@
     <title>Try Audio Analysis</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let form = document.getElementById("upload-form");
+            let spinner = document.getElementById("loadingSpinner");
+
+            form.addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                // Disable the button and change text
+                submitButton.disabled = true;
+                submitButton.innerText = "Processing...";
+
+                // Show the spinner
+                spinner.style.display = "block";
+
+                // Submit the form normally
+                form.setAttribute("action", "/audio_analysis");
+                form.setAttribute("method", "POST");
+                form.submit();
+            });
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -13,13 +35,17 @@
     </header>
     <section class="content">
         <h1>Try Audio Analysis</h1>
-        <form id="upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('audio_analysis') }}" class="centered">
+        <form id="upload-form" enctype="multipart/form-data" class="centered">
             <div id="dropbox" class="dropbox">
                 <p>Drag & drop an audio file here, or click to select one</p>
                 <input type="file" name="file" id="file" accept="audio/*" required>
                 <audio id="audio-preview" controls style="display: none;"></audio>
             </div>
-            <button type="submit">Submit</button>
+            <button id="submitButton" type="submit">Submit</button>
+            <div id="loadingSpinner">
+                <div class="spinner"></div>
+                <p>Processing audio... Please wait.</p>
+            </div>
         </form>
         <div class="centered">
             <form action="{{ url_for('start_real_time_audio_analysis') }}" method="POST">
