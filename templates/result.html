@@ -20,8 +20,29 @@
             {% if mel_spectrogram_path %}
                 <div class="graph-container wide-section">
                     <h2>Mel Spectrogram</h2>
-                    <p class="graph-description">This graph visualizes the distribution of frequencies in the audio over time, helping to analyze patterns that may indicate a deepfake.</p>
+                    <p class="graph-description">This graph visualizes the distribution of frequencies and energy distributions in the audio over time, helping to analyze unusual patterns that may indicate a deepfake.</p>
                     <img src="{{ url_for('static', filename=mel_spectrogram_path) }}" alt="Mel Spectrogram">
+                </div>
+            {% endif %}
+            {% if mfcc_path %}
+                <div class="graph-container wide-section">
+                    <h2>Mel Frequency Cepstral Coefficients (MFCC)</h2>
+                    <p class="graph-description">This graph captures the timbral qualities of speech, where inconsistencies in vocal tract modeling by synthetic voices can reveal deepfakes.</p>
+                    <img src="{{ url_for('static', filename=mfcc_path) }}" alt="MFCC">
+                </div>
+            {% endif %}
+            {% if delta_path %}
+                <div class="graph-container wide-section">
+                    <h2>Delta MFCC</h2>
+                    <p class="graph-description">This graph measures the rate of change in speech dynamics, making it useful for spotting the smoother or erratic transitions often present in generated audio.</p>
+                    <img src="{{ url_for('static', filename=delta_path) }}" alt="Delta MFCC">
+                </div>
+            {% endif %}
+            {% if f0_path %}
+                <div class="graph-container wide-section">
+                    <h2>Fundamental Frequency (pitch)</h2>
+                    <p class="graph-description">This graph tracks pitch contours, helping detect deepfakes through abnormal or monotonic pitch patterns that differ from natural speech variation.</p>
+                    <img src="{{ url_for('static', filename=f0_path) }}" alt="Pitch">
                 </div>
             {% endif %}
         {% elif analysis_type == 'physiological' %}

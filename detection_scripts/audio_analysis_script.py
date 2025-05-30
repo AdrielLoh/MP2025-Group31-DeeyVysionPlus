@@ -1,4 +1,4 @@
-# --- Updated Production Script using New Feature Extraction and Model ---
+# --- Updated Production Script with Additional Feature Visualizations ---
 
 import os
 import librosa
@@ -45,15 +45,34 @@ def extract_combined_features(y, sr=SAMPLE_RATE):
     features += [pad_or_truncate(mel_db, MAX_TIME_STEPS), pad_or_truncate(mfcc, MAX_TIME_STEPS),
                  pad_or_truncate(delta, MAX_TIME_STEPS)]
     f0, _, _ = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'))
-    features.append(pad_or_truncate(np.nan_to_num(f0)[np.newaxis, :], MAX_TIME_STEPS))
-    energy = np.sum(librosa.feature.rms(y=y), axis=0, keepdims=True)
+    f0 = np.nan_to_num(f0)
+    features.append(pad_or_truncate(f0[np.newaxis, :], MAX_TIME_STEPS))
+    rms = librosa.feature.rms(y=y)
+    energy = np.sum(rms, axis=0, keepdims=True)
+    avg_energy = np.mean(energy) if energy.size > 0 and np.max(energy) > 0 else 0.0
     features.append(pad_or_truncate(energy, MAX_TIME_STEPS))
-    return np.vstack(features), np.mean(energy)
+    return np.vstack(features), avg_energy, mel_db, mfcc, delta, f0, energy
+
+def save_feature_plot(feature, title, file_path, y_axis='linear'):
+    plt.figure(figsize=(10, 4))
+    try:
+        if feature.ndim == 2:
+            librosa.display.specshow(feature, sr=SAMPLE_RATE, x_axis='time', y_axis=y_axis)
+            plt.colorbar(format='%+2.0f dB')
+        else:
+            plt.plot(feature.flatten())
+        plt.title(title)
+        plt.tight_layout()
+        plt.savefig(file_path)
+    except Exception as e:
+        logging.error(f"Failed to save plot for {title}: {e}")
+    finally:
+        plt.close()
 
 def predict_audio(file_path, output_folder):
     y, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True, duration=DURATION)
     y = normalize_volume(y)
-    features, avg_energy = extract_combined_features(y)
+    features, avg_energy, mel_db, mfcc, delta, f0, energy = extract_combined_features(y)
 
     if avg_energy < SILENCE_THRESHOLD:
         logging.warning("Audio too silent. Skipping prediction.")
@@ -64,18 +83,22 @@ def predict_audio(file_path, output_folder):
     pred_prob = model.predict(input_data).flatten()[0]
     prediction_class = 1 if pred_prob >= 0.3368 else 0
 
-    mel = features[:N_MELS].reshape(N_MELS, MAX_TIME_STEPS)
-    mel_spectrogram_path = os.path.join(output_folder, 'mel_spectrogram.png')
-    plt.figure(figsize=(10, 4))
-    librosa.display.specshow(mel, sr=SAMPLE_RATE, x_axis='time', y_axis='mel')
-    plt.colorbar(format='%+2.0f dB')
-    plt.title('Mel Spectrogram')
-    plt.tight_layout()
-    plt.savefig(mel_spectrogram_path)
-    plt.close()
+    # Save visualizations
+    plots = {
+        'mel_spectrogram.png': (mel_db, 'Mel Spectrogram', 'mel'),
+        'mfcc.png': (mfcc, 'MFCC', 'linear'),
+        'delta_mfcc.png': (delta, 'Delta MFCC', 'linear'),
+        'f0.png': (f0, 'Fundamental Frequency (F0)', None),
+        'energy.png': (energy, 'Energy', None)
+    }
 
-    relative_path = os.path.relpath(mel_spectrogram_path, 'static').replace("\\", "/")
-    return prediction_class, relative_path
+    relative_paths = {}
+    for filename, (data, title, y_axis) in plots.items():
+        plot_path = os.path.join(output_folder, filename)
+        save_feature_plot(data, title, plot_path, y_axis=y_axis if y_axis else 'linear')
+        relative_paths[filename] = os.path.relpath(plot_path, 'static').replace("\\", "/")
+
+    return prediction_class, relative_paths['mel_spectrogram.png'], relative_paths['mfcc.png'], relative_paths['delta_mfcc.png'], relative_paths['f0.png']
 
 def predict_real_time_audio(output_folder):
     import sounddevice as sd

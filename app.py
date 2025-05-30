@@ -262,11 +262,15 @@ def audio_analysis():
             file.save(filename)
             logging.debug(f"File saved: {filename}")
             
-            prediction_class, mel_spectrogram_path = predict_audio(filename, output_folder)
+            prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path = predict_audio(filename, output_folder)
             result = "Spoof" if prediction_class == 1 else "Bonafide"
             logging.debug(f"Prediction: {result}, Mel Spectrogram Path: {mel_spectrogram_path}")
             
-            return render_template('result.html', analysis_type='audio', result=result, mel_spectrogram_path=mel_spectrogram_path)
+            return render_template('result.html', analysis_type='audio', result=result, 
+                                   mel_spectrogram_path=mel_spectrogram_path, 
+                                   mfcc_path=mfcc_path,
+                                   delta_path=delta_path,
+                                   f0_path=f0_path)
     return render_template('audio_analysis_try.html')
 
 @app.route('/start_real_time_audio_analysis', methods=['POST'])
