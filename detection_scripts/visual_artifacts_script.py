@@ -192,7 +192,7 @@ def live_detection(output_folder):
     predictions = []
     frame_labels = []
 
-    cap = cv2.VideoCapture(0)  # Change to 1 or the appropriate camera index if needed
+    cap = cv2.VideoCapture(2)  # Change to 1 or the appropriate camera index if needed
     frame_index = 0
     
     try:
