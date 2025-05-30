@@ -204,7 +204,7 @@ def preprocess_frame(frame):
     return input_frame
 
 def body_posture_live_detection(output_folder):
-    cap = cv2.VideoCapture(1)  # 0 for default camera
+    cap = cv2.VideoCapture(0)  # 0 for default camera
     real_frame_count = 0
     fake_frame_count = 0
     score_list = []  # To store confidence scores

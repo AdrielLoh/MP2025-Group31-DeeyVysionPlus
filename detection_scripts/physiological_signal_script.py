@@ -245,7 +245,7 @@ def detect_physiological_signal(filename, output_folder, threshold=0.5):
 
 # Real-time video capture and deepfake detection
 def real_time_detection(output_folder, threshold=0.5):
-    cap = cv2.VideoCapture(1)  # Use webcam; change to video file path if needed
+    cap = cv2.VideoCapture(0)  # Use webcam; change to video file path if needed
     
     if not cap.isOpened():
         print("Error: Could not access the camera.")
