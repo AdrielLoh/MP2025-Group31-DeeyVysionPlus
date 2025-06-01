@@ -1,4 +1,7 @@
 # --- Updated Production Script with Additional Feature Visualizations ---
+# To do improvements:
+# Batch processing and prediction
+# Better error handling
 
 import os
 import librosa
@@ -9,13 +12,14 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import logging
+from moviepy.video.io.VideoFileClip import VideoFileClip
 
 SAMPLE_RATE = 16000
 DURATION = 5
 MAX_TIME_STEPS = 157
 N_MELS = 128
 N_MFCC = 20
-MODEL_PATH = "models/audio_model_tf217_alcj_v8p2.keras" # v8 is still the best
+MODEL_PATH = "models/audio_model_tf217_alcj_v9p1.keras" # v8 is still the best
 SCALER_PATH = "models/audio_scaler.joblib"
 SILENCE_THRESHOLD = 0.002
 
@@ -70,9 +74,22 @@ def save_feature_plot(feature, title, file_path, y_axis='linear'):
         plt.close()
 
 def predict_audio(file_path, output_folder):
-    y, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True, duration=DURATION)
-    y = normalize_volume(y)
-    features, avg_energy, mel_db, mfcc, delta, f0, energy = extract_combined_features(y)
+    if file_path.endswith('.wav') or file_path.endswith('.mp3') or file_path.endswith('.flac') or file_path.endswith('.opus'):
+        y, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True, duration=DURATION)
+        y = normalize_volume(y)
+        features, avg_energy, mel_db, mfcc, delta, f0, energy = extract_combined_features(y)
+    elif file_path.endswith('.mp4') or file_path.endswith('.mov'):
+        video_clip = VideoFileClip(file_path)
+        audio_clip = video_clip.audio
+        saved_audio = "static/uploads/separated_audio.mp3"
+        audio_clip.write_audiofile(saved_audio)
+        audio_clip.close()
+        video_clip.close()
+        y, sr = librosa.load(saved_audio, sr=SAMPLE_RATE, mono=True, duration=DURATION)
+        y = normalize_volume(y)
+        features, avg_energy, mel_db, mfcc, delta, f0, energy = extract_combined_features(y)
+    else:
+        return None, None
 
     if avg_energy < SILENCE_THRESHOLD:
         logging.warning("Audio too silent. Skipping prediction.")
@@ -81,7 +98,10 @@ def predict_audio(file_path, output_folder):
     features = scaler.transform(features.reshape(-1, features.shape[-1]))
     input_data = features[..., np.newaxis][np.newaxis, ...]
     pred_prob = model.predict(input_data).flatten()[0]
-    prediction_class = 1 if pred_prob >= 0.3368 else 0
+    prediction_class = 1 if pred_prob >= 0.2798 else 0
+    # 8p2 = 0.3368
+    # 9p1 = 0.2798
+    # 9p2 = 0.3798
 
     # Save visualizations
     plots = {

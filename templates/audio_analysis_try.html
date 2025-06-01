@@ -37,8 +37,9 @@
         <h1>Try Audio Analysis</h1>
         <form id="upload-form" enctype="multipart/form-data" class="centered">
             <div id="dropbox" class="dropbox">
-                <p>Drag & drop an audio file here, or click to select one</p>
-                <input type="file" name="file" id="file" accept="audio/*" required>
+                <p>Drag & drop or select an audio or video file here. <br>(.mp3, .mp4, .wav, .mov, .flac, .opus)
+                </p>
+                <input type="file" name="file" id="file" accept="audio/*,video/*" required>
                 <audio id="audio-preview" controls style="display: none;"></audio>
             </div>
             <button id="submitButton" type="submit">Submit</button>
