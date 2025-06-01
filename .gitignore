@@ -1,1 +1,15 @@
 *.pyc
+/static/results
+/static/uploads
+/static/results
+/static/features
+/static/processed
+static/results/confidence_over_time.png
+static/results/confidence_score.png
+static/results/filtered_signal.png
+static/results/frames_real_vs_fake.png
+static/results/heart_rate_distribution.png
+static/results/original_signal.png
+static/results/prediction_counts.png
+static/results/prediction_result.png
+static/results/real_vs_fake.png

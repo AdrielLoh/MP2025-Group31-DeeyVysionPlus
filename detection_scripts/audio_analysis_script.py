@@ -15,7 +15,7 @@ DURATION = 5
 MAX_TIME_STEPS = 157
 N_MELS = 128
 N_MFCC = 20
-MODEL_PATH = "models/audio_model_tf217_alcj_v2.keras"
+MODEL_PATH = "models/audio_model_tf217_alcj_v8p2.keras" # v8 is still the best
 SCALER_PATH = "models/audio_scaler.joblib"
 SILENCE_THRESHOLD = 0.002
 
@@ -98,7 +98,7 @@ def predict_audio(file_path, output_folder):
         save_feature_plot(data, title, plot_path, y_axis=y_axis if y_axis else 'linear')
         relative_paths[filename] = os.path.relpath(plot_path, 'static').replace("\\", "/")
 
-    return prediction_class, relative_paths['mel_spectrogram.png'], relative_paths['mfcc.png'], relative_paths['delta_mfcc.png'], relative_paths['f0.png']
+    return prediction_class, relative_paths['mel_spectrogram.png'], relative_paths['mfcc.png'], relative_paths['delta_mfcc.png'], relative_paths['f0.png'], pred_prob
 
 def predict_real_time_audio(output_folder):
     import sounddevice as sd

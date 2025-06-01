@@ -132,9 +132,9 @@ def physiological_signal_analysis():
             file.save(filename)
             prediction, hr, confidence, real_count, fake_count = detect_physiological_signal(filename, output_folder)
             if prediction == "REAL":
-                result = f'The video is predicted to be REAL with {real_count} real predictions and {fake_count} fake predictions.'
+                result = "Real"
             elif prediction == "FAKE":
-                result = f'The video is predicted to be FAKE with {real_count} real predictions and {fake_count} fake predictions.'
+                result = "Fake"
             else:
                 result = f'The video is predicted to be UNKNOWN with {real_count} real predictions and {fake_count} fake predictions.'
             return render_template('result.html', analysis_type='physiological', result=result, hr=hr, confidence=confidence, real_count=real_count, fake_count=fake_count)
@@ -151,9 +151,9 @@ def physiological_signal_try():
             file.save(filename)
             prediction, hr, confidence, real_count, fake_count = detect_physiological_signal(filename, output_folder)
             if prediction == "REAL":
-                result = f'The video is predicted to be REAL with {real_count} real predictions and {fake_count} fake predictions.'
+                result = "Real"
             elif prediction == "FAKE":
-                result = f'The video is predicted to be FAKE with {real_count} real predictions and {fake_count} fake predictions.'
+                result = "Fake"
             else:
                 result = f'The video is predicted to be UNKNOWN with {real_count} real predictions and {fake_count} fake predictions.'
             return render_template('result.html', analysis_type='physiological', result=result, hr=hr, confidence=confidence, real_count=real_count, fake_count=fake_count)
@@ -262,7 +262,7 @@ def audio_analysis():
             file.save(filename)
             logging.debug(f"File saved: {filename}")
             
-            prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path = predict_audio(filename, output_folder)
+            prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value = predict_audio(filename, output_folder)
             result = "Spoof" if prediction_class == 1 else "Bonafide"
             logging.debug(f"Prediction: {result}, Mel Spectrogram Path: {mel_spectrogram_path}")
             
@@ -270,7 +270,8 @@ def audio_analysis():
                                    mel_spectrogram_path=mel_spectrogram_path, 
                                    mfcc_path=mfcc_path,
                                    delta_path=delta_path,
-                                   f0_path=f0_path)
+                                   f0_path=f0_path,
+                                   prediction_value=prediction_value)
     return render_template('audio_analysis_try.html')
 
 @app.route('/start_real_time_audio_analysis', methods=['POST'])
@@ -279,17 +280,30 @@ def start_real_time_audio_analysis():
         output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
         os.makedirs(output_folder, exist_ok=True)
         
-        prediction_class, mel_spectrogram_path = predict_real_time_audio(output_folder)
+        prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value = predict_real_time_audio(output_folder)
         result = "Spoof" if prediction_class == 1 else "Bonafide"
         logging.debug(f"Real-time Prediction: {result}, Mel Spectrogram Path: {mel_spectrogram_path}")
         
         if prediction_class is not None:
-            return render_template('result.html', analysis_type='audio', result=result, mel_spectrogram_path=mel_spectrogram_path)
+            return render_template('result.html', analysis_type='audio', result=result, 
+                                   mel_spectrogram_path=mel_spectrogram_path, 
+                                   mfcc_path=mfcc_path,
+                                   delta_path=delta_path,
+                                   f0_path=f0_path,
+                                   prediction_value=prediction_value)
         else:
-            return render_template('result.html', analysis_type='audio', result="Error in detection", mel_spectrogram_path=None)
+            return render_template('result.html', analysis_type='audio', result="Error in detection", mel_spectrogram_path=None, 
+                                   mfcc_path=None,
+                                   delta_path=None,
+                                   f0_path=None,
+                                   prediction_value=0)
     except Exception as e:
         logging.error(f"Error during real-time audio analysis: {e}")
-        return render_template('result.html', analysis_type='audio', result="Error in detection", mel_spectrogram_path=None)
+        return render_template('result.html', analysis_type='audio', result="Error in detection", mel_spectrogram_path=None, 
+                                   mfcc_path=None,
+                                   delta_path=None,
+                                   f0_path=None,
+                                   prediction_value=0)
     
 @app.route('/delete_files', methods=['POST'])
 def delete_files():
@@ -339,9 +353,9 @@ def body_posture_detect():
             confidence = result["confidence"]
             
 
-            if prediction == "REAL":
+            if prediction == "Real":
                 result_message = f'The video is predicted to be REAL.'
-            elif prediction == "FAKE":
+            elif prediction == "Fake":
                 result_message = f'The video is predicted to be FAKE.'
 
             return render_template('result.html', analysis_type='body_posture', result=result_message, confidence=confidence)

@@ -15,8 +15,10 @@
         <h1>Deepfake Detection Results</h1>
 
         {% if analysis_type == 'audio' %}
-            <h2>Result</h2>
-            <p>{{ result }}</p>
+            <h2>Result: <b style="color: {% if result == 'Bonafide' %}green{% elif result == 'Spoof' %}red{% else %}white{% endif %};">
+                {{ result }}
+                </b></h2>
+            <p>Prediction score: {{ prediction_value }}</p>
             {% if mel_spectrogram_path %}
                 <div class="graph-container wide-section">
                     <h2>Mel Spectrogram</h2>
@@ -47,7 +49,11 @@
             {% endif %}
         {% elif analysis_type == 'physiological' %}
             <h2>Overall Result</h2>
-            <p>{{ result }}</p>
+            <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
+                {{ result }}
+            </h3>
+            <h2>Counts of Real and Fake Predictions</h2>
+            <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
             <h2>Average Heart Rate:</h2>
             <p>{{ hr }}</p>
 
@@ -82,7 +88,9 @@
             </div>
         {% elif analysis_type == 'deep_learning' %}
             <h2>Overall Result</h2>
-            <p>{{ result }}</p>
+            <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
+                {{ result }}
+            </h3>
             <h2>Counts of Real and Fake Predictions</h2>
             <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
 
@@ -100,7 +108,9 @@
 
             {% elif analysis_type == 'deep_learning_static' %}
             <h2>Overall Result</h2>
-            <p>{{ result }}</p>
+            <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
+                {{ result }}
+            </h3>
             <h2>Counts of Real and Fake Predictions</h2>
             <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
 
@@ -113,7 +123,9 @@
         {% elif analysis_type == 'visual_artifacts' %}
             <div class="wide-section">
                 <h2>Overall Result</h2>
-                <p>{{ result }}</p>
+                <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
+                    {{ result }}
+                </h3>
                 <h2>Counts of Real and Fake Predictions</h2>
                 <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
             </div>
@@ -145,7 +157,9 @@
             {% elif analysis_type == 'visual_artifact_static' %}
             <div class="wide-section">
                 <h2>Overall Result</h2>
-                <p>{{ result }}</p>
+                <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
+                    {{ result }}
+                </h3>
                 <h2>Counts of Real and Fake Predictions</h2>
                 <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
             </div>
@@ -163,7 +177,9 @@
         {% elif analysis_type == 'body_posture_live' %}
             <div class="wide-section">
                 <h2>Overall Result</h2>
-                <p>{{ result }}</p>
+                <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
+                    {{ result }}
+                </h3>
                 <h2>Counts of Real and Fake Predictions</h2>
                 <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
             </div>
@@ -180,7 +196,11 @@
             {% for method, prediction in results.items() %}
            
                 <h3>{{ method.replace("_", " ").title() }} Detection: </h3>
-                <p>Prediction: <strong>{{ prediction }}</strong></p>  <!-- Only "Fake" or "Real" -->
+                <p>Prediction: 
+                    <strong style="color: {% if prediction == 'Real' %}green{% elif prediction == 'Fake' %}red{% else %}white{% endif %};">
+                        {{ prediction }}
+                    </strong>
+                </p>  <!-- Only "Fake" or "Real" -->
             
             {% endfor %}
         {% endif %}

@@ -139,9 +139,9 @@ def predict_deepfake(features_csv):
         threshold = 0.39 
 
         if confidence >= threshold:
-            result = "FAKE"
+            result = "Fake"
         else:
-            result = "REAL"
+            result = "Real"
 
         print(f"Prediction Confidence Score: {result}")
 
@@ -176,7 +176,6 @@ def detect_body_posture(video_path):
     return {
         "prediction": result,
         "confidence": confidence,
-        
     }
 
 
