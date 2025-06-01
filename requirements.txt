@@ -40,6 +40,7 @@ matplotlib==3.7.2
 mdurl==0.1.2
 mediapipe==0.10.20
 ml-dtypes==0.2.0
+moviepy==2.2.1
 msgpack==1.1.0
 namex==0.0.9
 numba==0.61.2
