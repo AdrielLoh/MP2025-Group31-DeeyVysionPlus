@@ -1,7 +1,6 @@
 *.pyc
 /static/results
 /static/uploads
-/static/results
 /static/features
 /static/processed
 static/results/confidence_over_time.png

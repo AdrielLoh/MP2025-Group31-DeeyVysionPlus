@@ -19,7 +19,7 @@ DURATION = 5
 MAX_TIME_STEPS = 157
 N_MELS = 128
 N_MFCC = 20
-MODEL_PATH = "models/audio_model_tf217_alcj_v9p1.keras" # v8 is still the best
+MODEL_PATH = "models/audio_model_tf217_alcj_v9p2ft2.keras" # v8 is still the best
 SCALER_PATH = "models/audio_scaler.joblib"
 SILENCE_THRESHOLD = 0.002
 
@@ -98,10 +98,8 @@ def predict_audio(file_path, output_folder):
     features = scaler.transform(features.reshape(-1, features.shape[-1]))
     input_data = features[..., np.newaxis][np.newaxis, ...]
     pred_prob = model.predict(input_data).flatten()[0]
-    prediction_class = 1 if pred_prob >= 0.2798 else 0
-    # 8p2 = 0.3368
-    # 9p1 = 0.2798
-    # 9p2 = 0.3798
+    prediction_class = 1 if pred_prob >= 0.3306 else 0
+    # 8p2=0.3368, 9p1=0.2798, 9p2=0.3798, 9p2ft1=0.3656, 9p2ft2=0.3306
 
     # Save visualizations
     plots = {
