@@ -20,6 +20,10 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 def index():
     return render_template('index.html')
 
+@app.route('/wip')
+def wip():
+    return render_template('wip.html')
+
 @app.route('/navbar')
 def navbar():
     return render_template('includes/navbar.html')

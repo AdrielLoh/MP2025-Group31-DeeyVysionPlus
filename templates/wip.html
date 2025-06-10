@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Works in Progress | DeepVysion+</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background: #F6F8FA;
+      --cards-panels: #FFFFFF;
+      --accents-buttons: #2574A9;
+      --text: #23272F;
+      --secondary-text: #4f5259;
+      --links-highlights: #14B8A6;
+      --secondary-bg: #E6ECF3;
+      --muted-elements: #E5EAF2;
+      --disabled-elements: #9CA3AF;
+      --success: #21C36A;
+      --danger: #812620;
+    }
+    body {
+      background: var(--background);
+      font-family: 'Roboto';
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .wip-hero {
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem 1.5rem 1rem;
+      background: var(--cards-panels);
+      border-radius: 8px;
+      box-shadow: 0 2px 24px 0 rgba(35,39,47,0.05);
+      max-width: 960px;
+      margin: 2rem auto 2rem auto;
+    }
+    .wip-hero-text {
+      flex: 1;
+      text-align: center;
+    }
+    .wip-hero-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--accents-buttons);
+      letter-spacing: -1.5px;
+    }
+    .wip-hero-desc {
+      color: var(--secondary-text);
+      font-size: 1.18rem;
+      margin-bottom: 1.2rem;
+    }
+    @media (min-width: 700px) {
+      .wip-hero {
+        flex-direction: row;
+        padding: 3rem 2rem 2rem 2rem;
+      }
+      .wip-hero-text {
+        text-align: left;
+        padding-left: 2rem;
+      }
+      .wip-hero-img {
+        margin-bottom: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="wip-hero">
+      <div class="wip-hero-text">
+        <h1 class="wip-hero-title">Sorry! We do not have this feature yet</h1>
+        <p class="wip-hero-desc">
+          DeepVysion+ is an on-going project and we are working hard to improve existing features and introduce new ones. Stay tuned!
+        </p>
+        <a href="/" style="color: var(--links-highlights); text-decoration: none;"><b>< Return to DeepVysion+</b></a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

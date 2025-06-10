@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const stat2 = document.getElementById('stat2');
         const stat3 = document.getElementById('stat3');
         
-        if (stat1) countUp(stat1, 3000);
+        if (stat1) countUp(stat1, 95000);
         if (stat2) countUp(stat2, 85, true);
         if (stat3) countUp(stat3, 60, true);
     }
@@ -617,7 +617,7 @@ function checkAnswer(optionElem, selectedIndex) {
         explanationElem.textContent = "Correct! " + currentQuestions[currentQuestionIndex].explanation;
         score++;  // Increment score for correct answer
     } else {
-        optionElem.style.backgroundColor = 'red';
+        optionElem.style.backgroundColor = '#812620';
         explanationElem.textContent = "Incorrect. " + currentQuestions[currentQuestionIndex].explanation;
     }
 

@@ -4,28 +4,53 @@
     box-sizing: border-box;
 }
 
+/* :root {
+    --background: #0A192F;
+    --cards-panels: #233554;
+    --accents-buttons: #64FFDA;
+    --text: #fff;
+    --links-highlights: #37B6FF;
+    --secondary-bg: #E6ECF3;
+} */
+:root {
+    --background: #F6F8FA;
+    --cards-panels: #FFFFFF;
+    --accents-buttons: #2574A9;
+    --text: #23272F;
+    --secondary-text: #4f5259;
+    --links-highlights: #14B8A6;
+    --secondary-bg: #E6ECF3;
+    --muted-elements: #E5EAF2;
+    --disabled-elements: #9CA3AF;
+    --success: #21C36A;
+    --danger: #812620;
+}
 
 body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
-    background-color: #121212;
-    color: white;
+    background-color: var(--background);
+    color: var(--text);
 }
 
 header {
-    background-color: #000;
+    background-color: var(--cards-panels);
     padding: 1em 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
 }
 
 nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 2em;
+    padding: 0.5em 2em;
 }
 
 .nav-left .brand {
-    color: white;
+    color: var(--accents-buttons);
     text-decoration: none;
     font-size: 1.5em;
     font-weight: bold;
@@ -43,14 +68,14 @@ nav {
 }
 
 .nav-right li a {
-    color: white;
+    color: var(--accents-buttons);
     text-decoration: none;
     font-weight: bold;
     transition: color 0.3s ease;
 }
 
 .nav-right li a:hover {
-    color: gold;
+    color: var(--links-highlights);
 }
 
 .hero {
@@ -78,19 +103,30 @@ nav {
     text-align: center;
     animation: fadeIn 2s ease-in;
     z-index: 2;
-    color: white;
+    color: var(--secondary-bg);
     font-size: 30px;
+}
+
+#introduction p {
+    font-size: 1.23em;
+    color: var(--secondary-text);
 }
 
 .content {
     padding: 4em 2em;
     text-align: center;
 }
+.content h2 {
+    font-size: 2.1em;
+}
+.content h1 {
+    font-size: 2.1em;
+}
 
 .intro-text {
     font-size: 1.2em;
     margin-bottom: 1.5em;
-    color: #bbb;
+    color: var(--secondary-text);
     max-width: 1100px;
     margin: 0 auto;
     line-height: 1.5;
@@ -107,7 +143,7 @@ nav {
     max-width: 600px;
     height: auto;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07); 
 }
 
 .section {
@@ -118,10 +154,10 @@ nav {
     justify-content: center;
     margin: 2em auto;
     padding: 2em;
-    background-color: #1e1e1e;
-    border-radius: 12px;
+    background-color: var(--cards-panels);
+    border-radius: 8px;
     max-width: 1000px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     opacity: 0;
     transform: translateY(20px);
@@ -135,11 +171,11 @@ nav {
 
 .section:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
 }
 
 .section h2 {
-    color: gold;
+    color: var(--accents-buttons);
     margin-bottom: 1em;
     font-weight: 600;
     font-size: 1.8em;
@@ -163,7 +199,7 @@ nav {
 }
 
 .section h2 {
-    color: gold;
+    color: var(--accents-buttons);
     margin-bottom: 1em;
     font-weight: 600;
     font-size: 1.8em;
@@ -171,7 +207,7 @@ nav {
 }
 
 .section p, .section ul {
-    color: white;
+    color: var(--text);
     font-size: 1.1em;
     max-width: 800px;
     margin: 0 auto;
@@ -186,7 +222,7 @@ nav {
 .divider {
     width: 80%;
     height: 2px;
-    background: #333;
+    background: var(--links-highlights);
     margin: 1em auto;
 }
 
@@ -194,8 +230,8 @@ nav {
     display: inline-block;
     margin-top: 1em;
     padding: 0.7em 2.5em;
-    background-color: gold;
-    color: black;
+    background-color: var(--accents-buttons);
+    color: var(--background);
     font-weight: bold;
     border-radius: 8px;
     text-decoration: none;
@@ -203,9 +239,71 @@ nav {
 }
 
 .try-button:hover {
-    background-color: darkgoldenrod;
+    background-color: darkvar(--accents-buttons)enrod;
     transform: translateY(-3px);
 }
+
+.deepfake-stats-section {
+  background: var(--background);
+  padding: 3rem 1rem 2.5rem 1rem;
+  text-align: center;
+  margin: 2.5rem auto;
+  max-width: 90%;
+}
+
+.stats-title {
+  color: var(--text);
+  font-size: 2.1rem;
+  margin-bottom: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--cards-panels);
+  border-radius: 8px;
+  padding: 2rem 1rem;
+  box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 145px;
+}
+.stat-card a {
+    color: var(--links-highlights);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.18s;
+}
+.stat-card a:hover {
+    color: var(--accents-buttons);
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+  letter-spacing: -2px;
+}
+
+.stat-desc {
+  color: var(--text);
+  font-size: 1.08rem;
+  line-height: 1.35;
+}
+
+.stats-source a:hover {
+  color: var(--links-highlights);
+}
+
 
 @keyframes slideIn {
     from {
@@ -219,12 +317,12 @@ nav {
 }
 
 .highlight-box {
-    background-color: rgba(255, 215, 0, 0.2);
+    background-color: var(--secondary-text);
     padding: 0.5em 1em;
-    border-left: 5px solid gold;
+    border-left: 5px solid var(--accents-buttons);
     margin: 0.5em 0;
     font-size: 1.1em;
-    color: #ffffff;
+    color: var(--secondary-bg);
 }
 
 .team-member {
@@ -243,11 +341,11 @@ nav {
 }
 
 .team-member h3 {
-    color: gold;
+    color: var(--accents-buttons);
 }
 
 .team-member p {
-    color: white;
+    color: var(--text);
     font-size: 1em;
     max-width: 600px;
     margin: 0 auto;
@@ -269,11 +367,11 @@ nav {
 }
 
 .step h3 {
-    color: gold;
+    color: var(--accents-buttons);
 }
 
 .step p {
-    color: white;
+    color: var(--text);
     font-size: 1em;
     max-width: 800px;
     margin: 0 auto;
@@ -281,7 +379,7 @@ nav {
 }
 
 footer {
-    background-color: #000;
+    background-color: var(--cards-panels);
     padding: 2em 0;
     text-align: center;
 }
@@ -298,7 +396,7 @@ footer ul li {
 }
 
 footer ul li a {
-    color: gold;
+    color: var(--links-highlights);
     text-decoration: none;
 }
 
@@ -339,42 +437,60 @@ form input, form textarea {
     padding: 0.5em;
     margin-top: 0.5em;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
 }
 
 form button {
     display: inline-block;
     margin-top: 1em;
     padding: 0.7em 2.5em;
-    background-color: gold;
-    color: black;
+    background-color: var(--accents-buttons);
+    color: var(--background);
     font-weight: bold;
     border-radius: 8px;
     text-decoration: none;
     transition: background-color 0.3s ease, transform 0.3s ease;
+    border: none;
+    cursor: pointer;
 }
 
 form button:hover {
-    background-color: darkgoldenrod;
+    background-color: darkvar(--accents-buttons)enrod;
     transform: translateY(-3px);
+}
+
+.flex-div {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 2em;
+}
+
+.flex-div iframe {
+    width: 50%;
+    border-radius: 8px;
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
 }
 
 .statistics-container {
     display: flex;
-    justify-content: space-around;
+    flex-direction: column;
+    justify-content: space-evenly;
+    max-width: 40%;
+    height: 100%;
     margin: 2em 0;
 }
 
 .stat {
-    flex: 1;
-    margin: 0 1em;
-    background-color: #1e1e1e;
-    padding: 2em;
+    /* flex: 1; */
+    margin: 1em 1em;
+    background-color: var(--cards-panels);
+    padding: 1em;
     border-radius: 8px;
     text-align: center;
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.5s ease, transform 0.5s ease;
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
 }
 
 .stat.visible {
@@ -384,23 +500,24 @@ form button:hover {
 
 .stat h3 {
     font-size: 2em;
-    color: gold;
+    color: var(--accents-buttons);
     margin-bottom: 0.5em;
 }
 
 .stat p {
-    color: #ddd;
+    color: var(--text);
 }
 
 #resources h2 {
     text-align: center;
     margin-bottom: 1em;
-    color: white;
+    color: var(--text);
 }
 
 .clickable-boxes .box h2 {
-    color: gold !important; 
+    color: var(--accents-buttons) !important; 
     margin-bottom: 1em;
+    font-size: 1.55em;
 }
 
 .clickable-boxes {
@@ -412,7 +529,7 @@ form button:hover {
 }
 
 .clickable-boxes .box {
-    background-color: #1e1e1e;
+    background-color: var(--cards-panels);
     padding: 2em;
     border-radius: 8px;
     text-align: center;
@@ -420,11 +537,11 @@ form button:hover {
     height: 200px;
     transition: background-color 0.3s ease, opacity 0.5s ease, transform 0.5s ease;
     text-decoration: none;
-    color: white;
     display: flex;
     flex-direction: column;
     justify-content: center;
     opacity: 0;
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
     transform: translateY(20px);
 }
 
@@ -439,12 +556,16 @@ form button:hover {
 }
 
 .clickable-boxes .box:hover {
-    background-color: #333;
+    background-color: var(--accents-buttons);
+}
+.clickable-boxes .box:hover * {
+    color: var(--background) !important;
 }
 
 .clickable-boxes .box p {
-    color: #ddd;
+    color: var(--text);
     flex-grow: 1;
+    font-size: 1.1em;
 }
 
 .search-bar {
@@ -455,14 +576,14 @@ form button:hover {
 }
 
 .search-input {
-    width: 400px;
-    padding: 10px 20px 10px 40px;
-    border-radius: 25px;
-    border: 1px solid #ccc;
+    width: 50%;
+    padding: 1em 0.5em 1em 2.7em;
+    border-radius: 8px;
+    border: none;
     font-size: 16px;
     background: #fff url('../images/search-icon.png') no-repeat 10px center;
     background-size: 20px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
 }
 
 .image-credit {
@@ -484,7 +605,7 @@ img {
     cursor: pointer;
 }
 .dropbox.dragover {
-    border-color: gold;
+    border-color: var(--accents-buttons);
 }
 .dropbox video {
     max-width: 100%;
@@ -493,16 +614,16 @@ img {
 
 .back-button {
     background-color: #fff;
-    color: #000;
+    color: var(--cards-panels);
     border: 1px solid #ccc;
     padding: 0.5em 1em;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     margin-bottom: 1em;
 }
 
 .back-button:hover {
-    background-color: #f0f0f0;
+    background-color: var(--accents-buttons);
 }
 
 .modal {
@@ -518,8 +639,8 @@ img {
 }
 
 .modal-content {
-    background-color: #1e1e1e;
-    color: white;
+    background-color: var(--cards-panels);
+    color: var(--text);
     margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
@@ -532,10 +653,10 @@ img {
 .volume-meter {
     width: 100%;
     height: 20px;
-    background-color: #ddd;
+    background-color: var(--secondary-text);
     margin: 20px 0;
     position: relative;
-    border-radius: 4px;
+    border-radius: 8px;
     overflow: hidden;
 }
 
@@ -558,17 +679,17 @@ img {
 }
 
 #stop-recording-btn {
-    background-color: gold;
+    background-color: var(--accents-buttons);
     border: none;
     padding: 10px 20px;
     font-size: 1em;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 8px;
     margin-top: 20px;
 }
 
 #stop-recording-btn:hover {
-    background-color: darkgoldenrod;
+    background-color: darkvar(--accents-buttons)enrod;
 }
 
 .centered {
@@ -580,24 +701,25 @@ img {
 }
 
 .about-section {
-    background-color: #121212;
+    background-color: var(--background);
     padding: 4em 2em;
-    color: white;
+    color: var(--text);
     text-align: center;
     position: relative;
     overflow: hidden;
 }
 
 .about-section h1{
-    font-size: 30px;
+    font-size: 2.1em;
 }
 
 .about-intro {
     max-width: 1100px;
     margin: 0 auto;
-    font-size: 20px;
+    font-size: 1.12em;
     position: relative;
     z-index: 2;
+    color: var(--secondary-text);
 }
 
 .about-intro::before {
@@ -612,7 +734,7 @@ img {
 }
 
 .team-section {
-    background-color: #121212;
+    background-color: var(--background);
     padding: 4em 2em;
     text-align: center;
 }
@@ -631,10 +753,10 @@ img {
 }
 
 .team-member {
-    background-color: #1e1e1e;
+    background-color: var(--cards-panels);
     padding: 2.5em;
-    border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     text-align: center;
     max-width: 550px;
@@ -650,20 +772,20 @@ img {
 }
 
 .team-member h3 {
-    color: #ffffff;
+    color: var(--text);
     margin-bottom: 0.5em;
     font-size: 1.6em;
 }
 
 .team-member p {
-    color: #cccccc;
+    color: var(--secondary-text);
     font-size: 1.1em;
     line-height: 1.6;
 }
 
 .team-member:hover {
     transform: translateY(-10px);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
 }
 
 .team-member:hover img {
@@ -686,9 +808,9 @@ img {
 }
 
 .quiz-section {
-    background-color: #1e1e1e;
+    background-color: var(--cards-panels);
     padding: 4em 2em;
-    color: white;
+    color: var(--secondary-bg);
     text-align: center;
 }
 
@@ -697,19 +819,20 @@ img {
     margin: 0 auto;
     background-color: #2b2b2b;
     padding: 2em;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
     transition: transform 0.3s ease;
 }
 
 #quiz-container:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
 }
 
 .quiz-question {
     font-size: 1.2em;
     margin-bottom: 1em;
+    color: var(--secondary-bg);
 }
 
 .quiz-options {
@@ -721,9 +844,10 @@ img {
     margin: 0.5em 0;
     background-color: #444;
     padding: 1em;
-    border-radius: 12px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
+    color: var(--secondary-bg);
 }
 
 .quiz-options li:hover {
@@ -732,11 +856,11 @@ img {
 }
 
 .quiz-options li.correct {
-    background-color: green !important;
+    background-color: var(--success) !important;
 }
 
 .quiz-options li.incorrect {
-    background-color: red !important;
+    background-color: var(--danger) !important;
 }
 
 #results-container {
@@ -745,8 +869,8 @@ img {
 }
 
 #results-container button {
-    background-color: gold;
-    color: black;
+    background-color: var(--accents-buttons);
+    color: var(--background);
     padding: 0.7em 2.5em;
     border-radius: 8px;
     border: none;
@@ -755,14 +879,14 @@ img {
 }
 
 #results-container button:hover {
-    background-color: darkgoldenrod;
+    background-color: darkvar(--accents-buttons)enrod;
 }
 
 
 #progress-bar-container {
     width: 100%;
     height: 12px; 
-    background-color: #333;
+    background-color: var(--links-highlights);
     border-radius: 5px;
     margin: 20px 0;
 }
@@ -770,7 +894,7 @@ img {
 #progress-bar {
     width: 0%;
     height: 100%;
-    background-color: gold;
+    background-color: var(--accents-buttons);
     border-radius: 5px;
     transition: width 0.5s ease;
 
@@ -788,13 +912,13 @@ img {
 }
 
 .correct {
-    color: white;
+    color: var(--text);
     background-color: green;
 }
 
 .incorrect {
-    color: white;
-    background-color: red;
+    color: var(--text);
+    background-color: var(--danger);
 }
 
 .feedback.visible {
@@ -814,10 +938,10 @@ img {
 }
 
 #results-container button {
-    background-color: gold;
-    color: black;
+    background-color: var(--accents-buttons);
+    color: var(--background);
     padding: 0.7em 2.5em;
-    border-radius: 12px;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
     font-weight: bold;
@@ -826,14 +950,14 @@ img {
 }
 
 #results-container button:hover {
-    background-color: darkgoldenrod;
+    background-color: darkvar(--accents-buttons)enrod;
     transform: translateY(-3px);
 }
 
 .result-message {
     font-size: 1.5em;
     font-weight: bold; 
-    color: gold; 
+    color: var(--accents-buttons); 
     margin-top: 20px; 
     text-align: center; 
     letter-spacing: 1px; 
@@ -860,31 +984,32 @@ img {
 }
 
 .cta-link {
-    color: gold;
+    color: var(--links-highlights);
     font-weight: bold;
     text-decoration: underline;
     transition: color 0.3s ease;
 }
 
 .cta-link:hover {
-    color: darkgoldenrod;
+    color: darkvar(--accents-buttons)enrod;
 }
 
 .next-button {
     display: inline-block;
     margin-top: 20px;
     padding: 0.7em 2.5em;
-    background-color: gold;
-    color: black;
+    background-color: var(--accents-buttons);
+    color: var(--background);
     font-weight: bold;
     border-radius: 8px;
     text-decoration: none;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
+    border: none;
 }
 
 .next-button:hover {
-    background-color: darkgoldenrod;
+    background-color: darkvar(--accents-buttons)enrod;
     transform: translateY(-3px);
 }
 
@@ -894,7 +1019,7 @@ img {
 
 .graph-description {
     font-size: 1em;
-    color: #ddd;
+    color: var(--secondary-text);
     margin-bottom: 1em;
 }
 
@@ -903,15 +1028,14 @@ img {
     max-width: 800px;
     height: auto;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .back-button {
     display: inline-block;
     margin-top: 1em;
     padding: 0.7em 2.5em;
-    background-color: gold;
-    color: black;
+    background-color: var(--accents-buttons);
+    color: var(--background);
     font-weight: bold;
     border-radius: 8px;
     text-decoration: none;
@@ -919,7 +1043,7 @@ img {
 }
 
 .back-button:hover {
-    background-color: darkgoldenrod;
+    background-color: darkvar(--accents-buttons)enrod;
     transform: translateY(-3px);
 }
 
@@ -930,10 +1054,10 @@ img {
     justify-content: center;
     margin: 2em auto;
     padding: 2em;
-    background-color: #1e1e1e;
-    border-radius: 12px;
+    background-color: var(--cards-panels);
+    border-radius: 8px;
     max-width: 1200px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     opacity: 0;
     transform: translateY(20px);
@@ -947,7 +1071,7 @@ img {
 
 .wide-section:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
 }
 
 .game-container {
@@ -981,7 +1105,7 @@ img {
     min-height: 350px;
     background-color: #444;
     padding: 2em;
-    border-radius: 12px;
+    border-radius: 8px;
     width: 40%;
     border: 2px dashed #777;
     transition: background-color 0.3s ease;
@@ -989,7 +1113,7 @@ img {
 }
 
 .incorrect-dropzone {
-    border-color: red;
+    border-color: var(--danger);
     background-color: rgba(255, 0, 0, 0.2);
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
@@ -1005,12 +1129,12 @@ img {
 }
 
 .incorrect-card {
-    border-color: red;
+    border-color: var(--danger);
 }
 
 
 .dropzone h2 {
-    color: white;
+    color: var(--secondary-bg);
     font-size: 1.5em;
     margin-bottom: 1em;
     top: 10px;
@@ -1057,7 +1181,7 @@ img {
 .draggable.active {
     cursor: grabbing;
     transform: scale(1.1);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
     z-index: 1000;
 }
 
@@ -1065,7 +1189,7 @@ img {
     margin-top: 1em;
     font-size: 1.2em;
     font-weight: bold;
-    color: gold;
+    color: var(--accents-buttons);
 }
 
 .countdown-timer {
@@ -1078,7 +1202,7 @@ img {
 
 .score-container {
     font-size: 1.5em;
-    color: white;
+    color: var(--text);
     margin-bottom: 1em;
 }
 
@@ -1104,11 +1228,11 @@ img {
     display: none;
     text-align: left;
     padding: 2em;
-    background-color: #1e1e1e;
-    border-radius: 12px;
+    background-color: var(--cards-panels);
+    border-radius: 8px;
     max-width: 1000px;
     margin: 2em auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.07);
 }
 
 .results-container {
@@ -1147,14 +1271,14 @@ img {
 }
 
 .results-text h2 {
-    color: gold;
+    color: var(--accents-buttons);
     margin-bottom: 1em;
     font-weight: 600;
     font-size: 1.8em;
 }
 
 .results-text p {
-    color: white;
+    color: var(--text);
     font-size: 1.2em;
     margin-bottom: 1em;
 }
@@ -1162,8 +1286,8 @@ img {
 #restart-button {
     margin-top: 1em;
     padding: 0.7em 2.5em;
-    background-color: gold;
-    color: black;
+    background-color: var(--accents-buttons);
+    color: var(--background);
     font-weight: bold;
     border-radius: 8px;
     text-decoration: none;
@@ -1172,7 +1296,7 @@ img {
 }
 
 #restart-button:hover {
-    background-color: darkgoldenrod;
+    background-color: darkvar(--accents-buttons)enrod;
     transform: translateY(-3px);
 }
 
@@ -1205,7 +1329,7 @@ img {
 
         .spinner {
             border: 5px solid rgba(255, 248, 248, 0.1);
-            border-left-color: #ffffff;
+            border-left-color: var(--text);
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -1220,6 +1344,6 @@ img {
 
         /* Disabled button style */
         button:disabled {
-            background-color: gray;
+            background-color: var(--disabled-elements);
             cursor: not-allowed;
         }
