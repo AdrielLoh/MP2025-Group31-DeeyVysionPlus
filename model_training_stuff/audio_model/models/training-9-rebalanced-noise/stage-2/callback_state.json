@@ -1,0 +1,6 @@
+{
+    "reduce_lr_wait": 1,
+    "early_stop_wait": 6,
+    "best_val_loss": 0.004306856542825699,
+    "last_epoch": 30
+}

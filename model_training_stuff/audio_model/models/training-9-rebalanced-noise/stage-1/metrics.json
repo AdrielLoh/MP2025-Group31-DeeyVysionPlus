@@ -1,0 +1,6 @@
+{
+    "final_learning_rate": 0.0010000000474974513,
+    "best_val_loss": 0.004486367106437683,
+    "best_val_accuracy": 0.9891454577445984,
+    "best_val_auc": 0.9993757009506226
+}
