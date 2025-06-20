@@ -5,8 +5,8 @@ from glob import glob
 from tqdm import tqdm
 
 # --- Config ---
-TRAIN_CACHE = 'G:/deepfake_training_datasets/faceforensics/cache/batches/train'  # Change as needed
-VAL_CACHE = 'G:/deepfake_training_datasets/faceforensics/cache/batches/val'      # Change as needed
+TRAIN_CACHE = 'D:/model_training/cache/batches/train'  # Change as needed
+VAL_CACHE = 'D:/model_training/cache/batches/val'      # Change as needed
 EPOCHS = 30
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-4
