@@ -6,7 +6,7 @@ import json
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
 from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
-from detection_scripts.physiological_signal_script import detect_physiological_signal, real_time_detection
+from detection_scripts.physiological_signal_script import run_detection
 from detection_scripts.audio_analysis_script import predict_audio, predict_real_time_audio
 from detection_scripts.visual_artifacts_script import live_detection as visual_artifacts_live_detection
 from detection_scripts.visual_artifacts_script import static_video_detection as visual_artifacts_static_detection
@@ -127,41 +127,39 @@ def deep_learning_based_detection():
 
 @app.route('/physiological_signal_analysis', methods=['GET', 'POST'])
 def physiological_signal_analysis():
-    if request.method == 'POST':
-        output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
-        os.makedirs(output_folder, exist_ok=True)
-        file = request.files['file']
-        if file:
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(filename)
-            prediction, hr, confidence, real_count, fake_count = detect_physiological_signal(filename, output_folder)
-            if prediction == "REAL":
-                result = "Real"
-            elif prediction == "FAKE":
-                result = "Fake"
-            else:
-                result = f'The video is predicted to be UNKNOWN with {real_count} real predictions and {fake_count} fake predictions.'
-            return render_template('result.html', analysis_type='physiological', result=result, hr=hr, confidence=confidence, real_count=real_count, fake_count=fake_count)
-    return render_template('physiological_signal_analysis.html')
-
-@app.route('/physiological_signal_try', methods=['GET', 'POST'])
-def physiological_signal_try():
-    output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
+    output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
         file = request.files['file']
         if file:
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filename)
-            prediction, hr, confidence, real_count, fake_count = detect_physiological_signal(filename, output_folder)
-            if prediction == "REAL":
-                result = "Real"
-            elif prediction == "FAKE":
-                result = "Fake"
-            else:
-                result = f'The video is predicted to be UNKNOWN with {real_count} real predictions and {fake_count} fake predictions.'
-            return render_template('result.html', analysis_type='physiological', result=result, hr=hr, confidence=confidence, real_count=real_count, fake_count=fake_count)
+            prediction, hr, confidence, real_count, fake_count, signal_plot, spectrum_plot, output_video  = run_detection(filename, is_webcam=False)
+            return render_template('result.html', analysis_type='physiological', result=prediction, hr=hr, confidence=confidence,
+                                   real_count=real_count, fake_count=fake_count, signal_plot=signal_plot, spectrum_plot=spectrum_plot, output_video=output_video)
+    return render_template('physiological_signal_analysis.html')
+
+@app.route('/physiological_signal_try', methods=['GET', 'POST'])
+def physiological_signal_try():
+    output_folder = 'static/results'
+    os.makedirs(output_folder, exist_ok=True)
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            file.save(filename)
+            prediction, hr, confidence, real_count, fake_count, signal_plot, spectrum_plot, output_video  = run_detection(filename, is_webcam=False)
+            return render_template('result.html', analysis_type='physiological', result=prediction, hr=hr, confidence=confidence,
+                                   real_count=real_count, fake_count=fake_count, signal_plot=signal_plot, spectrum_plot=spectrum_plot, output_video=output_video)
     return render_template('physiological_signal_try.html')
+
+@app.route('/start_real_time_detection', methods=['POST'])
+def start_real_time_detection():
+    output_folder = 'static/results'
+    os.makedirs(output_folder, exist_ok=True)
+    prediction, hr, confidence, real_count, fake_count, signal_plot, spectrum_plot, output_video  = run_detection(0, is_webcam=True)
+    return render_template('result.html', analysis_type='physiological', result=prediction, hr=hr, confidence=confidence,
+                                   real_count=real_count, fake_count=fake_count, signal_plot=signal_plot, spectrum_plot=spectrum_plot, output_video=output_video)
 
 @app.route('/visual_artifacts_detection')
 def visual_artifacts_detection():
@@ -236,24 +234,6 @@ def visual_artifacts_static():
 
     return render_template('result.html', analysis_type='visual_artifact_static', result=overall_results, real_count=real_frame_count, fake_count=fake_frame_count)
 
-
-@app.route('/start_real_time_detection', methods=['POST'])
-def start_real_time_detection():
-    output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
-    os.makedirs(output_folder, exist_ok=True)
-    
-    # Unpack the correct number of values from real_time_detection
-    final_prediction, hr, confidence, real_count, fake_count = real_time_detection(output_folder)
-    
-    # Construct the result message
-    if final_prediction == "REAL":
-        result = f'The video is predicted to be REAL with {real_count} real predictions and {fake_count} fake predictions.'
-    elif final_prediction == "FAKE":
-        result = f'The video is predicted to be FAKE with {real_count} real predictions and {fake_count} fake predictions.'
-    else:
-        result = f'The video is predicted to be UNKNOWN with {real_count} real predictions and {fake_count} fake predictions.'
-    
-    return render_template('result.html', analysis_type='physiological', result=result, hr=hr)
 
 @app.route('/audio_analysis', methods=['GET', 'POST'])
 def audio_analysis():

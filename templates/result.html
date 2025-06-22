@@ -58,33 +58,29 @@
             <p>{{ hr }}</p>
 
             <div class="graph-container wide-section">
+                <h2>Prediction Playback</h2>
+                <p class="graph-description">View the deepfake detection in action</p>
+                <video width="840" height="560" controls>
+                    <source src="{{ url_for('static', filename='results/output.mp4') }}" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="graph-container wide-section">
                 <h2>Real and Fake Count</h2>
                 <p class="graph-description">This graph shows the number of real and fake frames counted during analysis.</p>
-                <img src="{{ url_for('static', filename='uploads/results/prediction_counts.png') }}" alt="Original Signal">
+                <img src="{{ url_for('static', filename='results/prediction_counts.png') }}" alt="Original Signal">
             </div>
 
             <div class="graph-container wide-section">
-                <h2>Original Signal</h2>
-                <p class="graph-description">This graph shows the raw physiological signals extracted from the facial regions, reflecting the natural variations in signal intensity over time.</p>
-                <img src="{{ url_for('static', filename='uploads/results/original_signal.png') }}" alt="Original Signal">
-            </div>
-
-            <div class="graph-container wide-section">
-                <h2>Filtered Signal</h2>
+                <h2>rPPG Signal</h2>
                 <p class="graph-description">This graph represents the filtered version of the original signal, where noise has been reduced to focus on the heart rate-related frequency range.</p>
-                <img src="{{ url_for('static', filename='uploads/results/filtered_signal.png') }}" alt="Filtered Signal">
+                <img src="{{ signal_plot }}" alt="rPPG Signal">
             </div>
 
             <div class="graph-container wide-section">
-                <h2>Heart Rate Distribution</h2>
+                <h2>rPPG Power Spectrum</h2>
                 <p class="graph-description">This histogram illustrates the distribution of heart rates detected in the signal, helping to understand the consistency and pattern of the detected physiological response.</p>
-                <img src="{{ url_for('static', filename='uploads/results/heart_rate_distribution.png') }}" alt="Heart Rate Distribution">
-            </div>
-
-            <div class="graph-container wide-section">
-                <h2>Prediction Result</h2>
-                <p class="graph-description">This image provides the final prediction result, indicating whether the video is classified as real or fake, along with the confidence level of the prediction.</p>
-                <img src="{{ url_for('static', filename='uploads/results/prediction_result.png') }}" alt="Prediction Result">
+                <img src="{{ spectrum_plot }}" alt="rPPG Spectrum">
             </div>
         {% elif analysis_type == 'deep_learning' %}
             <h2>Overall Result</h2>

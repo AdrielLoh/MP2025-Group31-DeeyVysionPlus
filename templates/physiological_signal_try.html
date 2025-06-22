@@ -6,6 +6,29 @@
     <title>Try Physiological Signal Detection</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let form = document.getElementById("upload-form");
+            let spinner = document.getElementById("loadingSpinner");
+
+            form.addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                // Disable the button and change text
+                submitButton.disabled = true;
+                submitButton.innerText = "Processing...";
+
+                // Show the spinner
+                spinner.style.display = "block";
+
+                // Submit the form normally
+                form.setAttribute("action", "/physiological_signal_try");
+                form.setAttribute("method", "POST");
+                form.submit();
+                return;
+            });
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -13,13 +36,17 @@
     </header>
     <section class="content">
         <h1>Try Physiological Signal Detection</h1>
-        <form id="upload-form" method="POST" enctype="multipart/form-data">
+        <form id="upload-form" enctype="multipart/form-data">
             <div id="dropbox" class="dropbox">
                 <p>Drag & drop a video file here, or click to select one</p>
                 <input type="file" name="file" id="file" accept="video/*" required>
                 <video id="video-preview" controls style="display: none;"></video>
             </div>
-            <button type="submit">Submit</button>
+            <button type="submit" id="submitButton">Submit</button>
+            <div id="loadingSpinner">
+                <div class="spinner"></div>
+                <p>Processing video... Please wait.</p>
+            </div>
         </form>
         <form action="{{ url_for('start_real_time_detection') }}" method="POST">
             <h3>Real-Time Detection</h3>
