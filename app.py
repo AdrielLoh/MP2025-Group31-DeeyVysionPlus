@@ -139,8 +139,7 @@ def physiological_signal_analysis():
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filename)
             prediction, hr, confidence, real_count, fake_count, signal_plot, spectrum_plot, output_video  = run_detection(filename, is_webcam=False)
-            return render_template('result.html', analysis_type='physiological', result=prediction, hr=hr, confidence=confidence,
-                                   real_count=real_count, fake_count=fake_count, signal_plot=signal_plot, spectrum_plot=spectrum_plot, output_video=output_video)
+            return render_template('result.html', analysis_type='physiological', result=prediction, hr=hr, confidence=confidence, real_count=real_count, fake_count=fake_count, signal_plot=signal_plot, spectrum_plot=spectrum_plot, output_video=output_video)
     return render_template('physiological_signal_analysis.html')
 
 @app.route('/physiological_signal_try', methods=['GET', 'POST'])
@@ -153,8 +152,7 @@ def physiological_signal_try():
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filename)
             prediction, hr, confidence, real_count, fake_count, signal_plot, spectrum_plot, output_video  = run_detection(filename, is_webcam=False)
-            return render_template('result.html', analysis_type='physiological', result=prediction, hr=hr, confidence=confidence,
-                                   real_count=real_count, fake_count=fake_count, signal_plot=signal_plot, spectrum_plot=spectrum_plot, output_video=output_video)
+            return render_template('result.html', analysis_type='physiological', result=prediction, hr=hr, confidence=confidence, real_count=real_count, fake_count=fake_count, signal_plot=signal_plot, spectrum_plot=spectrum_plot, output_video=output_video)
     return render_template('physiological_signal_try.html')
 
 @app.route('/start_real_time_detection', methods=['POST'])
@@ -162,8 +160,7 @@ def start_real_time_detection():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
     prediction, hr, confidence, real_count, fake_count, signal_plot, spectrum_plot, output_video  = run_detection(0, is_webcam=True)
-    return render_template('result.html', analysis_type='physiological', result=prediction, hr=hr, confidence=confidence,
-                                   real_count=real_count, fake_count=fake_count, signal_plot=signal_plot, spectrum_plot=spectrum_plot, output_video=output_video)
+    return render_template('result.html', analysis_type='physiological', result=prediction, hr=hr, confidence=confidence, real_count=real_count, fake_count=fake_count, signal_plot=signal_plot, spectrum_plot=spectrum_plot, output_video=output_video)
 
 @app.route('/visual_artifacts_detection')
 def visual_artifacts_detection():
