@@ -48,40 +48,42 @@
                 </div>
             {% endif %}
         {% elif analysis_type == 'physiological' %}
-            <h2>Overall Result</h2>
-            <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
-                {{ result }}
+            {% if face_results|length == 0 %}
+            <h3 style="color: orange;">No faces were detected for a sufficient duration to perform a reliable deepfake prediction.</h3>
+            <p>Try a longer or clearer video with more visible faces. The video should preferrably be at least 5 seconds for best detection performance.</p>
+            {% endif %}
+
+            {% for face in face_results %}
+            <h2>Face {{ face.track_id }}</h2>
+            <h3 style="color: {% if face.result == 'Real' %}green{% elif face.result == 'Fake' %}red{% else %}white{% endif %};">
+                {{ face.result }}
             </h3>
-            <h2>Counts of Real and Fake Predictions</h2>
-            <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
-            <h2>Average Heart Rate:</h2>
-            <p>{{ hr }}</p>
+            <p>Real: {{ face.real_count }}, Fake: {{ face.fake_count }}</p>
+            <p>Average HR: {{ face.hr }}</p>
+            <p>Average Confidence: {{ face.confidence }}</p>
+            <img src="{{ face.signal_plot }}" alt="rPPG Signal">
+            <img src="{{ face.spectrum_plot }}" alt="rPPG Spectrum">
+            <img src="{{ face.pred_count_plot }}" alt="Prediction Counts">
+            {% endfor %}
 
             <div class="graph-container wide-section">
                 <h2>Prediction Playback</h2>
                 <p class="graph-description">View the deepfake detection in action</p>
-                <video width="840" height="560" controls>
-                    <source src="{{ url_for('static', filename='results/output.mp4') }}" type="video/mp4">
-                </video>
+                <video id="physio-video" width="840" height="560" controls></video>
             </div>
-
-            <div class="graph-container wide-section">
-                <h2>Real and Fake Count</h2>
-                <p class="graph-description">This graph shows the number of real and fake frames counted during analysis.</p>
-                <img src="{{ url_for('static', filename='results/prediction_counts.png') }}" alt="Original Signal">
             </div>
-
-            <div class="graph-container wide-section">
-                <h2>rPPG Signal</h2>
-                <p class="graph-description">This graph represents the filtered version of the original signal, where noise has been reduced to focus on the heart rate-related frequency range.</p>
-                <img src="{{ signal_plot }}" alt="rPPG Signal">
-            </div>
-
-            <div class="graph-container wide-section">
-                <h2>rPPG Power Spectrum</h2>
-                <p class="graph-description">This histogram illustrates the distribution of heart rates detected in the signal, helping to understand the consistency and pattern of the detected physiological response.</p>
-                <img src="{{ spectrum_plot }}" alt="rPPG Spectrum">
-            </div>
+            <script>
+                window.onload = function () {
+                setTimeout(function () {
+                    const video = document.getElementById('physio-video');
+                    const source = document.createElement('source');
+                    source.src = '{{ output_video }}'; // Replace with your actual video path
+                    source.type = 'video/mp4';
+                    video.appendChild(source);
+                    video.load(); // Start loading the video
+                }, 1000); // 1000 milliseconds = 1 second
+                };
+            </script>
         {% elif analysis_type == 'deep_learning' %}
             <h2>Overall Result</h2>
             <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">

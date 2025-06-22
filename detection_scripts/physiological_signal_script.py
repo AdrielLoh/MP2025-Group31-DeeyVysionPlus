@@ -14,8 +14,7 @@ face_net = cv2.dnn.readNetFromCaffe(FACE_PROTO, FACE_MODEL)
 
 def detect_faces_dnn(frame, conf_threshold=0.5):
     h, w = frame.shape[:2]
-    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0,
-                                 (300, 300), (104.0, 177.0, 123.0))
+    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
     face_net.setInput(blob)
     detections = face_net.forward()
     boxes = []
@@ -102,9 +101,10 @@ def plot_rppg_analysis(rppg_sig, f, pxx, real_count, fake_count, save_dir, track
     plt.xlabel('Prediction Type')
     plt.ylabel('Count')
     plt.tight_layout()
-    plt.savefig('static/results/prediction_counts.png')
+    prediction_count_path = os.path.join(save_dir, f'prediction_count_{plot_id}.png')
+    plt.savefig(prediction_count_path)
     plt.clf()
-    return rppg_signal_plot_path, rppg_spectrum_plot_path
+    return rppg_signal_plot_path, rppg_spectrum_plot_path, prediction_count_path
 
 def compute_rppg_features(rgb_signal, fs):
     rgb_detrend = detrend(rgb_signal, axis=0)
@@ -128,17 +128,23 @@ def compute_rppg_features(rgb_signal, fs):
                 np.ptp(rppg_sig), hr_freq, hr_bpm, hr_power, snr]
     return features, hr_bpm, rppg_sig, f, pxx
 
-def draw_output(frame, face_box, prediction, confidence, hr_bpm, time_stamp):
+def draw_output(frame, face_box, prediction, confidence, hr_bpm, time_stamp, track_id):
     x, y, w, h = face_box
-    label = f"{prediction.upper()} - HR: {hr_bpm:.2f} BPM"
-    conf_label = f"Confidence: {confidence:.2f}"
-    time_label = f"Time: {time_stamp}s"
     color = (0, 255, 0) if prediction == 'REAL' else (0, 0, 255)
+    label = f"Face {track_id}"
+    # Draw the rectangle
     cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-    cv2.putText(frame, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
-    cv2.putText(frame, conf_label, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
-    cv2.putText(frame, time_label, (10, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+    # Draw the Face label above the top-left corner
+    cv2.putText(frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+    # Draw metrics below the rectangle (not overlapping)
+    y_text = y + h + 25
+    cv2.putText(frame, f"{prediction.upper()} - HR: {hr_bpm:.2f} BPM", (x, y_text), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+    y_text += 25
+    cv2.putText(frame, f"Confidence: {confidence:.2f}", (x, y_text), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+    y_text += 25
+    cv2.putText(frame, f"Time: {time_stamp}s", (x, y_text), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
     return frame
+
 
 def clamp_box(box, frame_shape):
     x, y, w, h = box
@@ -162,20 +168,24 @@ def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=Fa
     cap = cv2.VideoCapture(0 if is_webcam else source)
     fps = get_video_fps(cap)
     width, height = int(cap.get(3)), int(cap.get(4))
-     # Use H.264 for .mp4 
+
     try:
-        fourcc = cv2.VideoWriter_fourcc(*'avc1') # H.264
+        fourcc = cv2.VideoWriter_fourcc(*'avc1')
         test_writer = cv2.VideoWriter('test_h264.mp4', fourcc, fps, (width, height))
         if not test_writer.isOpened():
             raise RuntimeError('H.264 codec not available.')
         test_writer.release()
     except Exception:
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v') # fallback
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
     frame_idx = 0
-    all_predictions, real_count, fake_count, hr_values = [], 0, 0, []
     tracks = []
-    face_rgb_history = {}
+    face_rgb_history = {}       # {track_id: [ [r,g,b], ... ] }
+    face_pred_history = {}      # {track_id: [ 'REAL'/'FAKE', ... ] }
+    face_prob_history = {}      # {track_id: [ prob, ... ] }
+    face_hr_history = {}        # {track_id: [ bpm, ... ] }
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -197,6 +207,9 @@ def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=Fa
             rgb_mean = [np.mean(r), np.mean(g), np.mean(b)]
             if track_id not in face_rgb_history:
                 face_rgb_history[track_id] = []
+                face_pred_history[track_id] = []
+                face_prob_history[track_id] = []
+                face_hr_history[track_id] = []
             face_rgb_history[track_id].append(rgb_mean)
             rgb_window = np.array(face_rgb_history[track_id][-150:])
             if rgb_window.shape[0] < 10:
@@ -205,23 +218,51 @@ def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=Fa
             features_scaled = scaler.transform([features])
             prob = clf.predict_proba(features_scaled)[0][1]
             prediction = 'FAKE' if prob > 0.4046 else 'REAL'
-            if prediction == 'FAKE':
-                fake_count += 1
-            else:
-                real_count += 1
-            all_predictions.append(prob)
-            hr_values.append(hr_bpm)
-            frame = draw_output(frame, (x, y, w, h), prediction, prob, hr_bpm, frame_idx // int(fps))
+            face_pred_history[track_id].append(prediction)
+            face_prob_history[track_id].append(prob)
+            face_hr_history[track_id].append(hr_bpm)
+            # Draw per-face prediction live
+            frame = draw_output(frame, (x, y, w, h), prediction, prob, hr_bpm, frame_idx // int(fps), track_id)
         out.write(frame)
         frame_idx += 1
     cap.release()
     out.release()
-    for track_id, rgb_hist in face_rgb_history.items():
-        rgb_arr = np.array(rgb_hist)
-        if rgb_arr.shape[0] >= 10:
+
+    # Compute per-face results
+    face_results = []
+    MIN_PREDICTIONS = 30
+    for track_id, preds in face_pred_history.items():
+        if len(preds) < MIN_PREDICTIONS:
+            # Ignore/report nothing for faces that were tracked too briefly
+            continue
+        n_real = preds.count('REAL')
+        n_fake = preds.count('FAKE')
+        if n_real > n_fake:
+            result = 'Real'
+        elif n_fake > n_real:
+            result = 'Fake'
+        else:
+            result = 'Unknown'
+        avg_hr = np.mean(face_hr_history[track_id]) if face_hr_history[track_id] else 0
+        avg_conf = np.mean(face_prob_history[track_id]) if face_prob_history[track_id] else 0.0
+        rgb_arr = np.array(face_rgb_history[track_id])
+        if rgb_arr.shape[0] >= MIN_PREDICTIONS:
             features, hr_bpm, rppg_sig, f, pxx = compute_rppg_features(rgb_arr, fs=fps)
-            signal_plot, spectrum_plot = plot_rppg_analysis(rppg_sig, f, pxx, real_count, fake_count, save_dir=os.path.dirname(output_path), track_id=track_id)
-    final_prediction = 'Fake' if fake_count > real_count else 'Real' if real_count > fake_count else 'Unknown'
-    avg_hr = np.mean(hr_values) if hr_values else 0
-    avg_conf = np.mean(all_predictions) if all_predictions else 0.0
-    return final_prediction, avg_hr, avg_conf, real_count, fake_count, signal_plot, spectrum_plot, output_path
+            signal_plot, spectrum_plot, pred_count_plot = plot_rppg_analysis(
+                rppg_sig, f, pxx, n_real, n_fake, save_dir=os.path.dirname(output_path), track_id=track_id)
+        else:
+            signal_plot, spectrum_plot, pred_count_plot = None, None, None
+        face_results.append({
+            'track_id': track_id,
+            'result': result,
+            'real_count': n_real,
+            'fake_count': n_fake,
+            'hr': avg_hr,
+            'confidence': avg_conf,
+            'signal_plot': signal_plot,
+            'spectrum_plot': spectrum_plot,
+            'pred_count_plot': pred_count_plot
+        })
+
+
+    return face_results, output_path
