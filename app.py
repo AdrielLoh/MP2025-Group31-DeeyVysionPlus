@@ -24,6 +24,10 @@ def index():
 def wip():
     return render_template('wip.html')
 
+@app.route('/contact')
+def contact():
+    return render_template('wip.html')
+
 @app.route('/navbar')
 def navbar():
     return render_template('includes/navbar.html')

@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Statistics count up animation
     function countUp(element, endValue, isPercentage = false) {
         let startValue = 0;
-        const duration = 10000;
+        const duration = 2500;
         const increment = endValue / (duration / 50);
 
         function updateCounter() {
@@ -91,9 +91,9 @@ document.addEventListener("DOMContentLoaded", function() {
         const stat2 = document.getElementById('stat2');
         const stat3 = document.getElementById('stat3');
         
-        if (stat1) countUp(stat1, 95000);
+        if (stat1) countUp(stat1, 95820);
         if (stat2) countUp(stat2, 85, true);
-        if (stat3) countUp(stat3, 60, true);
+        if (stat3) countUp(stat3, 96, true);
     }
 
     // Intersection Observer for scroll animations
