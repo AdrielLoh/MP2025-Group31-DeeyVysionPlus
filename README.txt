@@ -1,22 +1,38 @@
-Modules to install | version
+### Python Packages Installation:
+1) `cd` to the root directory of this project
+2) run `pip install -r requirements.txt`
 
-*Ensure python 3.10.wtv
+### External Dependencies to install (Important)
+##### **1) FFmpeg**
+1. Go to [https://www.gyan.dev/ffmpeg/builds/)
+2. Go to "Release builds"
+3. Download the **release full build** `.zip` file.
+4. Extract it, e.g., to `C:\ffmpeg`.
 
-1) opencv-python 4.10.0.84
-2) Flask 2.3.2
-3) joblib 1.2.0
-4) keras 3.4.1
-5) librosa 0.10.0
-6) matplotlib 3.7.2
-7) mediapipe 0.10.20
-8) numpy 1.26.4
-9) pandas 2.2.3
-10) scipy 1.15.0
-11) scikit-learn 1.5.1
-12) sounddevice 0.5.1
-13) tensorflow 2.17.0
+**Add FFmpeg to System PATH**
+1. Open "Edit the system environment variables" (search in Start menu).
+2. Click **Environment Variables**.
+3. In "System variables", find `Path`, click Edit.
+4. Click New, add the path to the `bin` folder in your FFmpeg install, e.g.:
 
-Applications to install
+   ```
+   C:\ffmpeg\bin
+   ```
+5. Click OK, OK, OK.
+
+**Verify Installation**
+
+* Open a **new** Command Prompt (important! Restart it so PATH is updated)
+* Run:
+
+  ```
+  ffmpeg -version
+  ```
+---
+
+
+### Windows Applications to install
+These applications are for live demonstration of the project by letting you create your own deepfakes.
 1) VoiceAI
   https://voice.ai/
 2) OBS
