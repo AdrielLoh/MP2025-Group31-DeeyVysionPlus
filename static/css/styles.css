@@ -40,12 +40,24 @@
   --danger: #F44336;
 }
 
+.text-align-left {
+    text-align: left !important;
+}
+
 p {
     font-size: 1.05em;
 }
 
 h2 {
     font-weight: 400;
+}
+
+select {
+    padding: 0.8em 1.6em;
+    border-radius: 8px;
+    border: none;
+    border-bottom: 2px solid var(--accents-buttons);
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.09);
 }
 
 body {
@@ -173,43 +185,93 @@ nav {
 }
 
 .intro-text {
-    font-size: 1.2em;
+    font-size: 1.3em;
     margin-bottom: 1.5em;
     color: var(--secondary-text);
-    max-width: 1100px;
     margin: 0 auto;
     line-height: 1.5;
 }
 
 .image-container {
     flex: 1;
-    text-align: center;
-    margin-bottom: 1em;
+    width: 80%;
+    margin-top: 3em;
 }
 
 .image-container img {
     width: 100%;
-    max-width: 600px;
-    height: auto;
+    height: 50vh;
     border-radius: 8px;
-    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.09); 
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.09);
 }
 
 .section {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
+    text-align: left;
     justify-content: center;
     margin: 2em auto;
     padding: 2em;
-    background-color: var(--cards-panels);
-    border-radius: 8px;
     max-width: 1000px;
-    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.09);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateX(20px);
+}
+.creation-section {
+    flex-direction: column;
+    /* align-items:unset; */
+}
+
+.tab-content {
+    width: 100%;
+    margin: 0;
+    border-top: 3px solid;
+    border-color: var(--accents-buttons);
+}
+
+.tabs-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 1em;
+    /* padding: 2em 0 0 2em; */
+    margin-top: 4em;
+}
+.tabs {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    background: var(--cards-panels);
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.05);
+    overflow: hidden;
+}
+.tab {
+    padding: 1em 2.2em;
+    background: var(--muted-elements);
+    color: var(--text);
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 1.12em;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s;
+    border-right: 1px solid #e0e6ef;
+}
+.tab:last-child { border-right: none; }
+.tab.active {
+    background: var(--accents-buttons);
+    color: #fff;
+}
+
+.tab-content-container {
+    background: var(--cards-panels);
+    min-height: 420px;
+    border-radius: 0 0 12px 12px;
+    margin-top: -1px;
+    box-shadow: 0 1px 8px 0 rgba(35,39,47,0.09);
+    padding: 2.5em 2.5em 2em 2.5em;
+    width: 90vw;
+    max-width: 1100px;
 }
 
 .section.visible {
@@ -218,17 +280,17 @@ nav {
     transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-.section:hover {
+/* .section:hover {
     transform: translateY(-5px);
     box-shadow: 0 1px 8px 0 rgba(35,39,47,0.09);
-}
+} */
 
 .section h2 {
     color: var(--accents-buttons);
     margin-bottom: 1em;
     font-weight: 600;
     font-size: 1.8em;
-    text-align: center;
+    text-align: left;
     width: 100%;
 }
 
@@ -246,6 +308,11 @@ nav {
 .text-container {
     flex: 3;
 }
+.creation-text-container {
+    width: 80%;
+    margin-left: 1em;
+}
+
 
 .section h2 {
     color: var(--accents-buttons);
@@ -830,19 +897,36 @@ img {
     height: 90px;
     align-self: center;
 }
-.about-banner {
+.banner {
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 35vh;
-    width: 100vw;
-    background: url('../images/contact_banner.jpg') no-repeat center center/cover;
+    width: 99vw;
 }
-.about-banner h1 {
+.banner h1 {
     font-size: 50px;
     text-align: center;
     color: var(--cards-panels);
+}
+#about-banner {
+    background: url('../images/contact_banner.jpg') no-repeat center center/cover;
+}
+#creation-banner {
+    background: url('../images/neural_network.png') no-repeat center center/cover;
+    height: 40vh;
+    filter: brightness(70%);
+}
+#impact-banner {
+    background: url('../images/protest.avif') no-repeat center center/cover;
+    height: 40vh;
+    filter: brightness(50%);
+}
+#law-ethics-banner {
+    background: url('../images/law_and_order.avif') no-repeat center center/cover;
+    height: 40vh;
+    filter: brightness(60%);
 }
 
 .about-intro::before {
@@ -1048,6 +1132,15 @@ img {
     background-color: darkvar(--accents-buttons)enrod;
 }
 
+.button {
+    background-color: var(--accents-buttons);
+    color: var(--background);
+    padding: 0.7em 2.5em;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
 
 #progress-bar-container {
     width: 100%;
@@ -1533,7 +1626,7 @@ img {
   color: #fff;
   width: calc(100vw - 220px);
   max-width: 700px;
-  left: 150px;
+  left: 20%;
   top: 50%;
   transform: translateY(-50%);
   display: flex;

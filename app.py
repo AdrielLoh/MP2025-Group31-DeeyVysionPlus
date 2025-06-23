@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, url_for
 import os
 import logging
 import json
+import subprocess
 
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
@@ -12,6 +13,14 @@ from detection_scripts.visual_artifacts_script import live_detection as visual_a
 from detection_scripts.visual_artifacts_script import static_video_detection as visual_artifacts_static_detection
 from detection_scripts.body_posture_script import detect_body_posture, body_posture_live_detection
 
+def convert_webm_to_mp4(webm_path, mp4_path, target_fps=30):
+    cmd = [
+        'ffmpeg', '-y', '-i', webm_path,
+        '-r', str(target_fps),
+        '-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p',
+        mp4_path
+    ]
+    subprocess.run(cmd, check=True)
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
@@ -142,8 +151,23 @@ def physiological_signal_try():
         if file:
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filename)
-            face_results, output_video  = run_detection(filename, is_webcam=False)
-            return render_template('result.html', analysis_type='physiological', face_results=face_results, output_video=output_video)
+
+            # If it's a webm, convert to mp4 for better compatibility
+            if filename.lower().endswith('.webm'):
+                mp4_path = os.path.splitext(filename)[0] + '.mp4'
+                convert_webm_to_mp4(filename, mp4_path)
+                video_path_for_processing = mp4_path
+            else:
+                video_path_for_processing = filename
+
+            # Process the video (run_detection expects video path)
+            face_results, output_video = run_detection(video_path_for_processing, is_webcam=False)
+            return render_template(
+                'result.html',
+                analysis_type='physiological',
+                face_results=face_results,
+                output_video=output_video
+            )
     return render_template('physiological_signal_try.html')
 
 @app.route('/start_real_time_detection', methods=['POST'])

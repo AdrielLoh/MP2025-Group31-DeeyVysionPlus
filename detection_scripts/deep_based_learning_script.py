@@ -34,7 +34,7 @@ def detect_faces_dnn(frame):
     return faces
 
 def live_detection(output_folder):
-    cap = cv2.VideoCapture(2)  # 0 for default camera
+    cap = cv2.VideoCapture(0)  # 0 for default camera
     real_frame_count = 0
     fake_frame_count = 0
     score_list = []  # To store confidence scores

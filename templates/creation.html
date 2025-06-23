@@ -13,36 +13,40 @@
         <div id="navbar-placeholder"></div>
     </header>
 
-    <section id="deepfake-creation" class="content">
-        <h1>Deepfake Creation</h1>
-        <p class="intro-text">Deepfake technology uses artificial intelligence (AI) to create realistic videos and images that can depict someone doing or saying something they never did. Below, we will explore the intricate steps involved in creating deepfakes, from data collection to refinement.</p>
+    <div class="banner" id="creation-banner">
+        <!-- <h1>Deepfake Creation</h1> -->
+    </div>
+
+    <section id="deepfake-creation" class="content text-align-left">
+        <h1>How are Deepfakes made?</h1>
+        <p class="intro-text">
+            Deepfake technology uses Deep Learning Models to create realistic media that alters the identity of a person, which can be used to
+            depict someone doing or saying something they never did. Creating high-quality deepfakes requires computational power, time, and a process which can
+            be broken down into 4 main steps.
+        </p>
         
-        <div class="section" id="how-it-works">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/how-it-works-icon.png') }}" alt="How It Works">
-            </div>
-            <div class="text-container">
-                <h2>How Deepfakes Are Made</h2>
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="data-collection">Step 1</button>
+                <button class="tab" data-tab="training-the-model">Step 2</button>
+                <button class="tab" data-tab="creating-deepfake">Step 3</button>
+                <button class="tab" data-tab="refinement">Step 4</button>
+                <button class="tab" data-tab="applications-implications">Implications</button>
             </div>
         </div>
-        
-        
-        <div class="section" id="data-collection">
-            <div class="image-container">
-                <img src="{{ url_for('static', filename='images/data-collection.png') }}" alt="Data Collection">
-            </div>
-            <div class="text-container">
+        <div class="section creation-section tab-content" id="data-collection" style="display: none;">
+            <div class="creation-text-container">
                 <h2>Step 1: Data Collection</h2>
                 <p>The foundation of a deepfake lies in the quality and quantity of data collected. This step involves gathering extensive images and videos of the target individual. The dataset should cover various angles, lighting conditions, and facial expressions to train the AI model effectively. High-quality data ensures better accuracy and realism in the final deepfake.</p>
             </div>
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/data-collection.png') }}" alt="Data Collection">
+            </div>
         </div>
         
         
-        <div class="section" id="training-the-model">
-            <div class="image-container">
-                <img src="{{ url_for('static', filename='images/training.jpg') }}" alt="Training the AI Model">
-            </div>
-            <div class="text-container">
+        <div class="section creation-section tab-content" id="training-the-model" style="display: none;">
+            <div class="creation-text-container">
                 <h2>Step 2: Training the AI Model</h2>
                 <p>In this step, the collected data is used to train a deep learning model, often a Generative Adversarial Network (GAN). GANs consist of two neural networks:</p>
                 <div class="highlight-box">
@@ -56,14 +60,15 @@
                 <br>
                 <p>The training involves multiple iterations where the model learns to replicate the person's facial features and movements accurately.</p>
             </div>
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/training.jpg') }}" alt="Training the AI Model">
+            </div>
         </div>
         
         
-        <div class="section" id="creating-deepfake">
-            <div class="image-container">
-                <img src="{{ url_for('static', filename='images/final-output.png') }}" alt="Creating the Deepfake">
-            </div>
-            <div class="text-container">
+        <div class="section creation-section tab-content" id="creating-deepfake" style="display: none;">
+            
+            <div class="creation-text-container">
                 <h2>Step 3: Creating the Deepfake</h2>
                 <p>After the AI model is trained, it can be used to generate deepfake content. This involves:</p>
                 <div class="highlight-box">
@@ -78,14 +83,17 @@
                 <br>
                 <p>The generated deepfake video undergoes initial processing to ensure the facial features match seamlessly with the body movements and the surrounding environment. This step is crucial for maintaining the illusion of authenticity.</p>
             </div>
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/final-output.png') }}" alt="Creating the Deepfake">
+            </div>
         </div>
         
         
-        <div class="section" id="refinement">
+        <div class="section tab-content" id="refinement" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/refine-icon.png') }}" alt="Refinement">
             </div>
-            <div class="text-container">
+            <div class="text-container creation-text-container">
                 <h2>Step 4: Refinement</h2>
                 <p>The final step involves refining the deepfake to improve its quality and realism. This includes manual editing and post-processing techniques such as:</p>
                 <div class="highlight-box">
@@ -102,8 +110,7 @@
             </div>
         </div>
         
-        
-        <div class="section" id="applications-implications">
+        <div class="section tab-content" id="applications-implications">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/applications-icon.png') }}" alt="Applications">
             </div>
@@ -114,9 +121,12 @@
                 <p>However, deepfakes also pose significant ethical and security concerns. They can be used to spread misinformation, impersonate individuals, and damage reputations. Understanding the creation process is crucial for developing tools and techniques to detect and mitigate the misuse of deepfake technology.</p>
             </div>
         </div>
+    </section>
 
     <div id="footer-placeholder"></div>
 
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="../static/js/handle-tab.js"></script>
+
 </body>
 </html>

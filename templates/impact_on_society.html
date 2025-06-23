@@ -12,12 +12,26 @@
     <header>
         <div id="navbar-placeholder"></div>
     </header>
+
+    <div class="banner" id="impact-banner">
+        <!-- <h1>Deepfake Creation</h1> -->
+    </div>
     
-    <section class="content" >
+    <section class="content text-align-left">
         <h1>Impact on Society</h1>
         <p class="intro-text">Deepfake technology has significant implications for society. It affects various sectors including politics, entertainment, and personal privacy. This section explores these impacts in depth.</p>
         
-        <div class="section" id="political-impact">
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="political-impact">Political</button>
+                <button class="tab" data-tab="entertainment-impact">Entertainment</button>
+                <button class="tab" data-tab="personal-privacy-impact">Personal</button>
+                <button class="tab" data-tab="economic-impact">Economic</button>
+                <button class="tab" data-tab="social-impact">Social</button>
+                <button class="tab" data-tab="legal-impact">Legal</button>
+            </div>
+        </div>
+        <div class="section tab-content" id="political-impact" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/political-icon.png') }}" alt="Political Impact">
             </div>
@@ -29,9 +43,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="entertainment-impact">
+        <div class="section tab-content" id="entertainment-impact" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/entertainment-icon.png') }}" alt="Entertainment Impact">
             </div>
@@ -43,9 +55,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="personal-privacy-impact">
+        <div class="section tab-content" id="personal-privacy-impact" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/personal-icon.png') }}" alt="Privacy Impact">
             </div>
@@ -57,9 +67,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="economic-impact">
+        <div class="section tab-content" id="economic-impact" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/economic-icon.png') }}" alt="Economic Impact">
             </div>
@@ -71,9 +79,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="social-impact">
+        <div class="section tab-content" id="social-impact" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/social-icon.png') }}" alt="Social Impact">
             </div>
@@ -85,9 +91,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="legal-impact">
+        <div class="section tab-content" id="legal-impact" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/legal-icon.png') }}" alt="Legal Impact">
             </div>
@@ -102,5 +106,6 @@
 
     <div id="footer-placeholder"></div>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="../static/js/handle-tab.js"></script>
 </body>
 </html>
