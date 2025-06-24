@@ -12,11 +12,25 @@
         <div id="navbar-placeholder"></div>
     </header>
 
-    <section id="future-trends" class="content">
+    <div class="banner" id="trends-banner">
+        <!-- <h1>Deepfake Creation</h1> -->
+    </div>
+
+    <section id="future-trends" class="content text-align-left educational-section">
+        <div class="educational">
         <h1>Future Trends in Deepfakes</h1>
         <p class="intro-text">Deepfake technology is continually evolving. This section explores anticipated future trends and their potential impact across various sectors.</p>
         
-        <div class="section" id="advancements-in-technology">
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="advancements-in-technology">Technology Advancements</button>
+                <button class="tab" data-tab="detection-and-countermeasures">Detection & Countermeasures</button>
+                <button class="tab" data-tab="ethical-and-legal-frameworks">Frameworks</button>
+                <button class="tab" data-tab="impact-on-industries">Industry Impacts</button>
+            </div>
+        </div>
+
+        <div class="section tab-content" id="advancements-in-technology" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/advancements-icon.png') }}" alt="Advancements in Technology">
             </div>
@@ -28,9 +42,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="detection-and-countermeasures">
+        <div class="section tab-content" id="detection-and-countermeasures" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/detection-icon.png') }}" alt="Detection and Countermeasures">
             </div>
@@ -42,9 +54,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="ethical-and-legal-frameworks">
+        <div class="section tab-content" id="ethical-and-legal-frameworks" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/ethical-icon.png') }}" alt="Ethical and Legal Frameworks">
             </div>
@@ -56,9 +66,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="impact-on-industries">
+        <div class="section tab-content" id="impact-on-industries" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/industries-icon.png') }}" alt="Impact on Industries">
             </div>
@@ -69,9 +77,30 @@
                 <p>In entertainment, we may see the rise of virtual actors and immersive experiences that leverage deepfake technology. In education, deepfakes could be used to create engaging and personalized learning materials. In marketing, brands might utilize deepfakes to create tailored advertisements that resonate with individual consumers.</p>
             </div>
         </div>
+        </div>
+        <div class="text-align-left educational-quicklinks">
+            <h3>View more resources:</h3>
+            <a href="creation">Creation of Deepfakes</a>
+            <div class="divider"></div>
+            <a href="impact_on_society">Impact on Society</a>
+            <div class="divider"></div>
+            <a href="legal_and_ethics">Legal and Ethics</a>
+            <div class="divider"></div>
+            <a href="history_of_deepfakes">History of Deepfakes</a>
+            <div class="divider"></div>
+            <!-- <a href="future_trends">Future Trends</a>
+            <div class="divider"></div> -->
+            <a href="case_studies">Case Studies</a>
+            <div class="divider"></div>
+            <a href="identify_deepfakes">How to Identify Deepfakes</a>
+            <div class="divider"></div>
+            <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
+            <div class="divider"></div>
+        </div>
     </section>
 
     <div id="footer-placeholder"></div>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="../static/js/handle-tab.js"></script>
 </body>
 </html>

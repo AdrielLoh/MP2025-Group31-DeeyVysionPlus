@@ -5,6 +5,8 @@ import joblib
 from scipy.signal import detrend, butter, filtfilt, periodogram
 import matplotlib.pyplot as plt
 import uuid
+import time
+import subprocess
 
 clf = joblib.load('models/physio_detection_xgboost_best.pkl')
 scaler = joblib.load('models/physio_scaler.pkl')
@@ -132,11 +134,8 @@ def draw_output(frame, face_box, prediction, confidence, hr_bpm, time_stamp, tra
     x, y, w, h = face_box
     color = (0, 255, 0) if prediction == 'REAL' else (0, 0, 255)
     label = f"Face {track_id}"
-    # Draw the rectangle
     cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-    # Draw the Face label above the top-left corner
     cv2.putText(frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
-    # Draw metrics below the rectangle (not overlapping)
     y_text = y + h + 25
     cv2.putText(frame, f"{prediction.upper()} - HR: {hr_bpm:.2f} BPM", (x, y_text), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
     y_text += 25
@@ -144,7 +143,6 @@ def draw_output(frame, face_box, prediction, confidence, hr_bpm, time_stamp, tra
     y_text += 25
     cv2.putText(frame, f"Time: {time_stamp}s", (x, y_text), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
     return frame
-
 
 def clamp_box(box, frame_shape):
     x, y, w, h = box
@@ -181,10 +179,10 @@ def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=Fa
 
     frame_idx = 0
     tracks = []
-    face_rgb_history = {}       # {track_id: [ [r,g,b], ... ] }
-    face_pred_history = {}      # {track_id: [ 'REAL'/'FAKE', ... ] }
-    face_prob_history = {}      # {track_id: [ prob, ... ] }
-    face_hr_history = {}        # {track_id: [ bpm, ... ] }
+    face_rgb_history = {}
+    face_pred_history = {}
+    face_prob_history = {}
+    face_hr_history = {}
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -221,19 +219,28 @@ def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=Fa
             face_pred_history[track_id].append(prediction)
             face_prob_history[track_id].append(prob)
             face_hr_history[track_id].append(hr_bpm)
-            # Draw per-face prediction live
             frame = draw_output(frame, (x, y, w, h), prediction, prob, hr_bpm, frame_idx // int(fps), track_id)
         out.write(frame)
         frame_idx += 1
     cap.release()
     out.release()
+    time.sleep(0.2)  # Short pause to ensure file is closed
 
-    # Compute per-face results
+    # === ffmpeg PATCH for HTML5 playback compatibility ===
+    fixed_output_path = output_path.replace('.mp4', '_fixed.mp4')
+    subprocess.run([
+        'ffmpeg', '-y', '-i', output_path,
+        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
+        fixed_output_path
+    ])
+    if os.path.exists(output_path):
+        os.remove(output_path)
+    output_path = fixed_output_path
+
     face_results = []
     MIN_PREDICTIONS = 30
     for track_id, preds in face_pred_history.items():
         if len(preds) < MIN_PREDICTIONS:
-            # Ignore/report nothing for faces that were tracked too briefly
             continue
         n_real = preds.count('REAL')
         n_fake = preds.count('FAKE')
@@ -245,6 +252,7 @@ def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=Fa
             result = 'Unknown'
         avg_hr = np.mean(face_hr_history[track_id]) if face_hr_history[track_id] else 0
         avg_conf = np.mean(face_prob_history[track_id]) if face_prob_history[track_id] else 0.0
+        avg_conf = round(avg_conf * 100)
         rgb_arr = np.array(face_rgb_history[track_id])
         if rgb_arr.shape[0] >= MIN_PREDICTIONS:
             features, hr_bpm, rppg_sig, f, pxx = compute_rppg_features(rgb_arr, fs=fps)
@@ -257,12 +265,11 @@ def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=Fa
             'result': result,
             'real_count': n_real,
             'fake_count': n_fake,
-            'hr': avg_hr,
+            'hr': round(avg_hr),
             'confidence': avg_conf,
             'signal_plot': signal_plot,
             'spectrum_plot': spectrum_plot,
             'pred_count_plot': pred_count_plot
         })
-
 
     return face_results, output_path

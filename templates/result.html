@@ -49,41 +49,46 @@
             {% endif %}
         {% elif analysis_type == 'physiological' %}
             {% if face_results|length == 0 %}
-            <h3 style="color: orange;">No faces were detected for a sufficient duration to perform a reliable deepfake prediction.</h3>
-            <p>Try a longer or clearer video with more visible faces. The video should preferrably be at least 5 seconds for best detection performance.</p>
-            {% endif %}
+                <h3 style="color: orange;">No faces were detected for a sufficient duration to perform a reliable deepfake prediction.</h3>
+                <p>Try a longer or clearer video with more visible faces. The video should preferrably be at least 5 seconds for best detection performance.</p>
+                {% endif %}
+                
+                <div class="tabs-container">
+                    <div class="tabs">
+                        {% for face in face_results %}
+                        <button class="tab{% if loop.first %} active{% endif %}" data-tab="face-{{ face.track_id }}">Face #{{ face.track_id }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
 
-            {% for face in face_results %}
-            <h2>Face {{ face.track_id }}</h2>
-            <h3 style="color: {% if face.result == 'Real' %}green{% elif face.result == 'Fake' %}red{% else %}white{% endif %};">
-                {{ face.result }}
-            </h3>
-            <p>Real: {{ face.real_count }}, Fake: {{ face.fake_count }}</p>
-            <p>Average HR: {{ face.hr }}</p>
-            <p>Average Confidence: {{ face.confidence }}</p>
-            <img src="{{ face.signal_plot }}" alt="rPPG Signal">
-            <img src="{{ face.spectrum_plot }}" alt="rPPG Spectrum">
-            <img src="{{ face.pred_count_plot }}" alt="Prediction Counts">
-            {% endfor %}
-
-            <div class="graph-container wide-section">
-                <h2>Prediction Playback</h2>
-                <p class="graph-description">View the deepfake detection in action</p>
-                <video id="physio-video" width="840" height="560" controls></video>
+                {% for face in face_results %}
+                <div class="section tab-content flex-dir-col" id="face-{{ face.track_id }}" style="display: {% if loop.first %}flex{% else %}none{% endif %}; flex-direction:column;">
+                    <h2>Face {{ face.track_id }}</h2>
+                    <h3 style="color: {% if face.result == 'Real' %}green{% elif face.result == 'Fake' %}red{% else %}white{% endif %};">
+                        {{ face.result }}
+                    </h3>
+                    <p>Real: {{ face.real_count }}, Fake: {{ face.fake_count }}</p>
+                    <p>Average HR: {{ face.hr }} BPM</p>
+                    <p>Average Confidence: {{ face.confidence }}%</p>
+                    <div class="carousel-container" id="carousel-{{ face.track_id }}">
+                        <button class="carousel-arrow left">&#8249;</button>
+                        <div class="carousel-images">
+                            <img src="{{ face.signal_plot }}" alt="rPPG Signal" class="carousel-image" style="display:block;">
+                            <img src="{{ face.spectrum_plot }}" alt="rPPG Spectrum" class="carousel-image" style="display:none;">
+                            <img src="{{ face.pred_count_plot }}" alt="Prediction Counts" class="carousel-image" style="display:none;">
+                        </div>
+                        <button class="carousel-arrow right">&#8250;</button>
+                    </div>
+                    <div class="graph-container wide-section">
+                        <h2>Prediction Playback</h2>
+                        <p class="graph-description">View the deepfake detection in action</p>
+                        <video id="physio-video" width="840" height="560" controls>
+                            <source src="{{ output_video }}" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            </div>
-            <script>
-                window.onload = function () {
-                setTimeout(function () {
-                    const video = document.getElementById('physio-video');
-                    const source = document.createElement('source');
-                    source.src = '{{ output_video }}'; // Replace with your actual video path
-                    source.type = 'video/mp4';
-                    video.appendChild(source);
-                    video.load(); // Start loading the video
-                }, 1000); // 1000 milliseconds = 1 second
-                };
-            </script>
         {% elif analysis_type == 'deep_learning' %}
             <h2>Overall Result</h2>
             <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
@@ -208,5 +213,7 @@
         <div id="footer-placeholder"></div>
     </footer>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="../static/js/handle-tab.js"></script>
+    <script src="../static/js/img-carousel.js"></script>
 </body>
 </html>

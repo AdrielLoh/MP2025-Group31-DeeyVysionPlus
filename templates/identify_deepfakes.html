@@ -11,12 +11,25 @@
     <header>
         <div id="navbar-placeholder"></div>
     </header>
+
+    <div class="banner" id="identify-banner">
+        <!-- <h1>Deepfake Creation</h1> -->
+    </div>
     
-    <section id="how-to-identify-deepfakes" class="content">
+    <section id="how-to-identify-deepfakes" class="content text-align-left educational-section">
+        <div class="educational">
         <h1>How to Identify Deepfakes</h1>
         <p class="intro-text">Deepfakes are becoming increasingly sophisticated, making them difficult to detect with the naked eye. However, by understanding common signs and using the right tools, you can protect yourself from being fooled. Below are some key areas to focus on when trying to identify deepfakes.</p>
+        
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="visual-clues">Visual Clues</button>
+                <button class="tab" data-tab="audio-clues">Audio Clues</button>
+                <button class="tab" data-tab="technical-tools">Technical Tools</button>
+            </div>
+        </div>
 
-        <div class="section" id="visual-clues">
+        <div class="section tab-content" id="visual-clues" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/visual-icon.png') }}" alt="Visual Clues">
             </div>
@@ -46,9 +59,7 @@
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="section" id="audio-clues">
+        <div class="section tab-content" id="audio-clues" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/audio-icon.png') }}" alt="Audio Clues">
             </div>
@@ -70,9 +81,7 @@
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="section" id="technical-tools">
+        <div class="section tab-content" id="technical-tools" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/tools-icon.png') }}" alt="Technical Tools">
             </div>
@@ -93,9 +102,30 @@
                 </div>
             </div>
         </div>
+        </div>
+        <div class="text-align-left educational-quicklinks">
+            <h3>View more resources:</h3>
+            <a href="creation">Creation of Deepfakes</a>
+            <div class="divider"></div>
+            <a href="impact_on_society">Impact on Society</a>
+            <div class="divider"></div>
+            <a href="legal_and_ethics">Legal and Ethics</a>
+            <div class="divider"></div>
+            <a href="history_of_deepfakes">History of Deepfakes</a>
+            <div class="divider"></div>
+            <a href="future_trends">Future Trends</a>
+            <div class="divider"></div>
+            <a href="case_studies">Case Studies</a>
+            <div class="divider"></div>
+            <!-- <a href="identify_deepfakes">How to Identify Deepfakes</a>
+            <div class="divider"></div> -->
+            <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
+            <div class="divider"></div>
+        </div>
     </section>
 
     <div id="footer-placeholder"></div>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="../static/js/handle-tab.js"></script>
 </body>
 </html>

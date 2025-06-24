@@ -6,305 +6,31 @@
     <title>Try Audio Analysis</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let form = document.getElementById("upload-form");
-            let spinner = document.getElementById("loadingSpinner");
-
-            form.addEventListener("submit", function(event) {
-                event.preventDefault();
-
-                // Disable the button and change text
-                submitButton.disabled = true;
-                submitButton.innerText = "Processing...";
-
-                // Show the spinner
-                spinner.style.display = "block";
-
-                // Submit the form normally
-                form.setAttribute("action", "/audio_analysis");
-                form.setAttribute("method", "POST");
-                form.submit();
-            });
-        });
-    </script>
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-            background: var(--background);
-            color: var(--text);
-        }
-        .container {
-            display: flex;
-            height: 100vh;
-        }
-        .left-panel {
-            flex: 1.3;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            padding: 56px 0 0 32px;
-        }
-        .left-panel h1 {
-            font-size: 2.7rem;
-            font-weight: 700;
-            margin: 0 0 18px 0;
-            color: var(--success);
-        }
-        .left-panel .subtitle {
-            color: var(--secondary-text);
-            font-size: 1.12rem;
-            margin-bottom: 20px;
-        }
-        .left-panel .subtitle a {
-            color: var(--links-highlights);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-        .left-panel .subtitle a:hover {
-            color: var(--accents-buttons);
-        }
-        .powered-by {
-            margin-top: auto;
-            color: var(--disabled-elements);
-            font-size: 1rem;
-        }
-        .powered-by a {
-            color: var(--links-highlights);
-            text-decoration: none;
-            font-size: 1rem;
-        }
-
-        .right-panel {
-            flex: 1.6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-        }
-        .card {
-            background: var(--cards-panels);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(12, 17, 24, 0.08);
-            padding: 32px 28px 26px 28px;
-            min-width: 420px;
-            width: 440px;
-            max-width: 95vw;
-        }
-        .tab-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 18px;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 10px 0;
-            background: var(--secondary-bg);
-            border: none;
-            border-radius: 7px;
-            color: var(--text);
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .tab-btn.active, .tab-btn:hover {
-            background: var(--accents-buttons);
-            color: #fff;
-        }
-
-        .dropzone {
-            background: var(--secondary-bg);
-            border-radius: 13px;
-            padding: 38px 18px;
-            text-align: center;
-            margin-bottom: 18px;
-            position: relative;
-            border: 2px dashed var(--muted-elements);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .dropzone.dragover {
-            border-color: var(--accents-buttons);
-            background: var(--muted-elements);
-        }
-        .dropzone .icon {
-            font-size: 2.4rem;
-            color: var(--accents-buttons);
-            margin-bottom: 9px;
-        }
-        .dropzone span {
-            color: var(--secondary-text);
-            font-size: 1.08rem;
-        }
-        .dropzone .select-btn {
-            margin-top: 16px;
-            padding: 9px 22px;
-            background: var(--accents-buttons);
-            color: #fff;
-            border: none;
-            border-radius: 7px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .dropzone .select-btn:hover {
-            background: var(--links-highlights);
-        }
-        .input-label {
-            display: block;
-            margin-bottom: 7px;
-            margin-top: 13px;
-            color: var(--secondary-text);
-            font-size: 1rem;
-        }
-        .email-input {
-            width: 100%;
-            padding: 12px 14px;
-            border-radius: 6px;
-            border: none;
-            background: var(--secondary-bg);
-            color: var(--text);
-            font-size: 1rem;
-            margin-bottom: 8px;
-        }
-        .status-info {
-            font-size: 1rem;
-            margin-bottom: 13px;
-            color: var(--secondary-text);
-        }
-        .terms {
-            font-size: 0.96rem;
-            color: var(--secondary-text);
-            margin-bottom: 16px;
-        }
-        .terms a { color: var(--success); text-decoration: underline; }
-        .analyze-btn {
-            width: 100%;
-            padding: 17px 0;
-            background: var(--cards-panels);
-            color: var(--text);
-            font-weight: 600;
-            font-size: 1.3rem;
-            border-radius: 11px;
-            border: none;
-            box-shadow: 0 1px 7px 0 rgba(12,17,24,0.06);
-            cursor: pointer;
-            transition: background 0.14s;
-            border: 2px solid var(--muted-elements);
-        }
-        .analyze-btn:hover {
-            background: var(--accents-buttons);
-            color: #fff;
-        }
-        @media (max-width: 900px) {
-            .container { flex-direction: column; }
-            .left-panel, .right-panel { width: 100%; padding: 16px 0 0 0; }
-            .left-panel { padding-left: 16px; }
-            .right-panel { align-items: flex-start; }
-            .card { min-width: unset; width: 98vw; margin: 18px 0; }
-        }
-    </style>
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
-    <!-- <section class="content">
+    <section class="content">
         <h1>Try Audio Analysis</h1>
-        <form id="upload-form" enctype="multipart/form-data" class="centered">
+        <form id="upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('audio_analysis') }}" class="centered">
             <div id="dropbox" class="dropbox">
-                <p>Drag & drop or select an audio or video file here. <br>(.mp3, .mp4, .wav, .mov, .flac, .opus)
-                </p>
-                <input type="file" name="file" id="file" accept="audio/*,video/*" required>
+                <p>Drag & drop an audio file here, or click to select one</p>
+                <input type="file" name="file" id="file" accept="audio/*" required>
                 <audio id="audio-preview" controls style="display: none;"></audio>
             </div>
-            <button id="submitButton" type="submit">Submit</button>
-            <div id="loadingSpinner">
-                <div class="spinner"></div>
-                <p>Processing audio... Please wait.</p>
-            </div>
+            <button type="submit">Submit</button>
         </form>
         <div class="centered">
             <form action="{{ url_for('start_real_time_audio_analysis') }}" method="POST">
                 <h3>Real-Time Detection</h3>
-                <p>Use your microphone to perform real-time deepfake audio detection.</p>
+                <p>Use your microphone to perform real-time audio deepfake detection.</p>
                 <button id="real-time-button" type="submit">Try Real-Time Detection</button>
             </form>
             <audio id="recorded-audio" controls style="display: none;"></audio>
             <div id="real-time-detection-result"></div>
         </div>
-    </section> -->
-    <div class="container">
-        <div class="left-panel">
-            <h1>Resemble AI Free Audio Deepfake Detection</h1>
-            <div class="subtitle">
-                Detect deepfake audio from any source with our powerful AI Model. 
-                <a href="#">Try it out yourself &rarr;</a>
-            </div>
-            <div class="powered-by">
-                Powered by DeepVysion+<br>
-                <a href="#">Learn more about our multimodal deepfake detection &rarr;</a>
-            </div>
-        </div>
-        <div class="right-panel">
-            <form class="card" autocomplete="off">
-                <div class="tab-group">
-                    <button type="button" class="tab-btn active">Upload File</button>
-                    <button type="button" class="tab-btn">Scan URL</button>
-                </div>
-                <div class="dropzone" id="dropzone">
-                    <div class="icon">☁️</div>
-                    <span>Drag &amp; Drop your files here<br>
-                    <small>Supports: .wav, .mp3 (max 25MB, 1 minute)</small></span>
-                    <button type="button" class="select-btn" onclick="document.getElementById('fileInput').click();">Select File</button>
-                    <input type="file" id="fileInput" style="display:none" accept=".wav,.mp3"/>
-                    <div id="file-name" style="margin-top: 8px; color: var(--success);"></div>
-                </div>
-                <label class="input-label" for="email">Your Email</label>
-                <input class="email-input" id="email" type="email" placeholder="email@address.com" />
-                <div class="status-info">You have 2 free submissions remaining.</div>
-                <div class="terms">
-                    By clicking "Analyze", you agree to DeepVysion+'s <a href="#">Terms of Service</a>.<br>
-                    Avoid submitting personal information. DeepVysion+ is not liable for your submission's content or the generated results. This AI model is in active research, <a href="#">click here to learn more</a>.
-                </div>
-                <button class="analyze-btn" type="submit">Analyze</button>
-            </form>
-        </div>
-    </div>
-    <script>
-        // Dropzone drag & drop
-        const dropzone = document.getElementById('dropzone');
-        const fileInput = document.getElementById('fileInput');
-        const fileName = document.getElementById('file-name');
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.classList.add('dragover');
-        });
-        dropzone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('dragover');
-        });
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('dragover');
-            if(e.dataTransfer.files && e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                fileName.textContent = e.dataTransfer.files[0].name;
-            }
-        });
-        fileInput.addEventListener('change', (e) => {
-            if(fileInput.files.length) {
-                fileName.textContent = fileInput.files[0].name;
-            }
-        });
-    </script>
-    </body>
+    </section>
     <footer>
         <div id="footer-placeholder"></div>
     </footer>

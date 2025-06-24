@@ -11,12 +11,25 @@
     <header>
         <div id="navbar-placeholder"></div>
     </header>
+
+    <div class="banner" id="protect-yourself-banner">
+        <!-- <h1>Deepfake Creation</h1> -->
+    </div>
     
-    <section id="how-to-protect-against-deepfakes" class="content">
+    <section id="how-to-protect-against-deepfakes" class="content text-align-left educational-section">
+        <div class="educational">
         <h1>How to Protect Yourself Against Deepfakes</h1>
         <p class="intro-text">Deepfakes pose significant risks, but there are strategies you can use to protect yourself. Below are key measures you can take to mitigate these risks, along with information on the relevant Singaporean government bodies you can contact if you become a victim of deepfake technology.</p>
+        
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="awareness">Awareness</button>
+                <button class="tab" data-tab="online-privacy">Online Privacy</button>
+                <button class="tab" data-tab="legal-protection">Legal Protection</button>
+            </div>
+        </div>
 
-        <div class="section" id="awareness">
+        <div class="section tab-content" id="awareness" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/awareness-icon.png') }}" alt="Awareness">
             </div>
@@ -25,22 +38,20 @@
                 <p>Being aware of the latest trends in deepfake technology is your first line of defense. Here’s how you can stay informed:</p>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Follow Reputable Sources:</strong> Regularly check technology news websites, cybersecurity blogs, and official announcements from government bodies for updates on deepfake technology.</p>
+                    <strong>Follow Reputable Sources:</strong> Regularly check technology news websites, cybersecurity blogs, and official announcements from government bodies for updates on deepfake technology.
                 </div>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Participate in Workshops and Seminars:</strong> Engage in workshops, seminars, and online courses that focus on digital literacy, media manipulation, and cybersecurity.</p>
+                    <strong>Participate in Workshops and Seminars:</strong> Engage in workshops, seminars, and online courses that focus on digital literacy, media manipulation, and cybersecurity.
                 </div>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Use Trusted Platforms:</strong> Be cautious of unfamiliar websites or social media platforms that could spread misinformation or deepfake content. Stick to well-known, reputable sources for news and information.</p>
+                    <strong>Use Trusted Platforms:</strong> Be cautious of unfamiliar websites or social media platforms that could spread misinformation or deepfake content. Stick to well-known, reputable sources for news and information.
                 </div>
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="section" id="online-privacy">
+        <div class="section tab-content" id="online-privacy" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/personal-icon.png') }}" alt="Online Privacy">
             </div>
@@ -49,22 +60,20 @@
                 <p>Protecting your online privacy can significantly reduce your risk of becoming a target of deepfakes. Here are some key steps:</p>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Limit Personal Information:</strong> Be mindful of the personal information and images you share on social media. The more information available about you online, the easier it is for someone to create a deepfake.</p>
+                    <strong>Limit Personal Information:</strong> Be mindful of the personal information and images you share on social media. The more information available about you online, the easier it is for someone to create a deepfake.
                 </div>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Adjust Privacy Settings:</strong> Use the privacy settings on social media platforms to control who can view your content. Consider making your profiles private to limit access to your personal information.</p>
+                    <strong>Adjust Privacy Settings:</strong> Use the privacy settings on social media platforms to control who can view your content. Consider making your profiles private to limit access to your personal information.
                 </div>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Be Wary of Phishing Attempts:</strong> Be cautious of suspicious emails, messages, or links that could be phishing attempts designed to steal your personal information.</p>
+                    <strong>Be Wary of Phishing Attempts:</strong> Be cautious of suspicious emails, messages, or links that could be phishing attempts designed to steal your personal information.
                 </div>
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="section" id="legal-protection">
+        <div class="section tab-content" id="legal-protection" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/legal-icon.png') }}" alt="Legal Protection">
             </div>
@@ -73,34 +82,32 @@
                 <p>Understanding your legal rights and the steps you can take if you are a victim of deepfake technology is crucial. Here’s what you can do:</p>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Know Your Rights:</strong> Familiarize yourself with the laws surrounding privacy, defamation, and cybercrime in your country. In Singapore, deepfake technology used for malicious purposes may fall under laws like the Protection from Harassment Act (POHA) or the Computer Misuse Act.</p>
+                    <strong>Know Your Rights:</strong> Familiarize yourself with the laws surrounding privacy, defamation, and cybercrime in your country. In Singapore, deepfake technology used for malicious purposes may fall under laws like the Protection from Harassment Act (POHA) or the Computer Misuse Act.
                 </div>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Consult a Lawyer:</strong> If you believe you have been a victim of a deepfake, seek legal advice to understand your options for recourse. A lawyer can help you navigate the legal system and take appropriate action.</p>
+                    <strong>Consult a Lawyer:</strong> If you believe you have been a victim of a deepfake, seek legal advice to understand your options for recourse. A lawyer can help you navigate the legal system and take appropriate action.
                 </div>
                 <br>
                 <br>
-                    <p>If you encounter a malicious deepfake, report it to the relevant authorities. In Singapore, you can contact the following government bodies:</p>
+                    If you encounter a malicious deepfake, report it to the relevant authorities. In Singapore, you can contact the following government bodies:
 
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Cyber Security Agency of Singapore (CSA):</strong> CSA provides resources and support for cyber threats. <br>More information is availiable at: <a target="_blank" href="https://www.csa.gov.sg">www.csa.gov.sg</a>.</p>
+                    <strong>Cyber Security Agency of Singapore (CSA):</strong> CSA provides resources and support for cyber threats. <br>More information is availiable at: <a target="_blank" href="https://www.csa.gov.sg" style="color: var(--links-highlights-brighter)">www.csa.gov.sg</a>.
                 </div>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Infocomm Media Development Authority (IMDA):</strong> IMDA regulates media content and can be contacted if you find harmful deepfake content online. <br>More information is available at: <a target="_blank" href="https://www.imda.gov.sg">www.imda.gov.sg</a>.</p>
+                    <strong>Infocomm Media Development Authority (IMDA):</strong> IMDA regulates media content and can be contacted if you find harmful deepfake content online. <br>More information is available at: <a target="_blank" href="https://www.imda.gov.sg" style="color: var(--links-highlights-brighter)">www.imda.gov.sg</a>.
                 </div>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Singapore Police Force (SPF):</strong> For criminal activities involving deepfakes, you can file a report with the SPF. <br>More information is availiable at: <a target="_blank" href="https://www.police.gov.sg">www.police.gov.sg</a>.</p>
+                    <strong>Singapore Police Force (SPF):</strong> For criminal activities involving deepfakes, you can file a report with the SPF. <br>More information is availiable at: <a target="_blank" href="https://www.police.gov.sg" style="color: var(--links-highlights-brighter)">www.police.gov.sg</a>.
                 </div>
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="section" id="digital-tools">
+        <div class="section tab-content" id="digital-tools" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/tools-icon.png') }}" alt="Digital Tools">
             </div>
@@ -109,21 +116,42 @@
                 <p>Leveraging digital tools and technologies can help you protect yourself from deepfakes. Here are some recommended actions:</p>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Install Anti-Deepfake Software:</strong> Consider using software designed to detect deepfakes. Tools like Deepware or Sensity can analyze content and alert you if it’s likely to be fake.</p>
+                    <strong>Install Anti-Deepfake Software:</strong> Consider using software designed to detect deepfakes. Tools like Deepware or Sensity can analyze content and alert you if it’s likely to be fake.
                 </div>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Monitor Online Presence:</strong> Regularly search for your name and images online to see if any unauthorized deepfake content is being circulated.</p>
+                    <strong>Monitor Online Presence:</strong> Regularly search for your name and images online to see if any unauthorized deepfake content is being circulated.
                 </div>
                 <br>
                 <div class="highlight-box">
-                    <p><strong>Enable Content Alerts:</strong> Set up Google Alerts or similar services to notify you when new content related to your name or likeness appears online.</p>
+                    <strong>Enable Content Alerts:</strong> Set up Google Alerts or similar services to notify you when new content related to your name or likeness appears online.
                 </div>
             </div>
+        </div>
+        </div>
+        <div class="text-align-left educational-quicklinks">
+            <h3>View more resources:</h3>
+            <a href="creation">Creation of Deepfakes</a>
+            <div class="divider"></div>
+            <a href="impact_on_society">Impact on Society</a>
+            <div class="divider"></div>
+            <a href="legal_and_ethics">Legal and Ethics</a>
+            <div class="divider"></div>
+            <a href="history_of_deepfakes">History of Deepfakes</a>
+            <div class="divider"></div>
+            <a href="future_trends">Future Trends</a>
+            <div class="divider"></div>
+            <a href="case_studies">Case Studies</a>
+            <div class="divider"></div>
+            <a href="identify_deepfakes">How to Identify Deepfakes</a>
+            <div class="divider"></div>
+            <!-- <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
+            <div class="divider"></div> -->
         </div>
     </section>
 
     <div id="footer-placeholder"></div>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="../static/js/handle-tab.js"></script>
 </body>
 </html>

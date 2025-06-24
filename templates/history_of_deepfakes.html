@@ -12,11 +12,22 @@
         <div id="navbar-placeholder"></div>
     </header>
 
-    <section id="history-of-deepfakes" class="content">
+    <div class="banner" id="law-ethics-banner"></div>
+
+    <section id="history-of-deepfakes" class="content educational-section">
+        <div class="text-align-left educational">
         <h1>History of Deepfakes</h1>
         <p class="intro-text">Deepfake technology has rapidly evolved over the past few years. This section explores its origins, development, and milestones.</p>
         
-        <div class="section" id="early-developments">
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="early-developments">Early Developments</button>
+                <button class="tab" data-tab="breakthroughs">Breakthroughs</button>
+                <button class="tab" data-tab="current-state">Current State</button>
+            </div>
+        </div>
+
+        <div class="section tab-content" id="early-developments" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/early-development.png') }}" alt="Early Developments">
             </div>
@@ -28,9 +39,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="breakthroughs">
+        <div class="section tab-content" id="breakthroughs" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/breakthrough-icon.png') }}" alt="Breakthroughs">
             </div>
@@ -44,9 +53,7 @@
             </div>
         </div>
         
-        <div class="divider"></div>
-        
-        <div class="section" id="current-state">
+        <div class="section tab-content" id="current-state" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/current-icon.png') }}" alt="Current State">
             </div>
@@ -59,9 +66,30 @@
                 <p>However, the rise of deepfakes also poses significant challenges. Efforts are being made to develop detection tools and establish legal frameworks to mitigate the risks associated with deepfake misuse. Organizations and governments are collaborating to address the ethical and societal implications of this powerful technology.</p>
             </div>
         </div>
+        </div>
+
+        <div class="text-align-left educational-quicklinks">
+            <h3>View more resources:</h3>
+            <a href="creation">Creation of Deepfakes</a>
+            <div class="divider"></div>
+            <a href="impact_on_society">Impact on Society</a><div class="divider"></div>
+            <a href="legal_and_ethics">Legal and Ethics</a>
+            <div class="divider"></div>
+            <!-- <a href="history_of_deepfakes">History of Deepfakes</a>
+            <div class="divider"></div> -->
+            <a href="future_trends">Future Trends</a>
+            <div class="divider"></div>
+            <a href="case_studies">Case Studies</a>
+            <div class="divider"></div>
+            <a href="identify_deepfakes">How to Identify Deepfakes</a>
+            <div class="divider"></div>
+            <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
+            <div class="divider"></div>
+        </div>
     </section>
 
     <div id="footer-placeholder"></div>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="../static/js/handle-tab.js"></script>
 </body>
 </html>

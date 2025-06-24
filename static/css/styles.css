@@ -184,6 +184,33 @@ nav {
     font-size: 2.1em;
 }
 
+.educational {
+    max-width: 60%;
+    /* margin: 0 auto; */
+}
+/* @media (max-width: 1920px) {
+    .educational {
+        max-width: 80%;
+    }
+} */
+.educational-section {
+    display: flex;
+    justify-content: space-evenly;
+}
+.educational-quicklinks {
+    max-width: 30%;
+    display: block;
+    /* margin: auto 0; */
+}
+.educational-quicklinks a {
+    text-decoration: none;
+    color: var(--accents-buttons);
+    font-size: 1.13em;
+}
+.educational-quicklinks br {
+    height: 3em;
+}
+
 .intro-text {
     font-size: 1.3em;
     margin-bottom: 1.5em;
@@ -228,7 +255,9 @@ nav {
     border-top: 3px solid;
     border-color: var(--accents-buttons);
 }
-
+.flex-dir-col {
+    flex-direction: column;
+}
 .tabs-container {
     display: flex;
     align-items: flex-start;
@@ -273,6 +302,12 @@ nav {
     width: 90vw;
     max-width: 1100px;
 }
+.carousel-container { display: flex; align-items: center; justify-content: center; margin: 18px 0; }
+.carousel-arrow { background: #333; color: #fff; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 28px; cursor: pointer; transition: background 0.2s; }
+.carousel-arrow:hover { background: #555; }
+.carousel-images { width: 420px; height: 250px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.carousel-image { width: 100%; height: 100%; object-fit: contain; display: none; }
+.graph-container.wide-section { text-align: center; margin: 32px auto 0 auto; }
 
 .section.visible {
     opacity: 1;
@@ -336,10 +371,9 @@ nav {
 }
 
 .divider {
-    width: 80%;
-    height: 2px;
-    background: var(--links-highlights);
+    /* width: 80%; */
     margin: 1em auto;
+    border-bottom: 1px solid rgba(32, 32, 32, 0.3);
 }
 
 .try-button {
@@ -584,7 +618,7 @@ form button:hover {
 .flex-div {
     display: flex;
     justify-content: space-between;
-    margin-top: 2em;
+    margin: 0;
     width: 100%;
 }
 
@@ -604,14 +638,14 @@ form button:hover {
     font-weight: 500;
 }
 .flex-div img {
-    width: 30%;
+    max-width: 25%;
 }
 
 .flex-div iframe {
     width: 50%;
     border-radius: 8px;
     box-shadow: 0 1px 8px 0 rgba(35,39,47,0.09);
-    max-height: 400px;
+    max-height: 55vh;
 }
 
 #statistics {
@@ -902,7 +936,7 @@ img {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 35vh;
+    height: 30vh;
     width: 99vw;
 }
 .banner h1 {
@@ -915,19 +949,39 @@ img {
 }
 #creation-banner {
     background: url('../images/neural_network.png') no-repeat center center/cover;
-    height: 40vh;
-    filter: brightness(70%);
+    filter: brightness(50%);
 }
 #impact-banner {
     background: url('../images/protest.avif') no-repeat center center/cover;
-    height: 40vh;
+    height: 35vh;
     filter: brightness(50%);
 }
 #law-ethics-banner {
     background: url('../images/law_and_order.avif') no-repeat center center/cover;
-    height: 40vh;
+    height: 35vh;
     filter: brightness(60%);
 }
+#law-ethics-banner {
+    background: url('../images/history.avif') no-repeat center center/cover;
+    filter: brightness(50%);
+}
+#trends-banner {
+    background: url('../images/trends.avif') no-repeat center center/cover;
+    filter: brightness(50%);
+}
+#cs-banner {
+    background: url('../images/case-study.avif') no-repeat center center/cover;
+    filter: brightness(50%);
+}
+#identify-banner {
+    background: url('../images/identify.avif') no-repeat center center/cover;
+    filter: brightness(50%);
+}
+#protect-yourself-banner {
+    background: url('../images/security.avif') no-repeat center center/cover;
+    filter: brightness(50%);
+}
+
 
 .about-intro::before {
     content: '';
@@ -975,7 +1029,7 @@ img {
     box-shadow: 0 1px 8px 0 rgba(35,39,47,0.09);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     text-align: center;
-    max-width: 80%;
+    max-width: 60%;
     margin: 0 auto;
 }
 

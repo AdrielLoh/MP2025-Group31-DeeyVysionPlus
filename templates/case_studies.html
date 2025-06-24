@@ -12,12 +12,26 @@
     <header>
         <div id="navbar-placeholder"></div>
     </header>
-    
-    <section id="case-studies" class="content">
+
+    <div class="banner" id="cs-banner">
+        <!-- <h1>Deepfake Creation</h1> -->
+    </div>
+
+    <section id="case-studies" class="content text-align-left educational-section">
+        <div class="educational">
         <h1>Case Studies</h1>
         <p class="intro-text">Examine real-world cases involving deepfake technology, including their creation, dissemination, and impact.</p>
+        
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="political-case-study">Political Case</button>
+                <button class="tab" data-tab="celebrity-case-study">Celebrity Case</button>
+                <button class="tab" data-tab="corporate-case-study">Corporate Case</button>
+                <button class="tab" data-tab="educational-case-study">Educational Case</button>
+            </div>
+        </div>
 
-        <div class="section" id="political-case-study">
+        <div class="section tab-content" id="political-case-study" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/political-icon.png') }}" alt="Political Case Study">
             </div>
@@ -29,9 +43,7 @@
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="section" id="celebrity-case-study">
+        <div class="section tab-content" id="celebrity-case-study" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/celebrity-icon.png') }}" alt="Celebrity Case Study">
             </div>
@@ -43,9 +55,7 @@
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="section" id="corporate-case-study">
+        <div class="section tab-content" id="corporate-case-study" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/corporate-icon.png') }}" alt="Corporate Case Study">
             </div>
@@ -57,9 +67,7 @@
             </div>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="section" id="educational-case-study">
+        <div class="section tab-content" id="educational-case-study" style="display: none;">
             <div class="icon-container">
                 <img src="{{ url_for('static', filename='images/educational-icon.png') }}" alt="Educational Case Study">
             </div>
@@ -70,9 +78,30 @@
                 <p>The exercise was part of a larger curriculum focused on digital literacy and critical thinking. Students learned to identify deepfakes and understand their implications. This case study highlighted the potential of using deepfakes as educational tools to raise awareness about digital manipulation.</p>
             </div>
         </div>
+        </div>
+        <div class="text-align-left educational-quicklinks">
+            <h3>View more resources:</h3>
+            <a href="creation">Creation of Deepfakes</a>
+            <div class="divider"></div>
+            <a href="impact_on_society">Impact on Society</a>
+            <div class="divider"></div>
+            <a href="legal_and_ethics">Legal and Ethics</a>
+            <div class="divider"></div>
+            <a href="history_of_deepfakes">History of Deepfakes</a>
+            <div class="divider"></div>
+            <a href="future_trends">Future Trends</a>
+            <div class="divider"></div>
+            <!-- <a href="case_studies">Case Studies</a>
+            <div class="divider"></div> -->
+            <a href="identify_deepfakes">How to Identify Deepfakes</a>
+            <div class="divider"></div>
+            <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
+            <div class="divider"></div>
+        </div>
     </section>
 
     <div id="footer-placeholder"></div>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script src="../static/js/handle-tab.js"></script>
 </body>
 </html>
