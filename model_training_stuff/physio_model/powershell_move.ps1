@@ -1,30 +1,59 @@
-# # Set your source and target folders here
-# $sourceFolder = "G:\deepfake_training_datasets\DeeperForensics\manipulated_videos_part_08"
-# $targetFolder = "G:\deepfake_training_datasets\DeeperForensics\fake"
+# === CONFIG ===
+$sourceFolder = "G:\deepfake_training_datasets\Physio_Model\faceforensics\downloaded\original_sequences\youtube\c23\videos"
+$destinationFolder = "G:\deepfake_training_datasets\Physio_Model\TRAINING\real"
+$prefix = "ffpp_og_yt_"  # <- Your custom prefix here
 
-# # Create the target folder if it doesn't exist
-# if (-not (Test-Path $targetFolder)) {
-#     New-Item -Path $targetFolder -ItemType Directory
-# }
+# === Ensure destination exists ===
+if (-not (Test-Path $destinationFolder)) {
+    New-Item -Path $destinationFolder -ItemType Directory
+}
 
-# # Function to generate a random filename
-# function Get-RandomFilename {
-#     return -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 12 | ForEach-Object {[char]$_})
-# }
+# === Get .mp4 files recursively from the source folder
+$filesToMove = Get-ChildItem -Path $sourceFolder -Recurse -File | Where-Object { $_.Extension -eq ".mp4" }
 
-# # Get all .mp4 files recursively
-# Get-ChildItem -Path $sourceFolder -Recurse -Filter *.mp4 | ForEach-Object {
-#     $randomName = Get-RandomFilename
-#     $newPath = Join-Path $targetFolder ($randomName + ".mp4")
+foreach ($file in $filesToMove) {
+    $newFileName = $prefix + $file.Name
+    $destPath = Join-Path $destinationFolder $newFileName
 
-#     # Ensure no filename clash
-#     while (Test-Path $newPath) {
-#         $randomName = Get-RandomFilename
-#         $newPath = Join-Path $targetFolder ($randomName + ".mp4")
+    # If file exists, append _1, _2, etc. to avoid overwrite
+    if (Test-Path $destPath) {
+        $base = [System.IO.Path]::GetFileNameWithoutExtension($newFileName)
+        $ext = $file.Extension
+        $count = 1
+        do {
+            $newName = "$base" + "_$count$ext"
+            $destPath = Join-Path $destinationFolder $newName
+            $count++
+        } while (Test-Path $destPath)
+    }
+
+    Move-Item -Path $file.FullName -Destination $destPath
+    Write-Host "Moved: $($file.FullName) -> $destPath"
+}
+
+
+# === CONFIG ===
+# $targetFolder = "G:\deepfake_training_datasets\Physio_Model\TRAINING\real"
+# $oldPrefix = "deeperforensics_"
+# $newPrefix = "dfdc_"
+
+# # === Get all files starting with the old prefix
+# $filesToRename = Get-ChildItem -Path $targetFolder -File | Where-Object { $_.Name -like "$oldPrefix*" }
+
+# foreach ($file in $filesToRename) {
+#     $newName = $file.Name -replace "^$oldPrefix", $newPrefix
+#     $newPath = Join-Path $targetFolder $newName
+
+#     # Ensure no overwrite
+#     if (Test-Path $newPath) {
+#         Write-Warning "Skipping (target already exists): $newPath"
+#         continue
 #     }
 
-#     Move-Item -Path $_.FullName -Destination $newPath
+#     Rename-Item -Path $file.FullName -NewName $newName
+#     Write-Host "Renamed: $($file.Name) -> $newName"
 # }
+
 
 
 
@@ -60,36 +89,77 @@
 
 # --- MOVE SCRIPT 3 ---
 # === CONFIG ===
-$sourceFolder = "G:\deepfake_training_datasets\DeeperForensics\training\real"
-$destinationFolder = "G:\deepfake_training_datasets\DeeperForensics\validation\real"
-$numberOfFilesToMove = 2753  # Change this to how many random files you want to move
+# $sourceFolder = "G:\deepfake_training_datasets\DeeperForensics\downloaded"
+# $destinationFolder = "G:\deepfake_training_datasets\DeeperForensics\training\fake"
+# $numberOfFilesToMove = 3807
 
-# === Ensure destination exists ===
-if (-not (Test-Path $destinationFolder)) {
-    New-Item -Path $destinationFolder -ItemType Directory
-}
+# # === Ensure destination exists ===
+# if (-not (Test-Path $destinationFolder)) {
+#     New-Item -Path $destinationFolder -ItemType Directory
+# }
 
-# === Get all files in source folder ===
-$allFiles = Get-ChildItem -Path $sourceFolder -File
+# # === Function to compute SHA256 hash of a file ===
+# function Get-FileHashSHA256($filePath) {
+#     return (Get-FileHash -Path $filePath -Algorithm SHA256).Hash
+# }
 
-# === Shuffle and select N files ===
-$selectedFiles = $allFiles | Get-Random -Count ([Math]::Min($numberOfFilesToMove, $allFiles.Count))
+# # === Collect hashes of existing destination files ===
+# Write-Host "Hashing existing destination files..."
+# $existingHashes = @{}
+# Get-ChildItem -Path $destinationFolder -File | ForEach-Object {
+#     try {
+#         $hash = Get-FileHashSHA256 $_.FullName
+#         $existingHashes[$hash] = $true
+#     } catch {
+#         Write-Warning "Failed to hash: $($_.FullName)"
+#     }
+# }
 
-foreach ($file in $selectedFiles) {
-    $destPath = Join-Path $destinationFolder $file.Name
+# # === Get all files in source folder ===
+# $allFiles = Get-ChildItem -Path $sourceFolder -File
 
-    # If a file with the same name exists, append a number
-    if (Test-Path $destPath) {
-        $base = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
-        $ext = $file.Extension
-        $count = 1
-        do {
-            $newName = "$base" + "_$count$ext"
-            $destPath = Join-Path $destinationFolder $newName
-            $count++
-        } while (Test-Path $destPath)
-    }
+# # === Shuffle and select N files ===
+# $selectedFiles = $allFiles | Get-Random -Count ([Math]::Min($numberOfFilesToMove, $allFiles.Count))
 
-    Move-Item -Path $file.FullName -Destination $destPath
-    Write-Host "Moved: $($file.FullName) -> $destPath"
-}
+# $moveCount = 0
+# foreach ($file in $selectedFiles) {
+#     try {
+#         $hash = Get-FileHashSHA256 $file.FullName
+
+#         if ($existingHashes.ContainsKey($hash)) {
+#             Write-Host "Skipping (duplicate hash): $($file.Name)"
+#             continue
+#         }
+
+#         # Prepare destination path
+#         $destPath = Join-Path $destinationFolder $file.Name
+
+#         if (Test-Path $destPath) {
+#             $base = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
+#             $ext = $file.Extension
+#             $count = 1
+#             do {
+#                 $newName = "$base" + "_$count$ext"
+#                 $destPath = Join-Path $destinationFolder $newName
+#                 $count++
+#             } while (Test-Path $destPath)
+#         }
+
+#         Move-Item -Path $file.FullName -Destination $destPath
+#         Write-Host "Moved: $($file.Name) -> $destPath"
+
+#         # Store the new hash
+#         $existingHashes[$hash] = $true
+#         $moveCount++
+#     } catch {
+#         Write-Warning "Error processing $($file.FullName): $_"
+#     }
+
+#     # Stop if we've reached the target count
+#     if ($moveCount -ge $numberOfFilesToMove) {
+#         break
+#     }
+# }
+
+# Write-Host "`nDone. Total files moved: $moveCount"
+

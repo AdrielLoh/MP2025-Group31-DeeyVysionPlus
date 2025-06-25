@@ -19,7 +19,7 @@ DURATION = 5
 MAX_TIME_STEPS = 157
 N_MELS = 128
 N_MFCC = 20
-MODEL_PATH = "models/audio_model_tf217_alcj_v9p2ft2.keras" # v8 is still the best
+MODEL_PATH = "models/audio_model_v9p2ft2.keras" # v8 is still the best
 SCALER_PATH = "models/audio_scaler.joblib"
 SILENCE_THRESHOLD = 0.002
 

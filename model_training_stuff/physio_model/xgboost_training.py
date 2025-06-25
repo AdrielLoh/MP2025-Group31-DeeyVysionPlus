@@ -48,8 +48,8 @@ scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_val = scaler.transform(X_val)
 os.makedirs('models', exist_ok=True)
-joblib.dump(scaler, 'models/feature_scaler.pkl')
-print("[INFO] Feature scaler saved to models/feature_scaler.pkl")
+joblib.dump(scaler, 'models/physio_scaler.pkl')
+print("[INFO] Feature scaler saved to models/physio_scaler.pkl")
 
 # --- Train XGBoost Classifier with Best Parameters ---
 print("[INFO] Training XGBoost with best parameters...")

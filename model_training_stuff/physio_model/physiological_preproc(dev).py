@@ -5,14 +5,98 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 from scipy.signal import detrend, butter, filtfilt, periodogram
+import scipy.stats
 
+# === rPPG multi-method and extended feature extraction ===
+def rppg_chrom(rgb):
+    S = rgb
+    h = (S[:, 1] - S[:, 0]) / (np.std(S[:, 1] - S[:, 0]) + 1e-8)
+    s = (S[:, 1] + S[:, 0] - 2 * S[:, 2]) / (np.std(S[:, 1] + S[:, 0] - 2 * S[:, 2]) + 1e-8)
+    return h + s
+
+def rppg_pos(rgb):
+    S = rgb
+    S_mean = np.mean(S, axis=0)
+    S = S / (S_mean + 1e-8)
+    Xcomp = 3 * S[:, 0] - 2 * S[:, 1]
+    Ycomp = 1.5 * S[:, 0] + S[:, 1] - 1.5 * S[:, 2]
+    return Xcomp / (Ycomp + 1e-8)
+
+def rppg_green(rgb):
+    return rgb[:, 1]
+
+def compute_band_powers(f, pxx, bands):
+    total_power = np.sum(pxx)
+    power_features = []
+    for low, high in bands:
+        mask = (f >= low) & (f <= high)
+        power = np.sum(pxx[mask])
+        ratio = power / (total_power + 1e-8)
+        power_features.extend([power, ratio])
+    return power_features
+
+def compute_autocorrelation(sig):
+    if len(sig) < 2:
+        return 0
+    acf = np.correlate(sig - np.mean(sig), sig - np.mean(sig), mode='full')
+    acf = acf[acf.size // 2:]
+    peak_lag = np.argmax(acf[1:]) + 1 if len(acf) > 1 else 1
+    return acf[peak_lag] / (acf[0] + 1e-8) if acf[0] != 0 else 0
+
+def compute_entropy(sig):
+    hist, _ = np.histogram(sig, bins=32, density=True)
+    hist += 1e-8
+    return -np.sum(hist * np.log2(hist))
+
+def compute_rppg_features_multi(rgb_signal, fs):
+    rgb_detrend = detrend(rgb_signal, axis=0)
+    rgb_norm = (rgb_detrend - np.mean(rgb_detrend, axis=0)) / (np.std(rgb_detrend, axis=0) + 1e-8)
+    rppg_methods = {
+        "CHROM": rppg_chrom(rgb_norm),
+        "POS": rppg_pos(rgb_norm),
+        "GREEN": rppg_green(rgb_norm),
+    }
+    bands = [
+        (0.7, 2.5),  # Cardiac
+        (0.2, 0.6),  # Respiratory
+        (4.0, 8.0),  # Noise
+    ]
+    all_features = []
+    for key, rppg_sig in rppg_methods.items():
+        if len(rppg_sig) <= 21:
+            all_features.extend([0]*19)
+            continue
+        sig_filt = butter_bandpass_filter(rppg_sig, fs)
+        f, pxx = periodogram(sig_filt, fs)
+        valid = (f >= 0.7) & (f <= 4.0)
+        f, pxx = f[valid], pxx[valid]
+        if len(f) == 0:
+            all_features.extend([0]*19)
+            continue
+        peak_idx = np.argmax(pxx)
+        hr_freq, hr_bpm, hr_power = f[peak_idx], f[peak_idx]*60, pxx[peak_idx]
+        snr = hr_power / (np.sum(pxx) - hr_power + 1e-8)
+        band_powers = compute_band_powers(f, pxx, bands)
+        autocorr_peak = compute_autocorrelation(sig_filt)
+        entropy = compute_entropy(sig_filt)
+        kurt = scipy.stats.kurtosis(sig_filt)
+        skew = scipy.stats.skew(sig_filt)
+        features = [
+            np.mean(sig_filt), np.std(sig_filt), np.max(sig_filt), np.min(sig_filt),
+            np.ptp(sig_filt), hr_freq, hr_bpm, hr_power, snr,
+            autocorr_peak, entropy, kurt, skew
+        ] + band_powers
+        all_features.extend(features)
+    return np.array(all_features, dtype=np.float32)  # 57 features
+
+# --- Everything below is the same as your original script, except ---
+# --- compute_rppg_features is replaced with compute_rppg_features_multi ---
 
 def get_face_net():
     FACE_PROTO = '../../models/weights-prototxt.txt'
     FACE_MODEL = '../../models/res_ssd_300Dim.caffeModel'
     face_net = cv2.dnn.readNetFromCaffe(FACE_PROTO, FACE_MODEL)
     return face_net
-
 
 def detect_faces_dnn(frame, face_net, conf_threshold=0.5):
     h, w = frame.shape[:2]
@@ -32,7 +116,6 @@ def detect_faces_dnn(frame, face_net, conf_threshold=0.5):
                 boxes.append((x1, y1, x2 - x1, y2 - y1))
     return boxes
 
-
 def iou(boxA, boxB):
     xA = max(boxA[0], boxB[0])
     yA = max(boxA[1], boxB[1])
@@ -43,7 +126,6 @@ def iou(boxA, boxB):
     boxBArea = max(1, boxB[2] * boxB[3])
     iou_val = interArea / float(boxAArea + boxBArea - interArea + 1e-5)
     return iou_val
-
 
 def track_faces(all_face_boxes, iou_thresh=0.5):
     tracks = []
@@ -66,7 +148,6 @@ def track_faces(all_face_boxes, iou_thresh=0.5):
                 next_track_id += 1
     tracklets = {t['id']: t['boxes'] for t in tracks if len(t['boxes']) > 2}
     return tracklets
-
 
 def extract_rgb_signal_track(frames, face_boxes):
     r_means, g_means, b_means, face_mask = [], [], [], []
@@ -102,47 +183,12 @@ def extract_rgb_signal_track(frames, face_boxes):
     rgb_signal = np.stack([r_means, g_means, b_means], axis=-1)  # shape: (frames, 3)
     return rgb_signal, np.array(face_mask)
 
-
 def butter_bandpass_filter(signal, fs, lowcut=0.7, highcut=4.0, order=3):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
     b, a = butter(order, [low, high], btype='band')
     return filtfilt(b, a, signal)
-
-
-def compute_rppg_features(rgb_signal, fs):
-    # Detrend and normalize
-    rgb_detrend = detrend(rgb_signal, axis=0)
-    rgb_norm = (rgb_detrend - np.mean(rgb_detrend, axis=0)) / (np.std(rgb_detrend, axis=0) + 1e-8)
-    # Use POS method for rPPG (simple version)
-    S = rgb_norm
-    h = S[:, 1] - S[:, 0]  # g-r
-    s = S[:, 1] + S[:, 0] - 2*S[:, 2]  # (g+r)-2b
-    h = h / (np.std(h) + 1e-8)
-    s = s / (np.std(s) + 1e-8)
-    rppg_sig = h + s
-    # Bandpass filter
-    rppg_sig = butter_bandpass_filter(rppg_sig, fs)
-    # Extract features
-    features = {}
-    features['mean'] = np.mean(rppg_sig)
-    features['std'] = np.std(rppg_sig)
-    features['max'] = np.max(rppg_sig)
-    features['min'] = np.min(rppg_sig)
-    features['range'] = np.ptp(rppg_sig)
-    f, pxx = periodogram(rppg_sig, fs)
-    valid = (f >= 0.7) & (f <= 4.0)
-    pxx = pxx[valid]
-    f = f[valid]
-    peak_idx = np.argmax(pxx)
-    features['hr_freq'] = f[peak_idx]  # Heart rate freq (Hz)
-    features['hr_bpm'] = f[peak_idx] * 60  # BPM
-    features['hr_power'] = pxx[peak_idx]
-    features['snr'] = features['hr_power'] / (np.sum(pxx) - features['hr_power'] + 1e-8)
-    # Return as vector
-    return np.array(list(features.values()), dtype=np.float32)
-
 
 def sliding_windows_with_mask(signal, mask, window_size, hop_size, min_face_ratio=0.8):
     windows = []
@@ -153,16 +199,14 @@ def sliding_windows_with_mask(signal, mask, window_size, hop_size, min_face_rati
             windows.append(signal[start:end, :])
     return np.stack(windows) if windows else np.empty((0, window_size, signal.shape[1]))
 
-
 def preprocess_video_worker(args):
-    video_path, window_size, hop_size = args  # fs removed here
+    video_path, window_size, hop_size = args
     face_net = get_face_net()
     cap = cv2.VideoCapture(video_path)
     frames = []
     all_boxes = []
-    # --- Get video FPS ---
     fps = cap.get(cv2.CAP_PROP_FPS)
-    if not fps or fps < 1:  # fallback for broken/old codecs
+    if not fps or fps < 1:
         fps = 30
     while True:
         ret, frame = cap.read()
@@ -184,7 +228,7 @@ def preprocess_video_worker(args):
         rgb_signal, face_mask = extract_rgb_signal_track(frames, per_frame_boxes)
         rgb_windows = sliding_windows_with_mask(rgb_signal, face_mask, window_size, hop_size, min_face_ratio=0.8)
         for win in rgb_windows:
-            rppg_feat = compute_rppg_features(win, fps)
+            rppg_feat = compute_rppg_features_multi(win, fps)
             rppg_features_all_tracks.append(rppg_feat)
     if rppg_features_all_tracks:
         rppg_features_all_tracks = np.stack(rppg_features_all_tracks, axis=0)
@@ -198,9 +242,8 @@ def preprocess_video_worker(args):
     else:
         return (None, 0, os.path.basename(video_path), 0, len(frames))
 
-
 def cache_batches_parallel(video_dir, label, class_idx, batch_size=128, cache_dir='cache/batches/train',
-                          window_size=150, hop_size=75, max_workers=None):  # fs removed
+                          window_size=150, hop_size=75, max_workers=None):
     os.makedirs(cache_dir, exist_ok=True)
     X_feat, y = [], []
     file_list = sorted([
@@ -209,7 +252,7 @@ def cache_batches_parallel(video_dir, label, class_idx, batch_size=128, cache_di
         if f.lower().endswith((".mp4", ".avi", ".mov"))
     ])
     batch_idx = 0
-    tasks = [(video_path, window_size, hop_size) for video_path in file_list]  # no fs
+    tasks = [(video_path, window_size, hop_size) for video_path in file_list]
     if max_workers:
         n_workers = max_workers
     else:
@@ -258,20 +301,7 @@ def cache_batches_parallel(video_dir, label, class_idx, batch_size=128, cache_di
             np.save(os.path.join(cache_dir, f"{label}_y_batch_{batch_idx}.npy"), Y)
 
 if __name__ == "__main__":
-    # cache_batches_parallel(
-    #     'G:/deepfake_training_datasets/DeeperForensics/training/real',
-    #     label='real',
-    #     class_idx=0,
-    #     batch_size=64,
-    #     cache_dir='D:/model_training/cache/batches/train/real'
-    # )
-    # cache_batches_parallel(
-    #     'G:/deepfake_training_datasets/DeeperForensics/training/fake',
-    #     label='fake',
-    #     class_idx=1,
-    #     batch_size=64,
-    #     cache_dir='D:/model_training/cache/batches/train/fake'
-    # )
+    # Example usage: set your dataset paths
     cache_batches_parallel(
         'G:/deepfake_training_datasets/DeeperForensics/validation/real',
         label='real',

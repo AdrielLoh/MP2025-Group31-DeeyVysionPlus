@@ -8,7 +8,7 @@ INPUT_HEIGHT = 170
 INPUT_WIDTH = 157
 INPUT_CHANNELS = 1
 MODEL_WEIGHTS_PATH = "C:/Users/Adriel Loh/Documents/GitHub/MP2025-Group31-DeeyVysionPlus/models/audio_model_weights_v9p2ft2.pkl"  # Saved weights from my model built in TF 2.10
-RESAVED_MODEL_PATH = "models/audio_model_tf217_alcj_v9p2ft2.keras" # Rebuilt model compatible with current project
+RESAVED_MODEL_PATH = "models/audio_model_v9p2ft2.keras" # Rebuilt model compatible with current project
 
 # TCN residual block (basically a CNN-style LSTM)
 def residual_block(x, filters, kernel_size, dilation_rate, dropout_rate):
