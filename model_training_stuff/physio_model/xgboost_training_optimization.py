@@ -3,11 +3,12 @@ import numpy as np
 import glob
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve
-from sklearn.model_selection import GridSearchCV
 from sklearn.utils import compute_sample_weight
 from sklearn.preprocessing import StandardScaler
 import joblib
 import matplotlib.pyplot as plt
+import optuna
+from sklearn.model_selection import train_test_split
 
 def load_batches(batch_dir):
     X, y = [], []
@@ -50,46 +51,61 @@ print("[INFO] Feature scaler saved to models/physio_scaler.pkl")
 scale_pos_weight = float(len(y_train[y_train == 0])) / len(y_train[y_train == 1])
 sample_weights = compute_sample_weight(class_weight={0: 1.4, 1: 1}, y=y_train)
 
-param_grid = {
-    'n_estimators': [200, 500],
-    'max_depth': [4, 5, 7],
-    'learning_rate': [0.05, 0.1],
-    'subsample': [0.7, 1.0],
-    'colsample_bytree': [0.7, 1.0],
-    'gamma': [0, 2],
-    'reg_alpha': [0, 1],
-    'reg_lambda': [1, 2],
-}
+# Optional: use a split from training for early stopping/validation in Optuna study
+X_train_sub, X_eval_sub, y_train_sub, y_eval_sub, sw_train_sub, sw_eval_sub = train_test_split(
+    X_train, y_train, sample_weights, test_size=0.15, stratify=y_train, random_state=42)
 
-clf = XGBClassifier(
-    scale_pos_weight=scale_pos_weight,
-    use_label_encoder=False,
-    eval_metric='logloss',
-    random_state=42,
-    n_jobs=-1
-)
+def objective(trial):
+    params = {
+        'n_estimators': trial.suggest_int('n_estimators', 100, 600),
+        'max_depth': trial.suggest_int('max_depth', 3, 8),
+        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.2, log=True),
+        'subsample': trial.suggest_float('subsample', 0.6, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.6, 1.0),
+        'gamma': trial.suggest_float('gamma', 0, 5.0),
+        'reg_alpha': trial.suggest_float('reg_alpha', 0, 2.0),
+        'reg_lambda': trial.suggest_float('reg_lambda', 0.5, 3.0),
+        'scale_pos_weight': scale_pos_weight,
+        'use_label_encoder': False,
+        'eval_metric': 'logloss',
+        'random_state': 42,
+        'n_jobs': -1
+    }
+    clf = XGBClassifier(**params)
+    clf.fit(
+        X_train_sub, y_train_sub,
+        sample_weight=sw_train_sub,
+        verbose=False
+    )
+    y_pred_proba = clf.predict_proba(X_eval_sub)[:, 1]
+    auc = roc_auc_score(y_eval_sub, y_pred_proba)
+    return auc
 
-grid = GridSearchCV(
-    clf,
-    param_grid,
-    scoring='roc_auc',
-    cv=3,
-    verbose=2,
-    n_jobs=-1
-)
+study = optuna.create_study(direction='maximize')
+print("[INFO] Running Optuna hyperparameter search...")
+study.optimize(objective, n_trials=35, show_progress_bar=True)
+print("[INFO] Best hyperparameters:")
+print(study.best_params)
 
-print("[INFO] Running GridSearchCV for optimal hyperparameters...")
-grid.fit(X_train, y_train, sample_weight=sample_weights)
-best_clf = grid.best_estimator_
-print("[INFO] Best parameters found:", grid.best_params_)
+# Train final model with best params
+best_params = study.best_params
+best_params.update({
+    'scale_pos_weight': scale_pos_weight,
+    'use_label_encoder': False,
+    'eval_metric': 'logloss',
+    'random_state': 42,
+    'n_jobs': -1
+})
+final_clf = XGBClassifier(**best_params)
+final_clf.fit(X_train, y_train, sample_weight=sample_weights)
 
-y_pred = best_clf.predict(X_val)
+y_pred = final_clf.predict(X_val)
 print("\n[RESULTS] Validation Accuracy:", accuracy_score(y_val, y_pred))
 print("\n[RESULTS] Classification Report:\n", classification_report(y_val, y_pred))
 print("\n[RESULTS] Confusion Matrix:\n", confusion_matrix(y_val, y_pred))
 
-if hasattr(best_clf, 'predict_proba'):
-    y_score = best_clf.predict_proba(X_val)[:, 1]
+if hasattr(final_clf, 'predict_proba'):
+    y_score = final_clf.predict_proba(X_val)[:, 1]
     auc = roc_auc_score(y_val, y_score)
     print(f"[RESULTS] ROC AUC: {auc:.4f}")
     fpr, tpr, thresholds = roc_curve(y_val, y_score)
@@ -111,10 +127,10 @@ if hasattr(best_clf, 'predict_proba'):
     print("\n[Optimal Threshold] Classification Report:\n", classification_report(y_val, y_pred_optimal))
     print("\n[Optimal Threshold] Confusion Matrix:\n", confusion_matrix(y_val, y_pred_optimal))
 
-if hasattr(best_clf, 'feature_importances_'):
+if hasattr(final_clf, 'feature_importances_'):
     print("\n[INFO] Feature Importances:")
-    for i, imp in enumerate(best_clf.feature_importances_):
+    for i, imp in enumerate(final_clf.feature_importances_):
         print(f"Feature {i}: {imp:.4f}")
 
-joblib.dump(best_clf, 'models/physio_detection_xgboost_best.pkl')
+joblib.dump(final_clf, 'models/physio_detection_xgboost_best.pkl')
 print("[INFO] Model saved as models/physio_detection_xgboost_best.pkl")

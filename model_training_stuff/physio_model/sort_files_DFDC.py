@@ -3,10 +3,10 @@ import json
 import shutil
 
 # === CONFIG ===
-metadata_path = "G:/deepfake_training_datasets/Deepfake Detection Challenge/training_data/dfdc_train_part_05/dfdc_train_part_5/metadata.json" # Replace with your actual path
-video_folder = "G:/deepfake_training_datasets/Deepfake Detection Challenge/training_data/dfdc_train_part_05/dfdc_train_part_5"     # Folder containing all the .mp4 videos
-real_folder = "G:/deepfake_training_datasets/Deepfake Detection Challenge/training_data/real"      # Destination for real videos
-fake_folder = "G:/deepfake_training_datasets/Deepfake Detection Challenge/training_data/fake"      # Destination for fake videos
+metadata_path = "G:/deepfake_training_datasets/Physio_Model/Deepfake Detection Challenge/train_sample_videos/metadata.json" # Replace with your actual path
+video_folder = "G:/deepfake_training_datasets/Physio_Model/Deepfake Detection Challenge/train_sample_videos"     # Folder containing all the .mp4 videos
+real_folder = "G:/deepfake_training_datasets/Physio_Model/TESTING/real"      # Destination for real videos
+fake_folder = "G:/deepfake_training_datasets/Physio_Model/TESTING/fake"      # Destination for fake videos
 
 # === Create output folders if they don't exist
 os.makedirs(real_folder, exist_ok=True)

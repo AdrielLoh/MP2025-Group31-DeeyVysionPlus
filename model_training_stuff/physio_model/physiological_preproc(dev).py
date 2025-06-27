@@ -302,17 +302,31 @@ def cache_batches_parallel(video_dir, label, class_idx, batch_size=128, cache_di
 
 if __name__ == "__main__":
     # Example usage: set your dataset paths
+    # cache_batches_parallel(
+    #     'G:/deepfake_training_datasets/Physio_Model/VALIDATION/real',
+    #     label='real',
+    #     class_idx=0,
+    #     batch_size=64,
+    #     cache_dir='D:/model_training/cache/batches/val/real'
+    # )
+    # cache_batches_parallel(
+    #     'G:/deepfake_training_datasets/Physio_Model/VALIDATION/fake',
+    #     label='fake',
+    #     class_idx=1,
+    #     batch_size=64,
+    #     cache_dir='D:/model_training/cache/batches/val/fake'
+    # )
     cache_batches_parallel(
-        'G:/deepfake_training_datasets/DeeperForensics/validation/real',
+        'G:/deepfake_training_datasets/Physio_Model/TESTING/real',
         label='real',
         class_idx=0,
         batch_size=64,
-        cache_dir='D:/model_training/cache/batches/val/real'
+        cache_dir='D:/model_training/cache/batches/test/real'
     )
     cache_batches_parallel(
-        'G:/deepfake_training_datasets/DeeperForensics/validation/fake',
+        'G:/deepfake_training_datasets/Physio_Model/TESTING/fake',
         label='fake',
         class_idx=1,
         batch_size=64,
-        cache_dir='D:/model_training/cache/batches/val/fake'
+        cache_dir='D:/model_training/cache/batches/test/fake'
     )
