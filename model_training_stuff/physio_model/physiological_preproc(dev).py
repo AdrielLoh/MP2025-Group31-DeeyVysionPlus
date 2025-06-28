@@ -57,26 +57,34 @@ def compute_rppg_features_multi(rgb_signal, fs):
         "GREEN": rppg_green(rgb_norm),
     }
     bands = [
-        (0.7, 2.5),  # Cardiac
-        (0.2, 0.6),  # Respiratory
-        (4.0, 8.0),  # Noise
+        (0.7, 2.5),
+        (0.2, 0.6),
+        (4.0, 8.0),
     ]
     all_features = []
+    bpm_list = []
+    rppg_sig_chrom = np.zeros(len(rgb_signal))
+    f = np.array([])
+    pxx = np.array([])
     for key, rppg_sig in rppg_methods.items():
+        if key == "CHROM":
+            rppg_sig_chrom = rppg_sig
         if len(rppg_sig) <= 21:
             all_features.extend([0]*19)
+            bpm_list.append(0)
             continue
         sig_filt = butter_bandpass_filter(rppg_sig, fs)
-        f, pxx = periodogram(sig_filt, fs)
-        valid = (f >= 0.7) & (f <= 4.0)
-        f, pxx = f[valid], pxx[valid]
-        if len(f) == 0:
+        f_temp, pxx_temp = periodogram(sig_filt, fs)
+        valid = (f_temp >= 0.7) & (f_temp <= 4.0)
+        f_temp, pxx_temp = f_temp[valid], pxx_temp[valid]
+        if len(f_temp) == 0:
             all_features.extend([0]*19)
+            bpm_list.append(0)
             continue
-        peak_idx = np.argmax(pxx)
-        hr_freq, hr_bpm, hr_power = f[peak_idx], f[peak_idx]*60, pxx[peak_idx]
-        snr = hr_power / (np.sum(pxx) - hr_power + 1e-8)
-        band_powers = compute_band_powers(f, pxx, bands)
+        peak_idx = np.argmax(pxx_temp)
+        hr_freq, hr_bpm, hr_power = f_temp[peak_idx], f_temp[peak_idx]*60, pxx_temp[peak_idx]
+        snr = hr_power / (np.sum(pxx_temp) - hr_power + 1e-8)
+        band_powers = compute_band_powers(f_temp, pxx_temp, bands)
         autocorr_peak = compute_autocorrelation(sig_filt)
         entropy = compute_entropy(sig_filt)
         kurt = scipy.stats.kurtosis(sig_filt)
@@ -87,7 +95,13 @@ def compute_rppg_features_multi(rgb_signal, fs):
             autocorr_peak, entropy, kurt, skew
         ] + band_powers
         all_features.extend(features)
-    return np.array(all_features, dtype=np.float32)  # 57 features
+        bpm_list.append(hr_bpm)
+        if key == "CHROM" and len(f) == 0:
+            f = f_temp
+            pxx = pxx_temp
+    mean_bpm = np.mean([b for b in bpm_list if b > 0]) if bpm_list else 0
+    return np.array(all_features, dtype=np.float32), mean_bpm, rppg_sig_chrom, f, pxx
+
 
 # --- Everything below is the same as your original script, except ---
 # --- compute_rppg_features is replaced with compute_rppg_features_multi ---

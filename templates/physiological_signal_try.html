@@ -10,6 +10,7 @@
         document.addEventListener("DOMContentLoaded", function() {
             let form = document.getElementById("upload-form");
             let spinner = document.getElementById("loadingSpinner");
+            let submitButton = document.getElementById("submitButton");
 
             form.addEventListener("submit", function(event) {
                 event.preventDefault();
@@ -35,101 +36,72 @@
         <div id="navbar-placeholder"></div>
     </header>
     <section class="content">
-        <h1>Try Physiological Signal Detection</h1>
-        <p>This project is experimental and the detection results may be inaccurate</p><br>
-        <form id="upload-form" enctype="multipart/form-data">
-            <div id="dropbox" class="dropbox">
-                <p>Drag & drop a video file here, or click to select one</p>
-                <input type="file" name="file" id="file" accept="video/*" required>
-                <video id="video-preview" controls style="display: none;"></video>
-            </div>
-            <button type="submit" id="submitButton">Submit</button>
-            <div id="loadingSpinner">
-                <div class="spinner"></div>
-                <p>Processing video... Please wait.</p>
-            </div>
-        </form>
-        <h3>Real-Time Detection (Webcam)</h3>
-        <video id="webcam-preview" width="400" autoplay muted style="display: none;"></video>
-        <br>
-        <label for="videoSource">Camera Source:</label>
-        <select id="videoSource"></select>
-        <br><br>    
-        <button id="startWebcamBtn" class="button">Start Webcam</button>
-        <button id="stopWebcamBtn" class="button" disabled>Stop & Analyze</button>
-        <div id="webcamSpinner" style="display:none;">
-            <div class="spinner"></div>
-            <p>Processing live video...</p>
+        <div class="page-intro">
+            <h1>Try Physiological Signal Detection <span class="experimental-badge">EXPERIMENTAL</span></h1>
+            <p>This physiological signal detection analyzes heart rate patterns and subtle facial color changes using Remote Photoplethysmography.
+                 Results may vary based on video quality and lighting conditions, and should not be taken as the complete truth.</p>
         </div>
-        <form id="webcamUploadForm" method="POST" enctype="multipart/form-data" action="/physiological_signal_try" style="display:none;">
-            <input type="file" name="file" id="webcamFileInput">
-            <button type="submit">Upload and Analyze</button>
-        </form>
-        <script>
-        const videoSelect = document.getElementById('videoSource');
 
-        // Get list of video input devices
-        function getCameras() {
-            navigator.mediaDevices.enumerateDevices()
-            .then(function(devices) {
-                videoSelect.innerHTML = ''; // Clear previous
-                devices.forEach(function(device) {
-                    if (device.kind === 'videoinput') {
-                        let option = document.createElement('option');
-                        option.value = device.deviceId;
-                        option.text = device.label || `Camera ${videoSelect.length + 1}`;
-                        videoSelect.appendChild(option);
-                    }
-                });
-            });
-        }
-        getCameras();
-        navigator.mediaDevices.ondevicechange = getCameras; // Refresh if cams plugged/unplugged
+        <div class="detection-methods">
+            <!-- File Upload Method -->
+            <div class="detection-method">
+                <div class="method-header">
+                    <div class="method-icon">📁</div>
+                    <h2 class="method-title">Upload Video File</h2>
+                </div>
+                <p class="method-description">Upload a video file from your device for analysis. Supports most common video formats.</p>
+                
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div id="dropbox" class="dropbox">
+                        <p>Drag & drop a video file here, or click to select one</p>
+                        <input type="file" name="file" id="file" accept="video/*" required>
+                        <video id="video-preview" controls style="display: none;"></video>
+                    </div>
+                    <button type="submit" id="submitButton">Analyze Video</button>
+                    <div id="loadingSpinner">
+                        <div class="spinner"></div>
+                        <p>Processing video... Please wait.</p>
+                    </div>
+                </form>
+            </div>
 
-        let mediaRecorder, recordedChunks = [], stream;
+            <!-- Webcam Detection Method -->
+            <div class="detection-method">
+                <div class="method-header">
+                    <div class="method-icon">📹</div>
+                    <h2 class="method-title">Live Webcam Detection</h2>
+                </div>
+                <p class="method-description">Use your webcam for real-time detection. Record a short video clip and analyze it instantly.</p>
+                
+                <div class="webcam-controls">
+                    <div class="camera-selection">
+                        <label for="videoSource">Select Camera:</label>
+                        <select id="videoSource"></select>
+                    </div>
+                    
+                    <div class="webcam-preview-container">
+                        <video id="webcam-preview" width="400" autoplay muted style="display: none;"></video>
+                    </div>
+                    
+                    <div class="webcam-buttons">
+                        <button id="startWebcamBtn" class="button">Start Recording</button>
+                        <button id="stopWebcamBtn" class="button" disabled>Stop & Analyze</button>
+                    </div>
+                    
+                    <div id="webcamSpinner" style="display:none;">
+                        <div class="spinner"></div>
+                        <p>Processing live video...</p>
+                    </div>
+                </div>
+                
+                <form id="webcamUploadForm" method="POST" enctype="multipart/form-data" action="/physiological_signal_try" style="display:none;">
+                    <input type="file" name="file" id="webcamFileInput">
+                    <button type="submit">Upload and Analyze</button>
+                </form>
+            </div>
+        </div>
 
-        document.getElementById('startWebcamBtn').onclick = async function() {
-            const selectedDeviceId = videoSelect.value;
-            stream = await navigator.mediaDevices.getUserMedia({
-                video: { 
-                    deviceId: { exact: selectedDeviceId },
-                    frameRate: { ideal: 30, max: 30 }
-                }, 
-                audio: false
-            });
-
-            document.getElementById('webcam-preview').srcObject = stream;
-            document.getElementById('webcam-preview').style = "";
-            document.getElementById('stopWebcamBtn').disabled = false;
-            document.getElementById('startWebcamBtn').disabled = true;
-
-            recordedChunks = [];
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-            mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-            mediaRecorder.start();
-        };
-
-        document.getElementById('stopWebcamBtn').onclick = function() {
-            mediaRecorder.stop();
-            stream.getTracks().forEach(track => track.stop());
-            document.getElementById('webcam-preview').srcObject = null;
-            document.getElementById('webcamSpinner').style.display = 'block';
-            document.getElementById('stopWebcamBtn').disabled = true;
-
-            mediaRecorder.onstop = function() {
-                let blob = new Blob(recordedChunks, { type: 'video/webm' });
-                let fileInput = document.getElementById('webcamFileInput');
-                let dataTransfer = new DataTransfer();
-                let file = new File([blob], 'webcam_recording.webm', { type: 'video/webm' });
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
-
-                document.getElementById('webcamUploadForm').style.display = 'block';
-                document.getElementById('webcamSpinner').style.display = 'none';
-            };
-        };
-        </script>
-
+        <script src="../static/js/live-webcam.js"></script>
     </section>
     <footer>
         <div id="footer-placeholder"></div>

@@ -6,29 +6,75 @@
     <title>Try Audio Analysis</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let form = document.getElementById("upload-form");
+            let spinner = document.getElementById("loadingSpinner");
+            let submitButton = document.getElementById("submitButton");
+
+            form.addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                // Disable the button and change text
+                submitButton.disabled = true;
+                submitButton.innerText = "Processing...";
+
+                // Show the spinner
+                spinner.style.display = "block";
+
+                // Submit the form normally
+                form.setAttribute("action", "/audio_analysis");
+                form.setAttribute("method", "POST");
+                form.submit();
+                return;
+            });
+        });
+    </script>
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
     <section class="content">
-        <h1>Try Audio Analysis</h1>
-        <form id="upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('audio_analysis') }}" class="centered">
-            <div id="dropbox" class="dropbox">
-                <p>Drag & drop an audio file here, or click to select one</p>
-                <input type="file" name="file" id="file" accept="audio/*" required>
-                <audio id="audio-preview" controls style="display: none;"></audio>
+        <div class="page-intro">
+            <h1>Try Audio Analysis</h1>
+            <p>This physiological signal detection analyzes heart rate patterns and subtle facial color changes using Remote Photoplethysmography.
+                 Results may vary based on video quality and lighting conditions, and should not be taken as the complete truth.</p>
+        </div>
+        <div class="detection-methods">
+            <!-- File Upload Method -->
+            <div class="detection-method">
+                <div class="method-header">
+                    <div class="method-icon">📁</div>
+                    <h2 class="method-title">Upload Audio File</h2>
+                </div>
+                <p class="method-description">Upload an audio file from your device for analysis. Supports .mp3 .flac .wav formats.</p>
+                
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div id="dropbox" class="dropbox">
+                        <p>Drag & drop an audio file here, or click to select one</p>
+                        <input type="file" name="file" id="file" accept="audio/*" required>
+                        <video id="audio-preview" controls style="display: none;"></video>
+                    </div>
+                    <button type="submit" id="submitButton">Analyze Audio</button>
+                    <div id="loadingSpinner">
+                        <div class="spinner"></div>
+                        <p>Processing audio... Please wait.</p>
+                    </div>
+                </form>
             </div>
-            <button type="submit">Submit</button>
-        </form>
-        <div class="centered">
-            <form action="{{ url_for('start_real_time_audio_analysis') }}" method="POST">
-                <h3>Real-Time Detection</h3>
-                <p>Use your microphone to perform real-time audio deepfake detection.</p>
-                <button id="real-time-button" type="submit">Try Real-Time Detection</button>
-            </form>
-            <audio id="recorded-audio" controls style="display: none;"></audio>
-            <div id="real-time-detection-result"></div>
+            <div class="detection-method">
+                <div class="method-header">
+                    <div class="method-icon">📹</div>
+                    <h2 class="method-title">Live Detection</h2>
+                </div>
+                <form action="{{ url_for('start_real_time_audio_analysis') }}" method="POST">
+                    <h3>Real-Time Detection</h3>
+                    <p>Use your microphone to perform real-time audio deepfake detection.</p>
+                    <button id="real-time-button" type="submit">Try Real-Time Detection</button>
+                </form>
+                <audio id="recorded-audio" controls style="display: none;"></audio>
+            </div>
         </div>
     </section>
     <footer>

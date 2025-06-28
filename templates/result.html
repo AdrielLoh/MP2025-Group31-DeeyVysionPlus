@@ -10,49 +10,65 @@
     <header>
         <div id="navbar-placeholder"></div>
     </header>
-    <div class="content">
-        <button class="back-button" onclick="deleteFilesAndGoBack();">← Back</button>
+    <div class="content deepfake-results">
+        <!-- <button class="back-button" onclick="deleteFilesAndGoBack();">← Back</button> -->
         <h1>Deepfake Detection Results</h1>
 
         {% if analysis_type == 'audio' %}
             <h2>Result: <b style="color: {% if result == 'Bonafide' %}green{% elif result == 'Spoof' %}red{% else %}white{% endif %};">
                 {{ result }}
                 </b></h2>
-            <p>Prediction score: {{ prediction_value }}</p>
+            <p><b>Confidence of deepfake:</b> {{ prediction_value }}%</p>
+
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="mel-spectrogram">Mel Spectrogram</button>
+                    <button class="tab" data-tab="mfcc">MFCC</button>
+                    <button class="tab" data-tab="delta-mfcc">Delta MFCC</button>
+                    <button class="tab" data-tab="f0">Pitch</button>
+                </div>
+            </div>
+
             {% if mel_spectrogram_path %}
-                <div class="graph-container wide-section">
+                <div class="wide-section tab-content" id="mel-spectrogram" style="margin: 0; border-radius: 0px 0px 8px 8px">
                     <h2>Mel Spectrogram</h2>
                     <p class="graph-description">This graph visualizes the distribution of frequencies and energy distributions in the audio over time, helping to analyze unusual patterns that may indicate a deepfake.</p>
                     <img src="{{ url_for('static', filename=mel_spectrogram_path) }}" alt="Mel Spectrogram">
                 </div>
             {% endif %}
             {% if mfcc_path %}
-                <div class="graph-container wide-section">
+                <div class="wide-section tab-content" id="mfcc" style="margin: 0; border-radius: 0px 0px 8px 8px">
                     <h2>Mel Frequency Cepstral Coefficients (MFCC)</h2>
                     <p class="graph-description">This graph captures the timbral qualities of speech, where inconsistencies in vocal tract modeling by synthetic voices can reveal deepfakes.</p>
                     <img src="{{ url_for('static', filename=mfcc_path) }}" alt="MFCC">
                 </div>
             {% endif %}
             {% if delta_path %}
-                <div class="graph-container wide-section">
+                <div class="wide-section tab-content" id="delta-mfcc" style="margin: 0; border-radius: 0px 0px 8px 8px">
                     <h2>Delta MFCC</h2>
                     <p class="graph-description">This graph measures the rate of change in speech dynamics, making it useful for spotting the smoother or erratic transitions often present in generated audio.</p>
                     <img src="{{ url_for('static', filename=delta_path) }}" alt="Delta MFCC">
                 </div>
             {% endif %}
             {% if f0_path %}
-                <div class="graph-container wide-section">
+                <div class="wide-section tab-content" id="f0" style="margin: 0; border-radius: 0px 0px 8px 8px">
                     <h2>Fundamental Frequency (pitch)</h2>
                     <p class="graph-description">This graph tracks pitch contours, helping detect deepfakes through abnormal or monotonic pitch patterns that differ from natural speech variation.</p>
                     <img src="{{ url_for('static', filename=f0_path) }}" alt="Pitch">
                 </div>
             {% endif %}
-        {% elif analysis_type == 'physiological' %}
+        {% elif analysis_type == 'physiological' %}              
             {% if face_results|length == 0 %}
-                <h3 style="color: orange;">No faces were detected for a sufficient duration to perform a reliable deepfake prediction.</h3>
-                <p>Try a longer or clearer video with more visible faces. The video should preferrably be at least 5 seconds for best detection performance.</p>
-                {% endif %}
-                
+                <div class="section tab-content flex-dir-col" style="display: flex; flex-direction:column;">
+                    <div class="detection-results">
+                        <div class="detection-results-header">
+                            <h3 style="color: orange;">NO FACES DETECTED</h3>
+                            <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>     
+                        </div>
+                    </div>
+                    <p>Try a longer or clearer video with more visible faces. The video should preferrably be at least 5 seconds for best detection performance.</p>
+                </div>
+            {% else %}
                 <div class="tabs-container">
                     <div class="tabs">
                         {% for face in face_results %}
@@ -60,152 +76,223 @@
                         {% endfor %}
                     </div>
                 </div>
-
                 {% for face in face_results %}
                 <div class="section tab-content flex-dir-col" id="face-{{ face.track_id }}" style="display: {% if loop.first %}flex{% else %}none{% endif %}; flex-direction:column;">
-                    <h2>Face {{ face.track_id }}</h2>
-                    <h3 style="color: {% if face.result == 'Real' %}green{% elif face.result == 'Fake' %}red{% else %}white{% endif %};">
-                        {{ face.result }}
-                    </h3>
-                    <p>Real: {{ face.real_count }}, Fake: {{ face.fake_count }}</p>
-                    <p>Average HR: {{ face.hr }} BPM</p>
-                    <p>Average Confidence: {{ face.confidence }}%</p>
-                    <div class="carousel-container" id="carousel-{{ face.track_id }}">
-                        <button class="carousel-arrow left">&#8249;</button>
-                        <div class="carousel-images">
-                            <img src="{{ face.signal_plot }}" alt="rPPG Signal" class="carousel-image" style="display:block;">
-                            <img src="{{ face.spectrum_plot }}" alt="rPPG Spectrum" class="carousel-image" style="display:none;">
-                            <img src="{{ face.pred_count_plot }}" alt="Prediction Counts" class="carousel-image" style="display:none;">
+                    <div class="detection-results">
+                        <div class="detection-results-header">
+                            <h3 style="color: {% if face.result == 'Real' %}green{% elif face.result == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
+                            {% if face.result == 'Real' %}NOT DEEPFAKE{% elif face.result == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
+                            </h3>
+                            <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>     
                         </div>
-                        <button class="carousel-arrow right">&#8250;</button>
-                    </div>
-                    <div class="graph-container wide-section">
-                        <h2>Prediction Playback</h2>
-                        <p class="graph-description">View the deepfake detection in action</p>
-                        <video id="physio-video" width="840" height="560" controls>
+                        
+                        <p><b>Real Frames:</b> {{ face.real_count }}, <b>Fake Frames:</b> {{ face.fake_count }}</p>
+                        <p><b>Average HR:</b> {{ face.hr }} BPM</p>
+                        <p><b>Average Confidence:</b> {{ face.confidence }}%</p>
+
+                        <div class="carousel-container" id="carousel-{{ face.track_id }}">
+                            <button class="carousel-arrow left">&#8249;</button>
+                            <div class="carousel-images">
+                                <img src="{{ face.signal_plot }}" alt="rPPG Signal" class="carousel-image" style="display:block;">
+                                <img src="{{ face.spectrum_plot }}" alt="rPPG Spectrum" class="carousel-image" style="display:none;">
+                                <img src="{{ face.pred_count_plot }}" alt="Prediction Counts" class="carousel-image" style="display:none;">
+                            </div>
+                            <button class="carousel-arrow right">&#8250;</button>
+                        </div>
+
+                        <video id="physio-video" class="detection-video" controls>
                             <source src="{{ output_video }}" type="video/mp4">
                         </video>
                     </div>
                 </div>
                 {% endfor %}
-            </div>
+            {% endif %}
+
         {% elif analysis_type == 'deep_learning' %}
-            <h2>Overall Result</h2>
-            <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
-                {{ result }}
-            </h3>
-            <h2>Counts of Real and Fake Predictions</h2>
-            <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="deep-learning-result">Result</button>
+                </div>
+            </div>
+            <div class="section tab-content flex-dir-col" id="deep-learning-result" style="display: flex; flex-direction:column;">
+                <div class="detection-results">
+                    <div class="detection-results-header">
+                        <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
+                        {% if result == 'Real' %}NOT DEEPFAKE{% elif result == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
+                        </h3>
+                        <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>     
+                    </div>
+                    
+                    <p><b>Real Frames:</b> {{ real_count }}, <b>Fake Frames:</b> {{ fake_count }}</p>
 
-            <div class="graph-container wide-section">
-                <h2>Frames (Real vs Fake)</h2>
-                <p class="graph-description">This graph shows a comparison of frames predicted as real versus fake throughout the video, providing insights into the temporal distribution of predictions.</p>
-                <img src="{{ url_for('static', filename='uploads/results/frames_real_vs_fake.png') }}" alt="Frames Real vs Fake">
+                    <div class="carousel-container" id="carousel-deep-learning">
+                        <button class="carousel-arrow left">&#8249;</button>
+                        <div class="carousel-images">
+                            <img src="{{ url_for('static', filename='results/frames_real_vs_fake.png') }}" alt="Frames Real vs Fake" class="carousel-image" style="display:block;">
+                            <img src="{{ url_for('static', filename='results/confidence_score.png') }}" alt="Confidence Score" class="carousel-image" style="display:none;">
+                        </div>
+                        <button class="carousel-arrow right">&#8250;</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="graph-container wide-section">
-                <h2>Confidence Score Over Time</h2>
-                <p class="graph-description">This graph tracks the confidence score of predictions over time, indicating how certain the model was about its predictions at each moment.</p>
-                <img src="{{ url_for('static', filename='uploads/results/confidence_score.png') }}" alt="Confidence Score">
+        {% elif analysis_type == 'deep_learning_static' %}
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="deep-learning-static-result">Result</button>
+                </div>
             </div>
+            <div class="section tab-content flex-dir-col" id="deep-learning-static-result" style="display: flex; flex-direction:column;">
+                <div class="detection-results">
+                    <div class="detection-results-header">
+                        <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
+                        {% if result == 'Real' %}NOT DEEPFAKE{% elif result == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
+                        </h3>
+                        <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>     
+                    </div>
+                    
+                    <p><b>Real Frames:</b> {{ real_count }}, <b>Fake Frames:</b> {{ fake_count }}</p>
 
-            {% elif analysis_type == 'deep_learning_static' %}
-            <h2>Overall Result</h2>
-            <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
-                {{ result }}
-            </h3>
-            <h2>Counts of Real and Fake Predictions</h2>
-            <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
-
-            <div class="graph-container wide-section">
-                <h2>Frames (Real vs Fake)</h2>
-                <p class="graph-description">This graph shows a comparison of frames predicted as real versus fake throughout the video, providing insights into the temporal distribution of predictions.</p>
-                <img src="{{ url_for('static', filename='results/frames_real_vs_fake.png') }}" alt="Frames Real vs Fake">
+                    <div class="carousel-container" id="carousel-deep-learning-static">
+                        <button class="carousel-arrow left">&#8249;</button>
+                        <div class="carousel-images">
+                            <img src="{{ url_for('static', filename='results/frames_real_vs_fake.png') }}" alt="Frames Real vs Fake" class="carousel-image" style="display:block;">
+                        </div>
+                        <button class="carousel-arrow right">&#8250;</button>
+                    </div>
+                </div>
             </div>
 
         {% elif analysis_type == 'visual_artifacts' %}
-            <div class="wide-section">
-                <h2>Overall Result</h2>
-                <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
-                    {{ result }}
-                </h3>
-                <h2>Counts of Real and Fake Predictions</h2>
-                <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="visual-artifacts-result">Result</button>
+                </div>
+            </div>
+            <div class="section tab-content flex-dir-col" id="visual-artifacts-result" style="display: flex; flex-direction:column;">
+                <div class="detection-results">
+                    <div class="detection-results-header">
+                        <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
+                        {% if result == 'Real' %}NOT DEEPFAKE{% elif result == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
+                        </h3>
+                        <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>     
+                    </div>
+                    
+                    <p><b>Real Frames:</b> {{ real_count }}, <b>Fake Frames:</b> {{ fake_count }}</p>
+
+                    <div class="carousel-container" id="carousel-visual-artifacts">
+                        <button class="carousel-arrow left">&#8249;</button>
+                        <div class="carousel-images">
+                            <img src="{{ url_for('static', filename='uploads/results/real_vs_fake.png') }}" alt="Frames Real vs Fake" class="carousel-image" style="display:block;">
+                            <img src="{{ url_for('static', filename='uploads/results/confidence_over_time.png') }}" alt="Confidence Score" class="carousel-image" style="display:none;">
+                            <img src="{{ url_for('static', filename='uploads/results/dnn_feature_norms_over_time.png') }}" alt="DNN Feature Norms" class="carousel-image" style="display:none;">
+                            <img src="{{ url_for('static', filename='uploads/results/detection_times_over_time.png') }}" alt="Face Detection Time" class="carousel-image" style="display:none;">
+                        </div>
+                        <button class="carousel-arrow right">&#8250;</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="graph-container wide-section">
-                <h2>Frames (Real vs Fake)</h2>
-                <p class="graph-description">This graph shows a comparison of frames predicted as real versus fake throughout the video, providing insights into the temporal distribution of predictions.</p>
-                <img src="{{ url_for('static', filename='uploads/results/real_vs_fake.png') }}" alt="Frames Real vs Fake">
+        {% elif analysis_type == 'visual_artifact_static' %}
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="visual-artifact-static-result">Result</button>
+                </div>
             </div>
+            <div class="section tab-content flex-dir-col" id="visual-artifact-static-result" style="display: flex; flex-direction:column;">
+                <div class="detection-results">
+                    <div class="detection-results-header">
+                        <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
+                        {% if result == 'Real' %}NOT DEEPFAKE{% elif result == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
+                        </h3>
+                        <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>     
+                    </div>
+                    
+                    <p><b>Real Frames:</b> {{ real_count }}, <b>Fake Frames:</b> {{ fake_count }}</p>
 
-            <div class="graph-container wide-section">
-                <h2>Confidence Score Over Time</h2>
-                <p class="graph-description">This graph tracks the confidence score of predictions over time, indicating how certain the model was about its predictions at each moment.</p>
-                <img src="{{ url_for('static', filename='uploads/results/confidence_over_time.png') }}" alt="Confidence Score">
-            </div>
-
-            <div class="graph-container wide-section">
-                <h2>DNN Feature Norms Over Time</h2>
-                <p class="graph-description">This graph shows the norms of DNN (Deep Neural Network) features over time, which can help analyze the robustness and variations in the features extracted from the video frames.</p>
-                <img src="{{ url_for('static', filename='uploads/results/dnn_feature_norms_over_time.png') }}" alt="DNN Feature Norms">
-            </div>
-
-            <div class="graph-container wide-section">
-                <h2>Face Detection Time Over Time</h2>
-                <p class="graph-description">This graph displays the time taken to detect faces in each frame over time. It helps understand the performance and speed of the face detection process during the analysis.</p>
-                <img src="{{ url_for('static', filename='uploads/results/detection_times_over_time.png') }}" alt="Face Detection Time">
-            </div>
-
-            {% elif analysis_type == 'visual_artifact_static' %}
-            <div class="wide-section">
-                <h2>Overall Result</h2>
-                <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
-                    {{ result }}
-                </h3>
-                <h2>Counts of Real and Fake Predictions</h2>
-                <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
-            </div>
-
-            <div class="graph-container wide-section">
-                <h2>Frames (Real vs Fake)</h2>
-                <p class="graph-description">This graph shows a comparison of frames predicted as real versus fake throughout the video, providing insights into the temporal distribution of predictions.</p>
-                <img src="{{ url_for('static', filename='results/real_vs_fake.png') }}" alt="Frames Real vs Fake">
+                    <div class="carousel-container" id="carousel-visual-artifact-static">
+                        <button class="carousel-arrow left">&#8249;</button>
+                        <div class="carousel-images">
+                            <img src="{{ url_for('static', filename='results/real_vs_fake.png') }}" alt="Frames Real vs Fake" class="carousel-image" style="display:block;">
+                        </div>
+                        <button class="carousel-arrow right">&#8250;</button>
+                    </div>
+                </div>
             </div>
 
         {% elif analysis_type == 'body_posture' %}
-            <h2>Body Posture Deepfake Detection</h2>
-            <p><strong>Prediction:</strong> {{ result }}</p>
-
-        {% elif analysis_type == 'body_posture_live' %}
-            <div class="wide-section">
-                <h2>Overall Result</h2>
-                <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}white{% endif %};">
-                    {{ result }}
-                </h3>
-                <h2>Counts of Real and Fake Predictions</h2>
-                <p>Real: {{ real_count }}, Fake: {{ fake_count }}</p>
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="body-posture-result">Result</button>
+                </div>
+            </div>
+            <div class="section tab-content flex-dir-col" id="body-posture-result" style="display: flex; flex-direction:column;">
+                <div class="detection-results">
+                    <div class="detection-results-header">
+                        <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
+                        {% if result == 'Real' %}NOT DEEPFAKE{% elif result == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
+                        </h3>
+                        <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>     
+                    </div>
+                    
+                    <p><b>Chance of Deepfake:</b> {{ confidence }}%</p>
+                </div>
             </div>
 
-            <div class="graph-container wide-section">
-                <h2>Frames (Real vs Fake)</h2>
-                <p class="graph-description">This graph shows a comparison of frames predicted as real versus fake throughout the video, providing insights into the temporal distribution of predictions.</p>
-                <img src="{{ url_for('static', filename='results/frames_real_vs_fake.png') }}" alt="Frames Real vs Fake">
+        {% elif analysis_type == 'body_posture_live' %}
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="body-posture-live-result">Result</button>
+                </div>
+            </div>
+            <div class="section tab-content flex-dir-col" id="body-posture-live-result" style="display: flex; flex-direction:column;">
+                <div class="detection-results">
+                    <div class="detection-results-header">
+                        <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
+                        {% if result == 'Real' %}NOT DEEPFAKE{% elif result == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
+                        </h3>
+                        <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>     
+                    </div>
+                    
+                    <p><b>Real Frames:</b> {{ real_count }}, <b>Fake Frames:</b> {{ fake_count }}</p>
+
+                    <div class="carousel-container" id="carousel-body-posture-live">
+                        <button class="carousel-arrow left">&#8249;</button>
+                        <div class="carousel-images">
+                            <img src="{{ url_for('static', filename='results/frames_real_vs_fake.png') }}" alt="Frames Real vs Fake" class="carousel-image" style="display:block;">
+                        </div>
+                        <button class="carousel-arrow right">&#8250;</button>
+                    </div>
+                </div>
             </div>
 
         {% elif analysis_type == 'multi_detection' %}
+            <div class="tabs-container">
+                <div class="tabs">
+                    {% set method_names = {'deep_learning': 'Deep Learning', 'visual_artifacts': 'Visual Artifacts', 'physiological': 'Physiological', 'body_posture': 'Body Posture'} %}
+                    {% for method, prediction in results.items() %}
+                        <button class="tab{% if loop.first %} active{% endif %}" data-tab="multi-{{ method }}">{{ method_names.get(method, method.replace("_", " ").title()) }}</button>
+                    {% endfor %}
+                </div>
+            </div>
             
-        
             {% for method, prediction in results.items() %}
-           
-                <h3>{{ method.replace("_", " ").title() }} Detection: </h3>
-                <p>Prediction: 
-                    <strong style="color: {% if prediction == 'Real' %}green{% elif prediction == 'Fake' %}red{% else %}white{% endif %};">
-                        {{ prediction }}
-                    </strong>
-                </p>  <!-- Only "Fake" or "Real" -->
-            
+            <div class="section tab-content flex-dir-col" id="multi-{{ method }}" style="display: {% if loop.first %}flex{% else %}none{% endif %}; flex-direction:column;">
+                <div class="detection-results">
+                    <div class="detection-results-header">
+                        <h3 style="color: {% if prediction == 'Real' %}green{% elif prediction == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
+                        {% if prediction == 'Real' %}NOT DEEPFAKE{% elif prediction == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
+                        </h3>
+                        {% if loop.first %}
+                        <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>
+                        {% endif %}
+                    </div>
+                    
+                    <p><b>{{ method_names.get(method, method.replace("_", " ").title()) }} Detection Result:</b> {{ prediction }}</p>
+                </div>
+            </div>
             {% endfor %}
+
         {% endif %}
 
     </div>

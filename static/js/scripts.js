@@ -313,22 +313,27 @@ document.addEventListener("DOMContentLoaded", function() {
     
 });
 
+// function deleteFilesAndGoBack() {
+//     fetch('/delete_files', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//     })
+//     .then(response => {
+//         if (!response.ok) {
+//             throw new Error('Network response was not ok');
+//         }
+//         window.history.back();
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//     });
+// }
+
 function deleteFilesAndGoBack() {
-    fetch('/delete_files', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        window.history.back();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+    window.history.back();
+    
 }
 
 function shuffle(array) {

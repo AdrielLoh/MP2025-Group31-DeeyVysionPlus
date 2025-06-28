@@ -159,9 +159,15 @@ def physiological_signal_try():
                 video_path_for_processing = mp4_path
             else:
                 video_path_for_processing = filename
+                mp4_path = ""
 
             # Process the video (run_detection expects video path)
             face_results, output_video = run_detection(video_path_for_processing, is_webcam=False)
+            if os.path.exists(filename):
+                os.remove(filename)
+            if os.path.exists(mp4_path):
+                os.remove(mp4_path)
+                
             return render_template(
                 'result.html',
                 analysis_type='physiological',
@@ -192,18 +198,6 @@ def audio_analysis_page():
 @app.route('/audio_analysis_try_page', methods=['GET'])
 def audio_analysis_try_page():
     return render_template('audio_analysis_try.html')
-
-@app.route('/start_real_time_deep_learning_detection', methods=['POST'])
-def start_real_time_deep_learning_detection():
-    try:
-        output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
-        os.makedirs(output_folder, exist_ok=True)  # Ensure the directory exists
-
-        overall_result, real_count, fake_count = deep_learning_live_detection(output_folder)
-        
-        return render_template('result.html', analysis_type='deep_learning', result=overall_result, real_count=real_count, fake_count=fake_count)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route('/deep_learning_static', methods=['GET', 'POST'])
 def deep_learning_static():
@@ -219,22 +213,6 @@ def deep_learning_static():
 
     return render_template('result.html', analysis_type='deep_learning_static', result=result, real_count=real_count, fake_count=fake_count)
 
-
-@app.route('/start_visual_artifacts_detection', methods=['POST'])
-def start_visual_artifacts_detection():
-    try:
-        output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
-        os.makedirs(output_folder, exist_ok=True)  # Ensure the directory exists
-
-        overall_result, real_count, fake_count = visual_artifacts_live_detection(output_folder)
-        
-        if overall_result is None:
-            raise ValueError("Live detection failed to produce a result.")
-
-        return render_template('result.html', analysis_type='visual_artifacts', result=overall_result, real_count=real_count, fake_count=fake_count)
-    except Exception as e:
-        logging.error(f"Error during visual artifacts detection: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/visual_artifacts_static', methods=['GET', 'POST'])
 def visual_artifacts_static():
@@ -271,7 +249,7 @@ def audio_analysis():
                                    mfcc_path=mfcc_path,
                                    delta_path=delta_path,
                                    f0_path=f0_path,
-                                   prediction_value=prediction_value)
+                                   prediction_value=round(prediction_value*100))
     return render_template('audio_analysis_try.html')
 
 @app.route('/start_real_time_audio_analysis', methods=['POST'])
@@ -350,30 +328,12 @@ def body_posture_detect():
                 return render_template('result.html', analysis_type='body_posture', result=result["error"])
 
             prediction = result["prediction"]
-            confidence = result["confidence"]
-            
+            confidence = round(result["confidence"] * 100)
 
-            if prediction == "Real":
-                result_message = f'The video is predicted to be REAL.'
-            elif prediction == "Fake":
-                result_message = f'The video is predicted to be FAKE.'
-
-            return render_template('result.html', analysis_type='body_posture', result=result_message, confidence=confidence)
+            return render_template('result.html', analysis_type='body_posture', result=prediction, confidence=confidence)
 
     return render_template('body_posture_analysis.html')
 
-
-@app.route('/start_real_time_body_posture_detection', methods=['POST'])
-def start_real_time_body_posture_detection():
-    try:
-        output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
-        os.makedirs(output_folder, exist_ok=True)  # Ensure the directory exists
-
-        overall_result, real_count, fake_count = body_posture_live_detection(output_folder)
-        
-        return render_template('result.html', analysis_type='body_posture_live', result=overall_result, real_count=real_count, fake_count=fake_count)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route('/multi_detect', methods=['GET'])
 def multi_detect():
@@ -406,7 +366,7 @@ def multi_detection():
             raw_results["deep_learning"] = deep_learning_static_detection(filename, output_folder)
 
         elif method == "physiological":
-            raw_results["physiological"] = detect_physiological_signal(filename, output_folder)
+            raw_results["physiological"] = run_detection(filename, is_webcam=False)
 
         elif method == "body_posture":
             raw_results["body_posture"] = detect_body_posture(filename)
