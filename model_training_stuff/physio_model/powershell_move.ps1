@@ -1,35 +1,35 @@
 # === CONFIG ===
-$sourceFolder = "G:\deepfake_training_datasets\Physio_Model\DeeperForensics1.0\downloaded"
-$destinationFolder = "G:\deepfake_training_datasets\Physio_Model\TRAINING\real"
-$prefix = "deeperforensics_"  # <- Your custom prefix here
+# $sourceFolder = "G:\deepfake_training_datasets\Physio_Model\DeeperForensics1.0\downloaded"
+# $destinationFolder = "G:\deepfake_training_datasets\Physio_Model\TRAINING\real-too-long(do not use)"
+# $prefix = "deeperforensics_"  # <- Your custom prefix here
 
-# === Ensure destination exists ===
-if (-not (Test-Path $destinationFolder)) {
-    New-Item -Path $destinationFolder -ItemType Directory
-}
+# # === Ensure destination exists ===
+# if (-not (Test-Path $destinationFolder)) {
+#     New-Item -Path $destinationFolder -ItemType Directory
+# }
 
-# === Get .mp4 files recursively from the source folder
-$filesToMove = Get-ChildItem -Path $sourceFolder -Recurse -File | Where-Object { $_.Extension -eq ".mp4" }
+# # === Get .mp4 files recursively from the source folder
+# $filesToMove = Get-ChildItem -Path $sourceFolder -Recurse -File | Where-Object { $_.Extension -eq ".mp4" }
 
-foreach ($file in $filesToMove) {
-    $newFileName = $prefix + $file.Name
-    $destPath = Join-Path $destinationFolder $newFileName
+# foreach ($file in $filesToMove) {
+#     $newFileName = $prefix + $file.Name
+#     $destPath = Join-Path $destinationFolder $newFileName
 
-    # If file exists, append _1, _2, etc. to avoid overwrite
-    if (Test-Path $destPath) {
-        $base = [System.IO.Path]::GetFileNameWithoutExtension($newFileName)
-        $ext = $file.Extension
-        $count = 1
-        do {
-            $newName = "$base" + "_$count$ext"
-            $destPath = Join-Path $destinationFolder $newName
-            $count++
-        } while (Test-Path $destPath)
-    }
+#     # If file exists, append _1, _2, etc. to avoid overwrite
+#     if (Test-Path $destPath) {
+#         $base = [System.IO.Path]::GetFileNameWithoutExtension($newFileName)
+#         $ext = $file.Extension
+#         $count = 1
+#         do {
+#             $newName = "$base" + "_$count$ext"
+#             $destPath = Join-Path $destinationFolder $newName
+#             $count++
+#         } while (Test-Path $destPath)
+#     }
 
-    Move-Item -Path $file.FullName -Destination $destPath
-    Write-Host "Moved: $($file.FullName) -> $destPath"
-}
+#     Move-Item -Path $file.FullName -Destination $destPath
+#     Write-Host "Moved: $($file.FullName) -> $destPath"
+# }
 
 
 # === CONFIG ===
@@ -167,9 +167,9 @@ foreach ($file in $filesToMove) {
 
 # === MOVE SCRIPT 4 ===
 # === CONFIG ===
-$sourceFolder = "G:\deepfake_training_datasets\Physio_Model\TRAINING\real"
-$destinationFolder = "G:\deepfake_training_datasets\Physio_Model\VALIDATION\real"
-$numberOfFilesToMove = 4124
+$sourceFolder = "G:\deepfake_training_datasets\Physio_Model\TRAINING\real-aug-batch-661-onwards"
+$destinationFolder = "G:\deepfake_training_datasets\Physio_Model\VALIDATION\real-aug-batch-661-onwards"
+$numberOfFilesToMove = 1768
 
 # === Ensure destination exists ===
 if (-not (Test-Path $destinationFolder)) {
