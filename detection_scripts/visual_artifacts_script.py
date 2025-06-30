@@ -2,339 +2,297 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
 from sklearn.preprocessing import normalize
-import logging
-import time
 import matplotlib.pyplot as plt
 import os
+import uuid
+import time
+import logging
+import subprocess
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO)
 
-# Load the Caffe model for face detection
+# Setup
+FACE_LANDMARKER_PATH = 'models/face_landmarker.task'
+BaseOptions = python.BaseOptions
+VisionRunningMode = vision.RunningMode
+landmarker_options = vision.FaceLandmarkerOptions(
+    base_options=BaseOptions(model_asset_path=FACE_LANDMARKER_PATH),
+    running_mode=VisionRunningMode.IMAGE,
+    num_faces=5,
+    output_face_blendshapes=False,
+    output_facial_transformation_matrixes=False,
+)
+face_landmarker = vision.FaceLandmarker.create_from_options(landmarker_options)
 net = cv2.dnn.readNetFromCaffe('models/weights-prototxt.txt', 'models/res_ssd_300Dim.caffeModel')
-
-# Initialize Mediapipe for face landmark detection
-mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refine_landmarks=True)
-
-# Load the trained model
 model = tf.keras.models.load_model('models/visual_artifacts.keras')
 
-# Global variables for metrics
-frame_indices = []
-confidence_scores = []
-landmark_norms = []
-dnn_feature_norms = []
-detection_times = []
-predictions = []
-frame_labels = []
+def mediapipe_detections(image):
+    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    results = face_landmarker.detect(mp_image)
+    boxes = []
+    all_landmarks = []
+    if results and results.face_landmarks:
+        h, w, _ = image.shape
+        for landmarks in results.face_landmarks:
+            xs = [lm.x * w for lm in landmarks]
+            ys = [lm.y * h for lm in landmarks]
+            x_min, x_max = int(min(xs)), int(max(xs))
+            y_min, y_max = int(min(ys)), int(max(ys))
+            box = [x_min, y_min, x_max - x_min, y_max - y_min]
+            boxes.append(box)
+            all_landmarks.append(landmarks)
+    return boxes, all_landmarks
 
-def extract_features(image, net, fixed_length=4096):
-    try:
-        start_time = time.time()
-        results = face_mesh.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        detection_time = time.time() - start_time
-        
-        if not results.multi_face_landmarks:
-            return None, None, detection_time, None, None
+def iou(boxA, boxB):
+    xA = max(boxA[0], boxB[0])
+    yA = max(boxA[1], boxB[1])
+    xB = min(boxA[0] + boxA[2], boxB[0] + boxB[2])
+    yB = min(boxA[1] + boxA[3], boxB[1] + boxB[3])
+    interArea = max(0, xB - xA) * max(0, yB - yA)
+    boxAArea = max(1, boxA[2] * boxA[3])
+    boxBArea = max(1, boxB[2] * boxB[3])
+    return interArea / float(boxAArea + boxBArea - interArea + 1e-5)
 
-        landmarks = results.multi_face_landmarks[0].landmark
-        landmark_coords = np.array([[lm.x, lm.y, lm.z] for lm in landmarks]).flatten()
-        
-        # Normalize landmark coordinates
-        landmark_coords = normalize(landmark_coords.reshape(1, -1)).flatten()
-        landmark_norm = np.linalg.norm(landmark_coords)
-        
-        # DNN Features
-        blob = cv2.dnn.blobFromImage(image, 1.0, (300, 300), (104.0, 177.0, 123.0))
-        net.setInput(blob)
-        dnn_features = net.forward().flatten()
-        dnn_feature_norm = np.linalg.norm(dnn_features)
-
-        # Combine all features
-        combined_features = np.hstack((landmark_coords, dnn_features))
-
-        # Ensure the feature vector has the fixed length
-        if len(combined_features) > fixed_length:
-            combined_features = combined_features[:fixed_length]
-        elif len(combined_features) < fixed_length:
-            combined_features = np.pad(combined_features, (0, fixed_length - len(combined_features)), 'constant')
-
-        return combined_features, landmarks, detection_time, landmark_norm, dnn_feature_norm
-
-    except Exception as e:
-        logging.error(f"Error extracting features: {e}")
-        return None, None, None, None, None
-
-
-def extract_features_static(image, net, fixed_length=4096):
-    """Extracts facial landmarks and DNN features from a given image."""
-    try:
-        results = face_mesh.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        if not results.multi_face_landmarks:
-            return np.zeros((fixed_length,), dtype=np.float32)  # Return zero-filled vector instead of None
-
-        landmarks = results.multi_face_landmarks[0].landmark
-        landmark_coords = np.array([[lm.x, lm.y, lm.z] for lm in landmarks]).flatten()
-        landmark_coords = normalize(landmark_coords.reshape(1, -1)).flatten()
-
-        # DNN Features
-        blob = cv2.dnn.blobFromImage(image, 1.0, (300, 300), (104.0, 177.0, 123.0))
-        net.setInput(blob)
-        dnn_features = net.forward().flatten()
-
-        # Combine features
-        combined_features = np.hstack((landmark_coords, dnn_features))
-
-        # Ensure the feature vector has the fixed length
-        if len(combined_features) > fixed_length:
-            combined_features = combined_features[:fixed_length]
-        elif len(combined_features) < fixed_length:
-            combined_features = np.pad(combined_features, (0, fixed_length - len(combined_features)), 'constant')
-
-        return combined_features  # Return only the feature vector
-    except Exception as e:
-        logging.error(f"Error extracting features: {e}")
-        return np.zeros((fixed_length,), dtype=np.float32)  # Return a zero vector instead of None
-
-
-def draw_face_landmarks(image, landmarks):
-    h, w, _ = image.shape
-    for landmark in landmarks:
-        x = int(landmark.x * w)
-        y = int(landmark.y * h)
-        cv2.circle(image, (x, y), 1, (0, 255, 0), -1)
-
-def save_graphs(output_folder):
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-    
-    if not frame_indices:
-        logging.error("No frames were processed. Cannot generate graphs.")
-        return
-
-    # Confidence Over Time
-    plt.figure()
-    valid_confidence = [score for score in confidence_scores if score is not None]
-    valid_frames = [frame for frame, score in zip(frame_indices, confidence_scores) if score is not None]
-    if valid_confidence:
-        plt.plot(valid_frames, valid_confidence, label='Prediction Confidence')
-        plt.xlabel('Frame Index')
-        plt.ylabel('Confidence')
-        plt.title('Prediction Confidence Over Time')
-        plt.savefig(os.path.join(output_folder, 'confidence_over_time.png'))
-    else:
-        logging.warning("No valid confidence scores to plot.")
-    plt.close()
-
-    # Landmark Norms Over Time
-    plt.figure()
-    valid_norms = [norm for norm in landmark_norms if norm is not None]
-    if valid_norms:
-        plt.plot(frame_indices[:len(valid_norms)], valid_norms, label='Landmark Norms')
-        plt.xlabel('Frame Index')
-        plt.ylabel('Norm')
-        plt.title('Landmark Norms Over Time')
-        plt.savefig(os.path.join(output_folder, 'landmark_norms_over_time.png'))
-    else:
-        logging.warning("No valid landmark norms to plot.")
-    plt.close()
-
-    # DNN Feature Norms Over Time
-    plt.figure()
-    valid_dnn_norms = [norm for norm in dnn_feature_norms if norm is not None]
-    if valid_dnn_norms:
-        plt.plot(frame_indices[:len(valid_dnn_norms)], valid_dnn_norms, label='DNN Feature Norms')
-        plt.xlabel('Frame Index')
-        plt.ylabel('Norm')
-        plt.title('DNN Feature Norms Over Time')
-        plt.savefig(os.path.join(output_folder, 'dnn_feature_norms_over_time.png'))
-    else:
-        logging.warning("No valid DNN feature norms to plot.")
-    plt.close()
-
-    # Face Detection Rate
-    plt.figure()
-    valid_times = [time for time in detection_times if time is not None]
-    if valid_times:
-        plt.plot(frame_indices[:len(valid_times)], valid_times, label='Face Detection Time')
-        plt.xlabel('Frame Index')
-        plt.ylabel('Time (s)')
-        plt.title('Face Detection Time Over Time')
-        plt.savefig(os.path.join(output_folder, 'detection_times_over_time.png'))
-    else:
-        logging.warning("No valid detection times to plot.")
-    plt.close()
-
-    # Real vs. Fake Frames Bar Graph
-    plt.figure()
-    real_count = frame_labels.count(1)
-    fake_count = frame_labels.count(0)
-    if real_count + fake_count > 0:
-        plt.bar(['Fake', 'Real'], [fake_count, real_count], color=['red', 'green'], alpha=0.7)
-        plt.xlabel('Label')
-        plt.ylabel('Count')
-        plt.title('Real vs Fake Frame Counts')
-        plt.savefig(os.path.join(output_folder, 'real_vs_fake.png'))
-    else:
-        logging.warning("No frames were classified as real or fake.")
-    plt.close()
-
-def live_detection(output_folder):
-    global frame_indices, confidence_scores, landmark_norms, dnn_feature_norms, detection_times, predictions, frame_labels
-
-    frame_indices = []
-    confidence_scores = []
-    landmark_norms = []
-    dnn_feature_norms = []
-    detection_times = []
-    predictions = []
-    frame_labels = []
-
-    cap = cv2.VideoCapture(2)  # Change to 1 or the appropriate camera index if needed
-    frame_index = 0
-    
-    try:
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                logging.error("Failed to capture image.")
-                break
-            
-            try:
-                result = extract_features_static(frame, net)
-                
-                if result is None or len(result) != 5:
-                    cv2.putText(frame, "No Face Detected", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    cv2.imshow('Live Detection', frame)
-                    detection_times.append(None)
-                    landmark_norms.append(None)
-                    dnn_feature_norms.append(None)
-                    confidence_scores.append(None)
-                    frame_indices.append(frame_index)
-                    predictions.append("No Face")
-                    frame_labels.append(0)
-                else:
-                    features, landmarks, detection_time, landmark_norm, dnn_feature_norm = result
-                    
-                    detection_times.append(detection_time)
-                    landmark_norms.append(landmark_norm)
-                    dnn_feature_norms.append(dnn_feature_norm)
-                    frame_indices.append(frame_index)
-                    
-                    features = np.expand_dims(features, axis=0)
-                    
-                    prediction = model.predict(features)[0][0]
-                    confidence_scores.append(prediction)
-                    
-                    label = 'Fake' if prediction < 0.8 else 'Real'
-                    predictions.append(label)
-                    frame_labels.append(1 if label == 'Real' else 0)
-                    
-                    label_text = f"{label}: {prediction:.2f}"
-                    color = (0, 255, 0) if label == 'Real' else (0, 0, 255)
-                    cv2.putText(frame, label_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-
-                    if landmarks:
-                        draw_face_landmarks(frame, landmarks)
-                
-                cv2.imshow('Live Detection', frame)
-                
-                if frame_index % 100 == 0:
-                    logging.info(f"Processed {frame_index} frames. "
-                                 f"Confidence scores: {len(confidence_scores)}, "
-                                 f"Landmark norms: {len(landmark_norms)}, "
-                                 f"Frame labels: {len(frame_labels)}")
-                
-                frame_index += 1
-                
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+def track_faces_multi(all_face_boxes, iou_thresh=0.5):
+    tracks = []
+    next_track_id = 0
+    for frame_idx, boxes in enumerate(all_face_boxes):
+        assigned = [False] * len(boxes)
+        for track in tracks:
+            found = False
+            for i, box in enumerate(boxes):
+                if not assigned[i] and iou(track['last_box'], box) > iou_thresh and frame_idx - track['last_frame'] == 1:
+                    track['boxes'].append((frame_idx, box))
+                    track['last_box'] = box
+                    track['last_frame'] = frame_idx
+                    assigned[i] = True
+                    found = True
                     break
+        for i, box in enumerate(boxes):
+            if not assigned[i]:
+                tracks.append({'boxes': [(frame_idx, box)], 'last_box': box, 'last_frame': frame_idx, 'id': next_track_id})
+                next_track_id += 1
+    # Return {track_id: [(frame_idx, box), ...]}
+    return {t['id']: t['boxes'] for t in tracks if len(t['boxes']) > 2}
 
-            except Exception as e:
-                logging.error(f"Error processing frame: {e}")
-                continue
-        
+def merge_tracks_if_single_face(tracklets, total_frames):
+    """
+    If only one face appears per frame, but due to tracking breaks multiple tracks exist,
+    merge them all into one.
+    """
+    # Map: frame_idx -> (track_id, box)
+    per_frame = {}
+    for tid, track in tracklets.items():
+        for (fidx, box) in track:
+            per_frame[fidx] = (tid, box)
+    # Are there frames with more than one face?
+    max_faces = max([sum(1 for tid, track in tracklets.items() if any(fidx == f for f, _ in track)) for fidx in range(total_frames)])
+    if max_faces > 1 or len(tracklets) == 1:
+        return tracklets  # keep all separate
+    # Otherwise, combine all tracks into one "supertrack"
+    frames_and_boxes = []
+    for tid, track in tracklets.items():
+        frames_and_boxes.extend(track)
+    frames_and_boxes.sort()  # by frame index
+    return {0: frames_and_boxes}
+
+def extract_features(image, net, box, landmarks, fixed_length=4096):
+    try:
+        h, w, _ = image.shape
+        landmark_coords = np.array([[lm.x, lm.y, lm.z] for lm in landmarks]).flatten()
+        landmark_coords = normalize(landmark_coords.reshape(1, -1)).flatten()
+        x, y, bw, bh = box
+        x1, y1, x2, y2 = max(0, x), max(0, y), min(w, x + bw), min(h, y + bh)
+        face_crop = image[y1:y2, x1:x2] if (y2 > y1 and x2 > x1) else image
+        blob = cv2.dnn.blobFromImage(face_crop, 1.0, (300, 300), (104.0, 177.0, 123.0))
+        net.setInput(blob)
+        dnn_features = net.forward().flatten()
+        combined_features = np.hstack((landmark_coords, dnn_features))
+        if len(combined_features) > fixed_length:
+            combined_features = combined_features[:fixed_length]
+        elif len(combined_features) < fixed_length:
+            combined_features = np.pad(combined_features, (0, fixed_length - len(combined_features)), 'constant')
+        # Debug: print feature stats
+        logging.info(f'Feature stats: min={np.min(combined_features):.4f}, max={np.max(combined_features):.4f}, mean={np.mean(combined_features):.4f}, shape={combined_features.shape}')
+        if np.any(np.isnan(combined_features)):
+            logging.warning('Features contain NaNs!')
+        if np.all(combined_features == 0):
+            logging.warning('Features are all zeros!')
+        return combined_features, np.linalg.norm(landmark_coords), np.linalg.norm(dnn_features)
     except Exception as e:
-        logging.error(f"Error in live detection: {e}")
-    finally:
-        cap.release()
-        cv2.destroyAllWindows()
-    
-    logging.info(f"Total frames processed: {frame_index}")
-    logging.info(f"Confidence scores: {len(confidence_scores)}")
-    logging.info(f"Landmark norms: {len(landmark_norms)}")
-    logging.info(f"Frame labels: {len(frame_labels)}")
+        logging.error(f"Error extracting features: {e}")
+        return None, None, None
 
-    save_graphs(output_folder)
-    
-    total_frames = len(frame_labels)
-    real_count = sum(frame_labels)
-    fake_count = total_frames - real_count
-    overall_result = "Real" if real_count > fake_count else "Fake"
-    
-    return overall_result, real_count, fake_count
+def plot_face_metrics(metrics, output_dir, track_id):
+    os.makedirs(output_dir, exist_ok=True)
+    base = f"face_{track_id}_{uuid.uuid4().hex[:8]}"
+    chart_paths = []
+    # 1. Prediction Timeline
+    plt.figure(figsize=(10, 4))
+    plt.plot(metrics['frame_indices'], metrics['labels'], drawstyle='steps-post')
+    plt.title('Prediction Timeline')
+    plt.xlabel('Frame')
+    plt.ylabel('Label (1=Real, 0=Fake)')
+    plt.tight_layout()
+    timeline_path = os.path.join(output_dir, f'timeline_{base}.png')
+    plt.savefig(timeline_path, dpi=120)
+    plt.close()
+    chart_paths.append(timeline_path)
+    # 2. Confidence Over Time
+    plt.figure(figsize=(10, 4))
+    plt.plot(metrics['frame_indices'], metrics['confidences'])
+    plt.title('Confidence Over Time')
+    plt.xlabel('Frame')
+    plt.ylabel('Model Confidence')
+    plt.tight_layout()
+    confidence_path = os.path.join(output_dir, f'confidence_{base}.png')
+    plt.savefig(confidence_path, dpi=120)
+    plt.close()
+    chart_paths.append(confidence_path)
+    # 3. DNN Feature Norms
+    plt.figure(figsize=(10, 4))
+    plt.plot(metrics['frame_indices'], metrics['dnn_norms'])
+    plt.title('DNN Feature Norms')
+    plt.xlabel('Frame')
+    plt.ylabel('Norm')
+    plt.tight_layout()
+    dnn_path = os.path.join(output_dir, f'dnn_{base}.png')
+    plt.savefig(dnn_path, dpi=120)
+    plt.close()
+    chart_paths.append(dnn_path)
+    # 4. Detection Time Per Frame
+    plt.figure(figsize=(10, 4))
+    plt.plot(metrics['frame_indices'], metrics['detection_times'])
+    plt.title('Detection Time per Frame')
+    plt.xlabel('Frame')
+    plt.ylabel('Seconds')
+    plt.tight_layout()
+    time_path = os.path.join(output_dir, f'detecttime_{base}.png')
+    plt.savefig(time_path, dpi=120)
+    plt.close()
+    chart_paths.append(time_path)
+    # 5. Real vs Fake Frame Count Bar Chart
+    plt.figure(figsize=(5, 4))
+    real_count = metrics['labels'].count(1)
+    fake_count = metrics['labels'].count(0)
+    plt.bar(['Real', 'Fake'], [real_count, fake_count], color=['green', 'red'])
+    plt.title('Frame Count: Real vs Fake')
+    plt.ylabel('Frame Count')
+    plt.tight_layout()
+    bar_path = os.path.join(output_dir, f'framecount_{base}.png')
+    plt.savefig(bar_path, dpi=120)
+    plt.close()
+    chart_paths.append(bar_path)
+    return chart_paths
 
-def static_video_detection(video_path, output_folder):
-    """Performs deepfake detection on an uploaded video file."""
+def run_visual_artifacts_detection(video_path, output_dir='static/results', min_frames=5):
+    os.makedirs(output_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
-    frame_indices.clear()
-    confidence_scores.clear()
-    frame_labels.clear()
-    frame_index = 0
-    real_frame_count = 0
-    fake_frame_count = 0
-
-    if not cap.isOpened():
-        logging.error("Error: Unable to open video file.")
-        return "Error", 0, 0
-
-    while True:
+    fps = cap.get(cv2.CAP_PROP_FPS) or 30
+    width, height = int(cap.get(3)), int(cap.get(4))
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    output_video_path = os.path.join(output_dir, 'visual_artifacts_overlay.mp4')
+    out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+    all_face_boxes = []
+    frame_landmarks = []
+    frame_buffer = []
+    frame_idx = 0
+    while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
-
-        features = extract_features_static(frame, net)
-
-        # Ensure features is a NumPy array
-        if not isinstance(features, np.ndarray):
-            print("Error: Extracted features are not a valid NumPy array.")
-            continue
-
-        features = features.reshape(1, -1).astype(np.float32)  # Reshape correctly
-
-        # Debugging: Print shape before prediction
-        print(f"Features shape before prediction: {features.shape}")
-
-        try:
-            prediction = model.predict(features)[0][0]
-        except Exception as e:
-            print(f"Error during prediction: {e}")
-            return "Error", 0, 0
-
-        confidence_scores.append(prediction)
-
-        if prediction > 0.38:
-            fake_frame_count += 1
-            frame_labels.append(0)  # Fake
-        else:
-            real_frame_count += 1
-            frame_labels.append(1)  # Real
-        
-        frame_indices.append(frame_index)
-        frame_index += 1
-
+        boxes, all_landmarks = mediapipe_detections(frame)
+        all_face_boxes.append(boxes)
+        frame_landmarks.append(all_landmarks)
+        frame_buffer.append(frame.copy())
+        frame_idx += 1
     cap.release()
-    save_graphs(output_folder)
-
-    overall_result = "Real" if real_frame_count > fake_frame_count else "Fake"
-    return overall_result, real_frame_count, fake_frame_count
-
-
-if __name__ == "__main__":
-    output_folder = 'uploads/results'
-    overall_result, real_count, fake_count = live_detection(output_folder)
-    print(f"Overall result: {overall_result}")
-    print(f"Real frames: {real_count}")
-    print(f"Fake frames: {fake_count}")
+    total_frames = len(frame_buffer)
+    # Tracking
+    tracklets = track_faces_multi(all_face_boxes)
+    tracklets = merge_tracks_if_single_face(tracklets, total_frames)
+    face_results = []
+    # For each track/face
+    for track_id, track in tracklets.items():
+        metrics = {
+            'frame_indices': [],
+            'confidences': [],
+            'labels': [],
+            'dnn_norms': [],
+            'detection_times': []
+        }
+        prev_features = None
+        for (frame_idx, box) in track:
+            frame = frame_buffer[frame_idx]
+            all_lm = frame_landmarks[frame_idx]
+            match_lm = None
+            for i, b in enumerate(all_face_boxes[frame_idx]):
+                if np.linalg.norm(np.array(b) - np.array(box)) < 5:
+                    match_lm = all_lm[i]
+                    break
+            if match_lm is None:
+                logging.warning(f"No matching landmarks for frame {frame_idx}, box {box}. Skipping frame.")
+                continue
+            start_time = time.time()
+            features, landmark_norm, dnn_norm = extract_features(frame, net, box, match_lm)
+            detect_time = time.time() - start_time
+            if features is not None:
+                if prev_features is not None and np.array_equal(features, prev_features):
+                    logging.warning(f"Features for frame {frame_idx} are IDENTICAL to previous frame.")
+                prev_features = features.copy()
+                # Model prediction
+                model_input = np.expand_dims(features, axis=0)
+                pred = float(model.predict(model_input, verbose=0).squeeze())
+                logging.info(f'Frame {frame_idx} model output: {pred:.4f}')
+                label = 1 if pred >= 0.8 else 0
+                metrics['frame_indices'].append(frame_idx)
+                metrics['confidences'].append(pred)
+                metrics['labels'].append(label)
+                metrics['dnn_norms'].append(dnn_norm)
+                metrics['detection_times'].append(detect_time)
+            else:
+                logging.warning(f"Feature extraction failed for frame {frame_idx}.")
+        if len(metrics['frame_indices']) < min_frames:
+            logging.warning(f"Not enough frames for track {track_id}, skipping.")
+            continue
+        # Overlay drawing (only bounding box, no mesh, no face landmarks)
+        for idx, frame_idx in enumerate(metrics['frame_indices']):
+            frame = frame_buffer[frame_idx]
+            box = track[idx][1]
+            color = (0, 255, 0) if metrics['labels'][idx] == 1 else (0, 0, 255)
+            x, y, w, h = box
+            cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+            label_txt = f"{'REAL' if metrics['labels'][idx] == 1 else 'FAKE'}: {metrics['confidences'][idx]:.2f}"
+            cv2.putText(frame, label_txt, (x, y - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+            cv2.putText(frame, f"ID:{track_id}", (x, y + h + 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+            frame_buffer[frame_idx] = frame
+        chart_paths = plot_face_metrics(metrics, output_dir, track_id)
+        real_count = metrics['labels'].count(1)
+        fake_count = metrics['labels'].count(0)
+        avg_conf = round(100 * (sum(metrics['confidences']) / len(metrics['confidences'])), 1)
+        face_results.append({
+            'track_id': track_id,
+            'real_count': real_count,
+            'fake_count': fake_count,
+            'confidence': avg_conf,
+            'charts': [os.path.relpath(p, 'static').replace('\\', '/') for p in chart_paths],
+            'result': 'Real' if real_count > fake_count else 'Fake',
+        })
+    # Save overlay video
+    for frame in frame_buffer:
+        out.write(frame)
+    out.release()
+    # ffmpeg fix for browser
+    fixed_path = output_video_path.replace('.mp4', '_fixed.mp4')
+    subprocess.run([
+        'ffmpeg', '-y', '-i', output_video_path,
+        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
+        fixed_path
+    ])
+    if os.path.exists(output_video_path):
+        os.remove(output_video_path)
+    output_video_path = fixed_path
+    return face_results, output_video_path

@@ -9,8 +9,7 @@ from detection_scripts.deep_based_learning_script import live_detection as deep_
 from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
 from detection_scripts.physiological_signal_script import run_detection
 from detection_scripts.audio_analysis_script import predict_audio, predict_real_time_audio
-from detection_scripts.visual_artifacts_script import live_detection as visual_artifacts_live_detection
-from detection_scripts.visual_artifacts_script import static_video_detection as visual_artifacts_static_detection
+from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
 from detection_scripts.body_posture_script import detect_body_posture, body_posture_live_detection
 
 def convert_webm_to_mp4(webm_path, mp4_path, target_fps=30):
@@ -225,18 +224,21 @@ def deep_learning_static():
 
 @app.route('/visual_artifacts_static', methods=['GET', 'POST'])
 def visual_artifacts_static():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
-
-    file = request.files['file']
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    file.save(filename)
-
-    output_folder = "static/results/"
-    overall_results, real_frame_count, fake_frame_count = visual_artifacts_static_detection(filename, output_folder)
-
-    return render_template('result.html', analysis_type='visual_artifact_static', result=overall_results, real_count=real_frame_count, fake_count=fake_frame_count)
-
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            file.save(filename)
+            face_results, output_video = visual_artifacts_static_detection(filename, output_dir='static/results')
+            if os.path.exists(filename):
+                os.remove(filename)
+            return render_template(
+                'result.html',
+                analysis_type='visual_artifacts',
+                face_results=face_results,
+                output_video=output_video
+            )
+    return render_template('visual_artifacts_try.html')
 
 @app.route('/audio_analysis', methods=['GET', 'POST'])
 def audio_analysis():

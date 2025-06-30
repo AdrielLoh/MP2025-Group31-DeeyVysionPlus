@@ -164,34 +164,53 @@
             </div>
 
         {% elif analysis_type == 'visual_artifacts' %}
-            <div class="tabs-container">
-                <div class="tabs">
-                    <button class="tab active" data-tab="visual-artifacts-result">Result</button>
-                </div>
-            </div>
-            <div class="section tab-content flex-dir-col" id="visual-artifacts-result" style="display: flex; flex-direction:column;">
-                <div class="detection-results">
-                    <div class="detection-results-header">
-                        <h3 style="color: {% if result == 'Real' %}green{% elif result == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
-                        {% if result == 'Real' %}NOT DEEPFAKE{% elif result == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
-                        </h3>
-                        <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>     
-                    </div>
-                    
-                    <p><b>Real Frames:</b> {{ real_count }}, <b>Fake Frames:</b> {{ fake_count }}</p>
-
-                    <div class="carousel-container" id="carousel-visual-artifacts">
-                        <button class="carousel-arrow left">&#8249;</button>
-                        <div class="carousel-images">
-                            <img src="{{ url_for('static', filename='uploads/results/real_vs_fake.png') }}" alt="Frames Real vs Fake" class="carousel-image" style="display:block;">
-                            <img src="{{ url_for('static', filename='uploads/results/confidence_over_time.png') }}" alt="Confidence Score" class="carousel-image" style="display:none;">
-                            <img src="{{ url_for('static', filename='uploads/results/dnn_feature_norms_over_time.png') }}" alt="DNN Feature Norms" class="carousel-image" style="display:none;">
-                            <img src="{{ url_for('static', filename='uploads/results/detection_times_over_time.png') }}" alt="Face Detection Time" class="carousel-image" style="display:none;">
+            {% if face_results|length == 0 %}
+                <div class="section tab-content flex-dir-col" style="display: flex; flex-direction:column;">
+                    <div class="detection-results">
+                        <div class="detection-results-header">
+                            <h3 style="color: orange;">NO FACES DETECTED</h3>
+                            <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>
                         </div>
-                        <button class="carousel-arrow right">&#8250;</button>
+                    </div>
+                    <p>Try a longer or clearer video with more visible faces. The video should preferably be at least 5 seconds for best detection performance.</p>
+                </div>
+            {% else %}
+                <div class="tabs-container">
+                    <div class="tabs">
+                        {% for face in face_results %}
+                        <button class="tab{% if loop.first %} active{% endif %}" data-tab="face-{{ face.track_id }}">Face #{{ face.track_id }}</button>
+                        {% endfor %}
                     </div>
                 </div>
-            </div>
+                {% for face in face_results %}
+                <div class="section tab-content flex-dir-col" id="face-{{ face.track_id }}" style="display: {% if loop.first %}flex{% else %}none{% endif %}; flex-direction:column;">
+                    <div class="detection-results">
+                        <div class="detection-results-header">
+                            <h3 style="color: {% if face.result == 'Real' %}green{% elif face.result == 'Fake' %}red{% else %}orange{% endif %}; font-size: 18px;">
+                            {% if face.result == 'Real' %}NOT DEEPFAKE{% elif face.result == 'Fake' %}LIKELY DEEPFAKE{% else %}UNABLE TO DETERMINE{% endif %}
+                            </h3>
+                            <button class="back-button" onclick="deleteFilesAndGoBack();">← Return</button>
+                        </div>
+                        <p><b>Real Frames:</b> {{ face.real_count }}, <b>Fake Frames:</b> {{ face.fake_count }}</p>
+                        <p><b>Average Confidence:</b> {{ face.confidence }}%</p>
+                        <div class="carousel-container" id="carousel-{{ face.track_id }}">
+                            <button class="carousel-arrow left">&#8249;</button>
+                            <div class="carousel-images">
+                                {% for chart in face.charts %}
+                                <img src="{{ url_for('static', filename=chart) }}" alt="Chart" class="carousel-image" style="display:{% if loop.first %}block{% else %}none{% endif %};">
+                                {% endfor %}
+                            </div>
+                            <button class="carousel-arrow right">&#8250;</button>
+                        </div>
+                        <video id="visual-artifacts-video-{{ face.track_id }}" class="detection-video" controls>
+                            <source src="{{ output_video }}" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+
 
         {% elif analysis_type == 'visual_artifact_static' %}
             <div class="tabs-container">
