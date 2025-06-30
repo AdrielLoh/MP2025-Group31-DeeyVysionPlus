@@ -23,7 +23,16 @@ def convert_webm_to_mp4(webm_path, mp4_path, target_fps=30):
     subprocess.run(cmd, check=True)
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/uploads/'
+import os
+
+# Dynamically get the absolute path to the 'static/uploads/' directory
+upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
+app.config['UPLOAD_FOLDER'] = upload_folder
+
+# Create the directory if it doesn't exist
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
 
 @app.route('/')
 def index():
