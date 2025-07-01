@@ -93,8 +93,11 @@
                         <div class="carousel-container" id="carousel-{{ face.track_id }}">
                             <button class="carousel-arrow left">&#8249;</button>
                             <div class="carousel-images">
-                                <img src="{{ face.signal_plot }}" alt="rPPG Signal" class="carousel-image" style="display:block;">
+                                <img src="{{ face.hr_trace_plot }}" alt="rPPG Signal" class="carousel-image" style="display:block;">
+                                <img src="{{ face.hr_dist_plot }}" alt="Prediction Counts" class="carousel-image" style="display:none;">
+                                <img src="{{ face.band_power_plot }}" alt="Prediction Counts" class="carousel-image" style="display:none;">
                                 <img src="{{ face.spectrum_plot }}" alt="rPPG Spectrum" class="carousel-image" style="display:none;">
+                                <img src="{{ face.signal_plot }}" alt="Prediction Counts" class="carousel-image" style="display:none;">
                                 <img src="{{ face.pred_count_plot }}" alt="Prediction Counts" class="carousel-image" style="display:none;">
                             </div>
                             <button class="carousel-arrow right">&#8250;</button>

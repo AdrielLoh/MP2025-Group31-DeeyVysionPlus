@@ -40,31 +40,64 @@ def iou(boxA, boxB):
     boxBArea = boxB[2] * boxB[3]
     return interArea / float(boxAArea + boxBArea - interArea + 1e-5)
 
-def track_faces(prev_tracks, curr_boxes, frame_idx, iou_thresh=0.5):
-    assigned = [False] * len(curr_boxes)
-    updated_tracks = []
-    for track in prev_tracks:
-        last_box = track['last_box']
-        found = False
-        for i, box in enumerate(curr_boxes):
-            if not assigned[i] and iou(last_box, box) > iou_thresh:
-                track['boxes'].append((frame_idx, box))
-                track['last_box'] = box
+class FaceTracker:
+    """
+    A more robust face tracking system with persistent ID management.
+    """
+    def __init__(self, iou_thresh=0.5, max_lost_frames=30):
+        self.next_track_id = 0
+        self.iou_thresh = iou_thresh
+        self.max_lost_frames = max_lost_frames
+        self.tracks = []
+    
+    def update(self, curr_boxes, frame_idx):
+        """Update tracks with current frame's detections."""
+        assigned = [False] * len(curr_boxes)
+        updated_tracks = []
+        
+        # Match current boxes with existing tracks
+        for track in self.tracks:
+            last_box = track['last_box']
+            best_iou = 0
+            best_idx = -1
+            
+            # Find best matching box
+            for i, box in enumerate(curr_boxes):
+                if not assigned[i]:
+                    current_iou = iou(last_box, box)
+                    if current_iou > best_iou and current_iou > self.iou_thresh:
+                        best_iou = current_iou
+                        best_idx = i
+            
+            if best_idx >= 0:
+                # Match found
+                track['boxes'].append((frame_idx, curr_boxes[best_idx]))
+                track['last_box'] = curr_boxes[best_idx]
                 track['last_frame'] = frame_idx
-                assigned[i] = True
-                found = True
-                break
-        if found:
-            updated_tracks.append(track)
-    for i, box in enumerate(curr_boxes):
-        if not assigned[i]:
-            updated_tracks.append({
-                'id': len(updated_tracks),
-                'boxes': [(frame_idx, box)],
-                'last_box': box,
-                'last_frame': frame_idx
-            })
-    return updated_tracks
+                track['lost_frames'] = 0
+                assigned[best_idx] = True
+                updated_tracks.append(track)
+            else:
+                # Track lost
+                track['lost_frames'] = track.get('lost_frames', 0) + 1
+                if track['lost_frames'] < self.max_lost_frames:
+                    updated_tracks.append(track)
+        
+        # Create new tracks for unassigned boxes
+        for i, box in enumerate(curr_boxes):
+            if not assigned[i]:
+                new_track = {
+                    'id': self.next_track_id,
+                    'boxes': [(frame_idx, box)],
+                    'last_box': box,
+                    'last_frame': frame_idx,
+                    'lost_frames': 0
+                }
+                self.next_track_id += 1
+                updated_tracks.append(new_track)
+        
+        self.tracks = updated_tracks
+        return self.tracks
 
 def butter_bandpass_filter(signal, fs, lowcut=0.7, highcut=4.0, order=3):
     nyq = 0.5 * fs
@@ -338,7 +371,8 @@ def get_video_fps(cap):
         fps = 30
     return fps
 
-def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=False):
+def run_detection(source, video_tag, output_path=f'static/results/output.mp4', is_webcam=False):
+    tracker = FaceTracker(iou_thresh=0.5, max_lost_frames=30)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cap = cv2.VideoCapture(0 if is_webcam else source)
     fps = get_video_fps(cap)
@@ -363,7 +397,7 @@ def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=Fa
         if not ret:
             break
         boxes = detect_faces_dnn(frame)
-        tracks = track_faces(tracks, boxes, frame_idx)
+        tracks = tracker.update(boxes, frame_idx)
         for track in tracks:
             if track['last_frame'] != frame_idx:
                 continue
@@ -399,7 +433,7 @@ def run_detection(source, output_path=f'static/results/output.mp4', is_webcam=Fa
     cap.release()
     out.release()
     time.sleep(0.2)  # Short pause to ensure file is closed
-    fixed_output_path = output_path.replace('.mp4', '_fixed.mp4')
+    fixed_output_path = output_path.replace('.mp4', f'_fixed{video_tag}.mp4')
     subprocess.run([
         'ffmpeg', '-y', '-i', output_path,
         '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',

@@ -3,6 +3,7 @@ import os
 import logging
 import json
 import subprocess
+import random
 
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
@@ -153,6 +154,7 @@ def physiological_signal_analysis():
 @app.route('/physiological_signal_try', methods=['GET', 'POST'])
 def physiological_signal_try():
     output_folder = 'static/results'
+    video_tag = random.randint(0, 10000)
     os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
         file = request.files['file']
@@ -170,7 +172,7 @@ def physiological_signal_try():
                 mp4_path = ""
 
             # Process the video (run_detection expects video path)
-            face_results, output_video = run_detection(video_path_for_processing, is_webcam=False)
+            face_results, output_video = run_detection(video_path_for_processing, video_tag=video_tag, is_webcam=False)
             if os.path.exists(filename):
                 os.remove(filename)
             if os.path.exists(mp4_path):
