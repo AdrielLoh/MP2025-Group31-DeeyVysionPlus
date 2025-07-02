@@ -5,16 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deepfake Detection Methods</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
     
-    <section id="detection" class="content">
-        <h1>Deepfake Detection Methods</h1>
-        <p class="intro-text">Deepfake detection technology employs various methods to identify and mitigate the effects of deepfake content. Below, we will explore different techniques used in detecting deepfakes, from analyzing visual artifacts to deep learning-based approaches.</p>
+    <section id="detection" class="content margin-top-content">
+        <div class="header">
+            <h1 class="title">Deepfake Detection Methods</h1>
+            <p class="intro-text">
+                Deepfake detection technology employs various methods to identify and mitigate the effects of deepfake content. 
+                Below, we will explore different techniques used in detecting deepfakes, from analyzing visual artifacts to deep learning-based approaches.
+            </p>
+        </div>
+
         <div class="clickable-boxes">
             <a href="{{ url_for('deep_learning_based_detection') }}" class="box">
                 <h2>Deep Learning-Based Detection</h2>

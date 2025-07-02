@@ -5,91 +5,214 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History of Deepfakes</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
 
-    <div class="banner" id="law-ethics-banner"></div>
+    <div class="banner" id="law-ethics-banner">
+        <div class="banner-content">
+            <h1>History of Deepfakes</h1>
+            <p class="intro-text">Deepfake technology has rapidly evolved over the past few years. This section explores its origins, development, and milestones.</p>
+        </div>
+    </div>
 
     <section id="history-of-deepfakes" class="content educational-section">
-        <div class="text-align-left educational">
-        <h1>History of Deepfakes</h1>
-        <p class="intro-text">Deepfake technology has rapidly evolved over the past few years. This section explores its origins, development, and milestones.</p>
-        
-        <div class="tabs-container">
-            <div class="tabs">
-                <button class="tab active" data-tab="early-developments">Early Developments</button>
-                <button class="tab" data-tab="breakthroughs">Breakthroughs</button>
-                <button class="tab" data-tab="current-state">Current State</button>
+        <div class="educational">
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab tab-button active" data-tab="early-developments">
+                        <span class="tab-icon">🌱</span>
+                        <span class="tab-text">Early Developments</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="breakthroughs">
+                        <span class="tab-icon">⚡</span>
+                        <span class="tab-text">Breakthroughs</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="current-state">
+                        <span class="tab-icon">🚀</span>
+                        <span class="tab-text">Current State</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="history-container">
+                <div class="history-period-card tab-content" id="early-developments" style="display: none;">
+                    <div class="period-icon-container">
+                        <div class="period-icon early-dev-icon">
+                            <img src="{{ url_for('static', filename='images/early-development.png') }}" alt="Early Developments">
+                        </div>
+                    </div>
+                    <div class="period-content">
+                        <h2>Early Developments</h2>
+                        <div class="period-details">
+                            <div class="period-era">Foundation Period</div>
+                            <div class="period-impact">Research Phase</div>
+                        </div>
+                        <p>The concept of manipulating digital media dates back to the early 2000s. Initial advancements in AI and machine learning set the stage for the creation of deepfakes.</p>
+                        <p>During this period, researchers focused on developing algorithms that could understand and generate human-like images and videos. The advent of neural networks and their ability to learn from large datasets was crucial in paving the way for future deepfake technology.</p>
+                        
+                        <div class="milestones-list">
+                            <h4>Key Milestones</h4>
+                            <div class="milestone-item">
+                                <div class="milestone-year">2000-2010</div>
+                                <div class="milestone-desc">Initial AI and machine learning research</div>
+                            </div>
+                            <div class="milestone-item">
+                                <div class="milestone-year">2006</div>
+                                <div class="milestone-desc">Deep learning algorithms emerge</div>
+                            </div>
+                            <div class="milestone-item">
+                                <div class="milestone-year">2010-2014</div>
+                                <div class="milestone-desc">Neural network advancements</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-period-card tab-content" id="breakthroughs" style="display: none;">
+                    <div class="period-icon-container">
+                        <div class="period-icon breakthrough-icon">
+                            <img src="{{ url_for('static', filename='images/breakthrough-icon.png') }}" alt="Breakthroughs">
+                        </div>
+                    </div>
+                    <div class="period-content">
+                        <h2>Breakthroughs</h2>
+                        <div class="period-details">
+                            <div class="period-era">Innovation Period</div>
+                            <div class="period-impact">Revolutionary</div>
+                        </div>
+                        <p>In 2017, the term "deepfake" was coined. This period saw significant advancements in generative adversarial networks (GANs) and the public release of deepfake tools.</p>
+                        
+                        <div class="gan-explanation">
+                            <h4>GANs: The Game Changer</h4>
+                            <p>GANs, introduced by Ian Goodfellow and his colleagues in 2014, played a pivotal role in the development of deepfakes. These networks consist of two parts:</p>
+                            <div class="gan-components-mini">
+                                <div class="component-card generator">
+                                    <div class="component-header">
+                                        <div class="component-icon">🎭</div>
+                                        <strong>Generator</strong>
+                                    </div>
+                                    <p>Creates fake images</p>
+                                </div>
+                                <div class="component-card discriminator">
+                                    <div class="component-header">
+                                        <div class="component-icon">🔍</div>
+                                        <strong>Discriminator</strong>
+                                    </div>
+                                    <p>Tries to distinguish between real and fake images</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>The public release of deepfake tools on platforms like Reddit and GitHub enabled widespread access to this technology, leading to both creative applications and concerns over misuse.</p>
+                        
+                        <div class="milestones-list">
+                            <h4>Key Milestones</h4>
+                            <div class="milestone-item">
+                                <div class="milestone-year">2014</div>
+                                <div class="milestone-desc">Ian Goodfellow introduces GANs</div>
+                            </div>
+                            <div class="milestone-item">
+                                <div class="milestone-year">2017</div>
+                                <div class="milestone-desc">Term "deepfake" is coined</div>
+                            </div>
+                            <div class="milestone-item">
+                                <div class="milestone-year">2017-2018</div>
+                                <div class="milestone-desc">Public tools released on Reddit/GitHub</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-period-card tab-content" id="current-state" style="display: none;">
+                    <div class="period-icon-container">
+                        <div class="period-icon current-icon">
+                            <img src="{{ url_for('static', filename='images/current-icon.png') }}" alt="Current State">
+                        </div>
+                    </div>
+                    <div class="period-content">
+                        <h2>Current State</h2>
+                        <div class="period-details">
+                            <div class="period-era">Maturation Period</div>
+                            <div class="period-impact">Widespread</div>
+                        </div>
+                        <p>Today, deepfake technology is widely accessible and continues to evolve. Researchers are focusing on improving the quality and realism of deepfakes while addressing ethical and legal concerns.</p>
+                        <p>Recent advancements have made it possible to create deepfakes that are nearly indistinguishable from real content. This has sparked innovation in fields such as entertainment, education, and virtual reality, where realistic digital avatars can enhance user experiences.</p>
+                        
+                        <div class="current-focus-areas">
+                            <h4>Current Focus Areas</h4>
+                            <div class="focus-grid">
+                                <div class="focus-item positive">
+                                    <div class="focus-icon">✨</div>
+                                    <div class="focus-content">
+                                        <strong>Quality Improvement</strong>
+                                        <p>Enhanced realism and resolution</p>
+                                    </div>
+                                </div>
+                                <div class="focus-item neutral">
+                                    <div class="focus-icon">🛡️</div>
+                                    <div class="focus-content">
+                                        <strong>Detection Tools</strong>
+                                        <p>AI-powered detection systems</p>
+                                    </div>
+                                </div>
+                                <div class="focus-item negative">
+                                    <div class="focus-icon">⚖️</div>
+                                    <div class="focus-content">
+                                        <strong>Legal Frameworks</strong>
+                                        <p>Regulatory and ethical guidelines</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>However, the rise of deepfakes also poses significant challenges. Efforts are being made to develop detection tools and establish legal frameworks to mitigate the risks associated with deepfake misuse. Organizations and governments are collaborating to address the ethical and societal implications of this powerful technology.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="section tab-content" id="early-developments" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/early-development.png') }}" alt="Early Developments">
+        <div class="educational-quicklinks">
+            <h3>Explore More Resources:</h3>
+            <div class="quicklinks-grid">
+                <a href="creation" class="quicklink-card">
+                    <div class="quicklink-icon">🛠️</div>
+                    <span>Creation of Deepfakes</span>
+                </a>
+                <a href="impact_on_society" class="quicklink-card">
+                    <div class="quicklink-icon">🌍</div>
+                    <span>Impact on Society</span>
+                </a>
+                <a href="legal_and_ethics" class="quicklink-card">
+                    <div class="quicklink-icon">⚖️</div>
+                    <span>Legal and Ethics</span>
+                </a>
+                <a href="future_trends" class="quicklink-card">
+                    <div class="quicklink-icon">🔮</div>
+                    <span>Future Trends</span>
+                </a>
+                <a href="case_studies" class="quicklink-card">
+                    <div class="quicklink-icon">📋</div>
+                    <span>Case Studies</span>
+                </a>
+                <a href="identify_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">🔍</div>
+                    <span>How to Identify Deepfakes</span>
+                </a>
+                <a href="protect_yourself" class="quicklink-card">
+                    <div class="quicklink-icon">🛡️</div>
+                    <span>Protect Yourself Against Deepfakes</span>
+                </a>
             </div>
-            <div class="text-container">
-                <h2>Early Developments</h2>
-                <p>The concept of manipulating digital media dates back to the early 2000s. Initial advancements in AI and machine learning set the stage for the creation of deepfakes.</p>
-                <br>
-                <p>During this period, researchers focused on developing algorithms that could understand and generate human-like images and videos. The advent of neural networks and their ability to learn from large datasets was crucial in paving the way for future deepfake technology.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="breakthroughs" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/breakthrough-icon.png') }}" alt="Breakthroughs">
-            </div>
-            <div class="text-container">
-                <h2>Breakthroughs</h2>
-                <p>In 2017, the term "deepfake" was coined. This period saw significant advancements in generative adversarial networks (GANs) and the public release of deepfake tools.</p>
-                <br>
-                <p>GANs, introduced by Ian Goodfellow and his colleagues in 2014, played a pivotal role in the development of deepfakes. These networks consist of two parts: a generator that creates fake content and a discriminator that evaluates its authenticity. The competition between these two networks leads to the creation of highly realistic fake images and videos.</p>
-                <br>
-                <p>The public release of deepfake tools on platforms like Reddit and GitHub enabled widespread access to this technology, leading to both creative applications and concerns over misuse.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="current-state" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/current-icon.png') }}" alt="Current State">
-            </div>
-            <div class="text-container">
-                <h2>Current State</h2>
-                <p>Today, deepfake technology is widely accessible and continues to evolve. Researchers are focusing on improving the quality and realism of deepfakes while addressing ethical and legal concerns.</p>
-                <br>
-                <p>Recent advancements have made it possible to create deepfakes that are nearly indistinguishable from real content. This has sparked innovation in fields such as entertainment, education, and virtual reality, where realistic digital avatars can enhance user experiences.</p>
-                <br>
-                <p>However, the rise of deepfakes also poses significant challenges. Efforts are being made to develop detection tools and establish legal frameworks to mitigate the risks associated with deepfake misuse. Organizations and governments are collaborating to address the ethical and societal implications of this powerful technology.</p>
-            </div>
-        </div>
-        </div>
-
-        <div class="text-align-left educational-quicklinks">
-            <h3>View more resources:</h3>
-            <a href="creation">Creation of Deepfakes</a>
-            <div class="divider"></div>
-            <a href="impact_on_society">Impact on Society</a><div class="divider"></div>
-            <a href="legal_and_ethics">Legal and Ethics</a>
-            <div class="divider"></div>
-            <!-- <a href="history_of_deepfakes">History of Deepfakes</a>
-            <div class="divider"></div> -->
-            <a href="future_trends">Future Trends</a>
-            <div class="divider"></div>
-            <a href="case_studies">Case Studies</a>
-            <div class="divider"></div>
-            <a href="identify_deepfakes">How to Identify Deepfakes</a>
-            <div class="divider"></div>
-            <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
-            <div class="divider"></div>
         </div>
     </section>
 
     <div id="footer-placeholder"></div>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     <script src="../static/js/handle-tab.js"></script>
+
 </body>
 </html>

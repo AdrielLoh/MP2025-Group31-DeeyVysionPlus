@@ -3,88 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visual Artifacts Detection</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../static/css/styles.css">
+    <title>Visual Artifacts Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
     
-    <section id="visual-artifacts-detection" class="content">
-        <h1>Visual Artifacts Detection</h1>
-        <p class="intro-text">Visual artifacts detection focuses on identifying anomalies and inconsistencies in images and videos, such as unnatural lighting, irregular shadows, and inconsistent facial features, which are often present in deepfake content.</p>
-        
-        <div class="section" id="how-it-works">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/how-it-works-icon.png') }}" alt="How It Works">
-            </div>
-            <div class="text-container">
-                <h2>How It Works</h2>
-                <p>This method involves analyzing various visual elements within a video or image. Algorithms can detect discrepancies in lighting and shadows, unnatural blurring, and inconsistencies in facial expressions and movements. By comparing these elements to typical patterns found in authentic media, it is possible to identify deepfakes.</p>
-            </div>
+    <!-- Hero Banner Section -->
+    <section class="physiological-hero">
+        <div class="hero-background">
+            <div class="floating-particles"></div>
+            <div class="pulse-waves"></div>
         </div>
-        
-        
-        
-        <div class="section" id="advantages">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/advantages-icon.png') }}" alt="Advantages">
+        <div class="hero-content">
+            <div class="hero-icon">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                    <!-- Eye with scan lines for visual artifacts detection -->
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#667eea" stroke-width="2" fill="url(#eyeGradient)"/>
+                    <circle cx="12" cy="12" r="3" stroke="#764ba2" stroke-width="2" fill="url(#irisGradient)"/>
+                    <!-- Scan lines to represent analysis -->
+                    <line x1="2" y1="8" x2="22" y2="8" stroke="#667eea" stroke-width="1" opacity="0.6">
+                        <animate attributeName="y1" values="8;16;8" dur="2s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="8;16;8" dur="2s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="2" y1="16" x2="22" y2="16" stroke="#764ba2" stroke-width="1" opacity="0.4">
+                        <animate attributeName="y1" values="16;8;16" dur="2s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="16;8;16" dur="2s" repeatCount="indefinite"/>
+                    </line>
+                    <defs>
+                        <linearGradient id="eyeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.8" />
+                        </linearGradient>
+                        <radialGradient id="irisGradient" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#4facfe;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:0.4" />
+                        </radialGradient>
+                    </defs>
+                </svg>
+                <div class="pulse-indicator"></div>
             </div>
-            <div class="text-container">
-                <h2>Advantages</h2>
-                <ul>
-                    <li>Can be applied to existing videos and images without the need for specialized equipment.</li>
-                    <li>Effective at identifying common visual inconsistencies in deepfakes.</li>
-                </ul>
-            </div>
-        </div>
-        
-        
-        
-        <div class="section" id="challenges">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/challenges-icon.png') }}" alt="Challenges">
-            </div>
-            <div class="text-container">
-                <h2>Challenges</h2>
-                <ul>
-                    <li>Deepfakes are becoming more sophisticated, making some visual artifacts harder to detect.</li>
-                    <li>May require high-quality media for accurate analysis.</li>
-                </ul>
-            </div>
-        </div>
-        
-        
-        
-        <div class="section" id="applications">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/applications-icon.png') }}" alt="Applications">
-            </div>
-            <div class="text-container">
-                <h2>Applications</h2>
-                <p>Visual artifacts detection is widely used in media forensics, social media platforms, and video streaming services to ensure the authenticity of content and prevent the spread of misinformation.</p>
-            </div>
-        </div>
-
-        
-
-        <div class="section" id="try-it-out">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/try-it-out-icon.png') }}" alt="Try It Out">
-            </div>
-            <div class="text-container">
-                <h2>Try It Out</h2>
-                <a href="{{ url_for('visual_artifacts_try') }}" class="try-button">Try Visual Artifacts Detection</a>
+            <h1>Visual Artifacts Analysis</h1>
+            <p class="hero-subtitle">Detecting deepfakes through facial landmarks and digital artifacts</p>
+            <div class="scroll-indicator">
+                <div class="scroll-arrow">↓</div>
             </div>
         </div>
     </section>
 
+    <!-- Introduction Section with Visual Elements -->
+    <div class="content">
+    <!-- How It Works Section -->
+    <div class="methodology-section">
+        <h2 class="section-title">How the Technology Works</h2>
+        <div class="methodology-grid">
+
+            <div class="method-card">
+                <div class="method-icon">
+                    <!-- Face Mesh Icon -->
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                        <ellipse cx="12" cy="12" rx="9" ry="7" stroke="#667eea" stroke-width="2"/>
+                        <circle cx="12" cy="12" r="3.5" stroke="#764ba2" stroke-width="1.5"/>
+                        <circle cx="9.5" cy="13" r="0.5" fill="#764ba2"/>
+                        <circle cx="14.5" cy="13" r="0.5" fill="#764ba2"/>
+                    </svg>
+                </div>
+                <h3>Facial Landmark Extraction</h3>
+                <p>MediaPipe Face Mesh detects detailed 3D facial landmarks. These landmarks provide geometric information about the face in every frame.</p>
+                <div class="method-progress">
+                    <div class="progress-bar" style="--progress: 92%"></div>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-icon">
+                    <!-- DNN Feature Icon -->
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                        <rect x="6" y="8" width="12" height="8" rx="2" stroke="#667eea" stroke-width="2" fill="#667eea" opacity="0.2"/>
+                        <path d="M12 2v20" stroke="#f093fb" stroke-width="1.5" opacity="0.7"/>
+                    </svg>
+                </div>
+                <h3>DNN Feature Extraction</h3>
+                <p>A neural face detector extracts additional high-dimensional features, capturing pixel-level artifacts invisible to the naked eye.</p>
+                <div class="method-progress">
+                    <div class="progress-bar" style="--progress: 93%"></div>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-icon">
+                    <!-- Multi-Feature Fusion Icon -->
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="8" stroke="#f093fb" stroke-width="2" fill="#4facfe" opacity="0.15"/>
+                        <path d="M7 12h10" stroke="#764ba2" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <h3>Multi-Feature Deep Learning</h3>
+                <p>Both sets of features are fused and passed into a neural network, which classifies each frame as real or fake based on visual artifact patterns.</p>
+                <div class="method-progress">
+                    <div class="progress-bar" style="--progress: 94%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advantages vs Challenges Section -->
+    <div class="comparison-section">
+        <div class="advantages-panel">
+            <h2>Key Advantages</h2>
+            <div class="advantage-list">
+                <div class="advantage-item">
+                    <div class="advantage-icon">👁️</div>
+                    <div class="advantage-content">
+                        <h4>Sensitive to Subtle Artifacts</h4>
+                        <p>Combines facial geometry and DNN-level patterns to detect artifacts missed by the human eye.</p>
+                    </div>
+                </div>
+                <div class="advantage-item">
+                    <div class="advantage-icon">🎸</div>
+                    <div class="advantage-content">
+                        <h4>Multi-Feature Fusion</h4>
+                        <p>Uses both explicit landmark structure and neural features for improved deepfake detection accuracy.</p>
+                    </div>
+                </div>
+                <div class="advantage-item">
+                    <div class="advantage-icon">🔧</div>
+                    <div class="advantage-content">
+                        <h4>Real-Time Feedback</h4>
+                        <p>Frame-by-frame anomaly signals and live metric plots for deeper analysis and interpretability.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="challenges-panel">
+            <h2>Technical Challenges</h2>
+            <div class="challenge-list">
+                <div class="challenge-item">
+                    <div class="challenge-icon">🧙‍♂️</div>
+                    <div class="challenge-content">
+                        <h4>Face Occlusion Sensitivity</h4>
+                        <p>Obstructed or profile faces reduce the quality of landmark and feature extraction.</p>
+                    </div>
+                </div>
+                <div class="challenge-item">
+                    <div class="challenge-icon">🎨</div>
+                    <div class="challenge-content">
+                        <h4>Visual Manipulations</h4>
+                        <p>Image blur, noise, or filters can hide or distort key artifacts relied on by the detector.</p>
+                    </div>
+                </div>
+                <div class="challenge-item">
+                    <div class="challenge-icon">💻</div>
+                    <div class="challenge-content">
+                        <h4>Feature Dimensionality</h4>
+                        <p>Combining different feature types requires careful normalization and padding for robust neural network inference.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Demo Section -->
+    <div class="demo-section">
+        <div class="demo-text">
+            <h2>Try Visual Artifacts Deepfake Detection</h2>
+            <p>Upload or record a video, and our system will analyze subtle facial and pixel-level artifacts using multi-feature deep learning to spot deepfakes in real-time.</p>
+            <a href="{{ url_for('visual_artifacts_try') }}" class="cta-button">
+                <span>Try Visual Artifacts Detection</span>
+                <div class="button-arrow">→</div>
+            </a>
+        </div>
+    </div>
+</div>
+
+
     <div id="footer-placeholder"></div>
 
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
-
 </body>
 </html>

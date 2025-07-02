@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Future Trends in Deepfakes</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
@@ -13,94 +13,336 @@
     </header>
 
     <div class="banner" id="trends-banner">
-        <!-- <h1>Deepfake Creation</h1> -->
+        <div class="banner-content">
+            <h1>Future Trends in Deepfakes</h1>
+            <p class="intro-text">Deepfake technology is continually evolving. This section explores anticipated future trends and their potential impact across various sectors.</p>
+        </div>
     </div>
 
-    <section id="future-trends" class="content text-align-left educational-section">
+    <section id="future-trends" class="content educational-section">
         <div class="educational">
-        <h1>Future Trends in Deepfakes</h1>
-        <p class="intro-text">Deepfake technology is continually evolving. This section explores anticipated future trends and their potential impact across various sectors.</p>
-        
-        <div class="tabs-container">
-            <div class="tabs">
-                <button class="tab active" data-tab="advancements-in-technology">Technology Advancements</button>
-                <button class="tab" data-tab="detection-and-countermeasures">Detection & Countermeasures</button>
-                <button class="tab" data-tab="ethical-and-legal-frameworks">Frameworks</button>
-                <button class="tab" data-tab="impact-on-industries">Industry Impacts</button>
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab tab-button active" data-tab="advancements-in-technology">
+                        <span class="tab-icon">🚀</span>
+                        <span class="tab-text">Technology Advancements</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="detection-and-countermeasures">
+                        <span class="tab-icon">🛡️</span>
+                        <span class="tab-text">Detection & Countermeasures</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="ethical-and-legal-frameworks">
+                        <span class="tab-icon">⚖️</span>
+                        <span class="tab-text">Frameworks</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="impact-on-industries">
+                        <span class="tab-icon">🏭</span>
+                        <span class="tab-text">Industry Impacts</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="trends-container">
+                <div class="trend-category-card tab-content" id="advancements-in-technology" style="display: none;">
+                    <div class="trend-header">
+                        <div class="trend-icon-container">
+                            <div class="trend-icon tech-icon">
+                                <img src="{{ url_for('static', filename='images/advancements-icon.png') }}" alt="Advancements in Technology">
+                            </div>
+                        </div>
+                        <div class="trend-meta">
+                            <h2>Advancements in Technology</h2>
+                            <div class="trend-details">
+                                <div class="trend-timeline">2025-2030</div>
+                                <div class="trend-impact">High Impact</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trend-content">
+                        <p>The technology behind deepfakes is expected to become even more sophisticated. Improved algorithms and more powerful computing resources will enhance the realism and ease of creating deepfakes.</p>
+                        
+                        <div class="innovations-grid">
+                            <h4>Key Technological Innovations</h4>
+                            <div class="innovation-items">
+                                <div class="innovation-card">
+                                    <div class="innovation-icon">⚡</div>
+                                    <div class="innovation-content">
+                                        <strong>Real-time Generation</strong>
+                                        <p>Live deepfake creation for broadcasts and video calls</p>
+                                    </div>
+                                </div>
+                                <div class="innovation-card">
+                                    <div class="innovation-icon">🧠</div>
+                                    <div class="innovation-content">
+                                        <strong>Unsupervised Learning</strong>
+                                        <p>Enhanced AI training with diverse datasets</p>
+                                    </div>
+                                </div>
+                                <div class="innovation-card">
+                                    <div class="innovation-icon">🎯</div>
+                                    <div class="innovation-content">
+                                        <strong>Quality Enhancement</strong>
+                                        <p>Ultra-realistic content with minimal artifacts</p>
+                                    </div>
+                                </div>
+                                <div class="innovation-card">
+                                    <div class="innovation-icon">💻</div>
+                                    <div class="innovation-content">
+                                        <strong>Computing Power</strong>
+                                        <p>Democratized access through cloud computing</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>Future advancements may include real-time deepfake generation, where AI can create convincing fake videos on-the-fly, significantly impacting live broadcasts and video communications. Additionally, enhancements in AI training processes, such as the use of unsupervised learning and more diverse datasets, will further refine the quality of deepfake content.</p>
+                    </div>
+                </div>
+
+                <div class="trend-category-card tab-content" id="detection-and-countermeasures" style="display: none;">
+                    <div class="trend-header">
+                        <div class="trend-icon-container">
+                            <div class="trend-icon detection-icon">
+                                <img src="{{ url_for('static', filename='images/detection-icon.png') }}" alt="Detection and Countermeasures">
+                            </div>
+                        </div>
+                        <div class="trend-meta">
+                            <h2>Detection and Countermeasures</h2>
+                            <div class="trend-details">
+                                <div class="trend-timeline">2024-2028</div>
+                                <div class="trend-impact">Critical</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trend-content">
+                        <p>As deepfake technology advances, so too will the methods for detecting and countering them. Researchers are developing more sophisticated tools to identify deepfakes, focusing on subtle inconsistencies and digital watermarks.</p>
+                        
+                        <div class="detection-methods">
+                            <h4>Emerging Detection Technologies</h4>
+                            <div class="method-timeline">
+                                <div class="method-phase">
+                                    <div class="phase-header">
+                                        <span class="phase-number">1</span>
+                                        <strong>Multi-Modal Analysis</strong>
+                                    </div>
+                                    <p>AI models analyzing visual, audio, and behavioral patterns simultaneously</p>
+                                </div>
+                                <div class="method-phase">
+                                    <div class="phase-header">
+                                        <span class="phase-number">2</span>
+                                        <strong>Blockchain Verification</strong>
+                                    </div>
+                                    <p>Immutable digital watermarks and content provenance tracking</p>
+                                </div>
+                                <div class="method-phase">
+                                    <div class="phase-header">
+                                        <span class="phase-number">3</span>
+                                        <strong>Real-time Scanning</strong>
+                                    </div>
+                                    <p>Instant detection for live streams and social media platforms</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>Future detection methods may leverage advanced AI and machine learning models that can analyze not just the visual aspects but also audio and behavioral cues to identify deepfakes. Governments and tech companies are likely to collaborate on creating standardized detection protocols and response strategies to address the growing threat of deepfakes.</p>
+                    </div>
+                </div>
+
+                <div class="trend-category-card tab-content" id="ethical-and-legal-frameworks" style="display: none;">
+                    <div class="trend-header">
+                        <div class="trend-icon-container">
+                            <div class="trend-icon ethical-icon">
+                                <img src="{{ url_for('static', filename='images/ethical-icon.png') }}" alt="Ethical and Legal Frameworks">
+                            </div>
+                        </div>
+                        <div class="trend-meta">
+                            <h2>Ethical and Legal Frameworks</h2>
+                            <div class="trend-details">
+                                <div class="trend-timeline">2024-2027</div>
+                                <div class="trend-impact">Regulatory</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trend-content">
+                        <p>As the implications of deepfakes become more apparent, there will be a greater push to develop comprehensive ethical and legal frameworks. These frameworks will aim to balance innovation with the need to protect individuals and society from misuse.</p>
+                        
+                        <div class="frameworks-development">
+                            <h4>Framework Development Areas</h4>
+                            <div class="framework-areas">
+                                <div class="framework-area international">
+                                    <div class="area-header">
+                                        <div class="area-icon">🌍</div>
+                                        <strong>International Cooperation</strong>
+                                    </div>
+                                    <ul>
+                                        <li>Global regulatory standards</li>
+                                        <li>Cross-border enforcement protocols</li>
+                                        <li>International detection networks</li>
+                                    </ul>
+                                </div>
+                                <div class="framework-area legal">
+                                    <div class="area-header">
+                                        <div class="area-icon">📋</div>
+                                        <strong>Legal Legislation</strong>
+                                    </div>
+                                    <ul>
+                                        <li>Malicious deepfake criminalization</li>
+                                        <li>Consent and privacy protection</li>
+                                        <li>Platform liability frameworks</li>
+                                    </ul>
+                                </div>
+                                <div class="framework-area ethical">
+                                    <div class="area-header">
+                                        <div class="area-icon">🤝</div>
+                                        <strong>Ethical Guidelines</strong>
+                                    </div>
+                                    <ul>
+                                        <li>Industry best practices</li>
+                                        <li>Transparency requirements</li>
+                                        <li>Research ethics standards</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>Future trends may include international agreements on the regulation of deepfake technology, with specific laws addressing the creation and distribution of malicious deepfakes. Ethical guidelines will likely emphasize the importance of consent and transparency in the use of deepfake technology, ensuring that individuals and entities are held accountable for their actions.</p>
+                    </div>
+                </div>
+
+                <div class="trend-category-card tab-content" id="impact-on-industries" style="display: none;">
+                    <div class="trend-header">
+                        <div class="trend-icon-container">
+                            <div class="trend-icon industry-icon">
+                                <img src="{{ url_for('static', filename='images/industries-icon.png') }}" alt="Impact on Industries">
+                            </div>
+                        </div>
+                        <div class="trend-meta">
+                            <h2>Impact on Industries</h2>
+                            <div class="trend-details">
+                                <div class="trend-timeline">2025-2035</div>
+                                <div class="trend-impact">Transformative</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trend-content">
+                        <p>Deepfake technology will continue to impact various industries, including entertainment, education, and marketing. The ability to create highly realistic digital content will open new possibilities and challenges in these fields.</p>
+                        
+                        <div class="industry-impacts">
+                            <h4>Industry Transformation Predictions</h4>
+                            <div class="impact-sectors">
+                                <div class="sector-card entertainment">
+                                    <div class="sector-header">
+                                        <div class="sector-icon">🎬</div>
+                                        <strong>Entertainment</strong>
+                                    </div>
+                                    <div class="sector-predictions">
+                                        <div class="prediction-item">
+                                            <span class="prediction-bullet">•</span>
+                                            Virtual actors and digital resurrections
+                                        </div>
+                                        <div class="prediction-item">
+                                            <span class="prediction-bullet">•</span>
+                                            Personalized content experiences
+                                        </div>
+                                        <div class="prediction-item">
+                                            <span class="prediction-bullet">•</span>
+                                            Cost-effective film production
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="sector-card education">
+                                    <div class="sector-header">
+                                        <div class="sector-icon">🎓</div>
+                                        <strong>Education</strong>
+                                    </div>
+                                    <div class="sector-predictions">
+                                        <div class="prediction-item">
+                                            <span class="prediction-bullet">•</span>
+                                            Historical figure recreations
+                                        </div>
+                                        <div class="prediction-item">
+                                            <span class="prediction-bullet">•</span>
+                                            Multilingual teaching assistants
+                                        </div>
+                                        <div class="prediction-item">
+                                            <span class="prediction-bullet">•</span>
+                                            Immersive learning experiences
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="sector-card marketing">
+                                    <div class="sector-header">
+                                        <div class="sector-icon">📢</div>
+                                        <strong>Marketing</strong>
+                                    </div>
+                                    <div class="sector-predictions">
+                                        <div class="prediction-item">
+                                            <span class="prediction-bullet">•</span>
+                                            Hyper-personalized advertisements
+                                        </div>
+                                        <div class="prediction-item">
+                                            <span class="prediction-bullet">•</span>
+                                            Virtual brand ambassadors
+                                        </div>
+                                        <div class="prediction-item">
+                                            <span class="prediction-bullet">•</span>
+                                            Real-time content adaptation
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>In entertainment, we may see the rise of virtual actors and immersive experiences that leverage deepfake technology. In education, deepfakes could be used to create engaging and personalized learning materials. In marketing, brands might utilize deepfakes to create tailored advertisements that resonate with individual consumers.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="section tab-content" id="advancements-in-technology" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/advancements-icon.png') }}" alt="Advancements in Technology">
+        <div class="educational-quicklinks">
+            <h3>Explore More Resources:</h3>
+            <div class="quicklinks-grid">
+                <a href="creation" class="quicklink-card">
+                    <div class="quicklink-icon">🛠️</div>
+                    <span>Creation of Deepfakes</span>
+                </a>
+                <a href="impact_on_society" class="quicklink-card">
+                    <div class="quicklink-icon">🌍</div>
+                    <span>Impact on Society</span>
+                </a>
+                <a href="legal_and_ethics" class="quicklink-card">
+                    <div class="quicklink-icon">⚖️</div>
+                    <span>Legal and Ethics</span>
+                </a>
+                <a href="history_of_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">📚</div>
+                    <span>History of Deepfakes</span>
+                </a>
+                <a href="case_studies" class="quicklink-card">
+                    <div class="quicklink-icon">📋</div>
+                    <span>Case Studies</span>
+                </a>
+                <a href="identify_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">🔍</div>
+                    <span>How to Identify Deepfakes</span>
+                </a>
+                <a href="protect_yourself" class="quicklink-card">
+                    <div class="quicklink-icon">🛡️</div>
+                    <span>Protect Yourself Against Deepfakes</span>
+                </a>
             </div>
-            <div class="text-container">
-                <h2>Advancements in Technology</h2>
-                <p>The technology behind deepfakes is expected to become even more sophisticated. Improved algorithms and more powerful computing resources will enhance the realism and ease of creating deepfakes.</p>
-                <br>
-                <p>Future advancements may include real-time deepfake generation, where AI can create convincing fake videos on-the-fly, significantly impacting live broadcasts and video communications. Additionally, enhancements in AI training processes, such as the use of unsupervised learning and more diverse datasets, will further refine the quality of deepfake content.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="detection-and-countermeasures" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/detection-icon.png') }}" alt="Detection and Countermeasures">
-            </div>
-            <div class="text-container">
-                <h2>Detection and Countermeasures</h2>
-                <p>As deepfake technology advances, so too will the methods for detecting and countering them. Researchers are developing more sophisticated tools to identify deepfakes, focusing on subtle inconsistencies and digital watermarks.</p>
-                <br>
-                <p>Future detection methods may leverage advanced AI and machine learning models that can analyze not just the visual aspects but also audio and behavioral cues to identify deepfakes. Governments and tech companies are likely to collaborate on creating standardized detection protocols and response strategies to address the growing threat of deepfakes.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="ethical-and-legal-frameworks" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/ethical-icon.png') }}" alt="Ethical and Legal Frameworks">
-            </div>
-            <div class="text-container">
-                <h2>Ethical and Legal Frameworks</h2>
-                <p>As the implications of deepfakes become more apparent, there will be a greater push to develop comprehensive ethical and legal frameworks. These frameworks will aim to balance innovation with the need to protect individuals and society from misuse.</p>
-                <br>
-                <p>Future trends may include international agreements on the regulation of deepfake technology, with specific laws addressing the creation and distribution of malicious deepfakes. Ethical guidelines will likely emphasize the importance of consent and transparency in the use of deepfake technology, ensuring that individuals and entities are held accountable for their actions.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="impact-on-industries" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/industries-icon.png') }}" alt="Impact on Industries">
-            </div>
-            <div class="text-container">
-                <h2>Impact on Industries</h2>
-                <p>Deepfake technology will continue to impact various industries, including entertainment, education, and marketing. The ability to create highly realistic digital content will open new possibilities and challenges in these fields.</p>
-                <br>
-                <p>In entertainment, we may see the rise of virtual actors and immersive experiences that leverage deepfake technology. In education, deepfakes could be used to create engaging and personalized learning materials. In marketing, brands might utilize deepfakes to create tailored advertisements that resonate with individual consumers.</p>
-            </div>
-        </div>
-        </div>
-        <div class="text-align-left educational-quicklinks">
-            <h3>View more resources:</h3>
-            <a href="creation">Creation of Deepfakes</a>
-            <div class="divider"></div>
-            <a href="impact_on_society">Impact on Society</a>
-            <div class="divider"></div>
-            <a href="legal_and_ethics">Legal and Ethics</a>
-            <div class="divider"></div>
-            <a href="history_of_deepfakes">History of Deepfakes</a>
-            <div class="divider"></div>
-            <!-- <a href="future_trends">Future Trends</a>
-            <div class="divider"></div> -->
-            <a href="case_studies">Case Studies</a>
-            <div class="divider"></div>
-            <a href="identify_deepfakes">How to Identify Deepfakes</a>
-            <div class="divider"></div>
-            <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
-            <div class="divider"></div>
         </div>
     </section>
 
     <div id="footer-placeholder"></div>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     <script src="../static/js/handle-tab.js"></script>
+
 </body>
 </html>

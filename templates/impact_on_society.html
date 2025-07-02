@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Impact on Society</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
@@ -14,114 +13,546 @@
     </header>
 
     <div class="banner" id="impact-banner">
-        <!-- <h1>Deepfake Creation</h1> -->
+        <div class="banner-content">
+            <h1>Impact on Society</h1>
+            <p class="intro-text">Deepfake technology has significant implications for society. It affects various sectors including politics, entertainment, and personal privacy. This section explores these impacts in depth.</p>
+        </div>
     </div>
     
-    <section class="content text-align-left educational-section">
+    <section class="content educational-section">
         <div class="educational">
-        <h1>Impact on Society</h1>
-        <p class="intro-text">Deepfake technology has significant implications for society. It affects various sectors including politics, entertainment, and personal privacy. This section explores these impacts in depth.</p>
-        
-        <div class="tabs-container">
-            <div class="tabs">
-                <button class="tab active" data-tab="political-impact">Political</button>
-                <button class="tab" data-tab="entertainment-impact">Entertainment</button>
-                <button class="tab" data-tab="personal-privacy-impact">Personal</button>
-                <button class="tab" data-tab="economic-impact">Economic</button>
-                <button class="tab" data-tab="social-impact">Social</button>
-                <button class="tab" data-tab="legal-impact">Legal</button>
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab tab-button active" data-tab="political-impact">
+                        <span class="tab-icon">🏛️</span>
+                        <span class="tab-text">Political</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="entertainment-impact">
+                        <span class="tab-icon">🎬</span>
+                        <span class="tab-text">Entertainment</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="personal-privacy-impact">
+                        <span class="tab-icon">🔒</span>
+                        <span class="tab-text">Personal</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="economic-impact">
+                        <span class="tab-icon">💰</span>
+                        <span class="tab-text">Economic</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="social-impact">
+                        <span class="tab-icon">👥</span>
+                        <span class="tab-text">Social</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="legal-impact">
+                        <span class="tab-icon">⚖️</span>
+                        <span class="tab-text">Legal</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="impact-container">
+                <div class="impact-sector-card tab-content" id="political-impact" style="display: none;">
+                    <div class="impact-header">
+                        <div class="impact-icon-container">
+                            <div class="impact-icon political-icon">
+                                <img src="{{ url_for('static', filename='images/political-icon.png') }}" alt="Political Impact">
+                            </div>
+                        </div>
+                        <div class="impact-meta">
+                            <h2>Political Impact</h2>
+                            <div class="impact-details">
+                                <div class="impact-severity high">High Risk</div>
+                                <div class="impact-scope">Democratic Processes</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="impact-content">
+                        <p>Deepfakes can be used to spread misinformation and manipulate public opinion. For example, doctored videos of political figures can be used to influence elections or incite unrest.</p>
+                        
+                        <div class="impact-analysis">
+                            <div class="analysis-section">
+                                <h4>Key Concerns</h4>
+                                <div class="concern-items">
+                                    <div class="concern-item">
+                                        <div class="concern-icon">🗳️</div>
+                                        <div class="concern-content">
+                                            <strong>Election Interference</strong>
+                                            <p>Fabricated content targeting candidates to influence voter decisions</p>
+                                        </div>
+                                    </div>
+                                    <div class="concern-item">
+                                        <div class="concern-icon">📢</div>
+                                        <div class="concern-content">
+                                            <strong>Disinformation Campaigns</strong>
+                                            <p>Coordinated efforts to spread false narratives through synthetic media</p>
+                                        </div>
+                                    </div>
+                                    <div class="concern-item">
+                                        <div class="concern-icon">🔥</div>
+                                        <div class="concern-content">
+                                            <strong>Public Unrest</strong>
+                                            <p>Fake content designed to incite violence or social division</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="response-measures">
+                                <h4>Government Response</h4>
+                                <div class="measure-grid">
+                                    <div class="measure-item">
+                                        <span class="measure-icon">🛡️</span>
+                                        <span>Detection Technology Development</span>
+                                    </div>
+                                    <div class="measure-item">
+                                        <span class="measure-icon">📋</span>
+                                        <span>Policy Framework Creation</span>
+                                    </div>
+                                    <div class="measure-item">
+                                        <span class="measure-icon">🤝</span>
+                                        <span>International Cooperation</span>
+                                    </div>
+                                    <div class="measure-item">
+                                        <span class="measure-icon">📚</span>
+                                        <span>Public Education Initiatives</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>Governments and organizations are increasingly concerned about the potential for deepfakes to disrupt democratic processes. Efforts are being made to develop technologies and policies to detect and mitigate the impact of deepfakes on politics.</p>
+                    </div>
+                </div>
+
+                <div class="impact-sector-card tab-content" id="entertainment-impact" style="display: none;">
+                    <div class="impact-header">
+                        <div class="impact-icon-container">
+                            <div class="impact-icon entertainment-icon">
+                                <img src="{{ url_for('static', filename='images/entertainment-icon.png') }}" alt="Entertainment Impact">
+                            </div>
+                        </div>
+                        <div class="impact-meta">
+                            <h2>Entertainment</h2>
+                            <div class="impact-details">
+                                <div class="impact-severity medium">Medium Risk</div>
+                                <div class="impact-scope">Creative Industries</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="impact-content">
+                        <p>In the entertainment industry, deepfakes can be used to create realistic CGI effects, resurrect deceased actors, or create new content altogether. However, they also pose risks of unauthorized use of a celebrity's likeness.</p>
+                        
+                        <div class="entertainment-breakdown">
+                            <div class="positive-impacts">
+                                <h4>Positive Applications</h4>
+                                <div class="application-list">
+                                    <div class="app-item positive">
+                                        <div class="app-icon-impact">🎭</div>
+                                        <div class="app-desc">
+                                            <strong>Digital Resurrection</strong>
+                                            <p>Bringing deceased actors back for final performances</p>
+                                        </div>
+                                    </div>
+                                    <div class="app-item positive">
+                                        <div class="app-icon-impact">💰</div>
+                                        <div class="app-desc">
+                                            <strong>Cost Reduction</strong>
+                                            <p>Lower production costs for visual effects</p>
+                                        </div>
+                                    </div>
+                                    <div class="app-item positive">
+                                        <div class="app-icon-impact">🌍</div>
+                                        <div class="app-desc">
+                                            <strong>Localization</strong>
+                                            <p>Actors speaking multiple languages authentically</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="negative-impacts">
+                                <h4>Ethical Concerns</h4>
+                                <div class="application-list">
+                                    <div class="app-item negative">
+                                        <div class="app-icon-impact">⚠️</div>
+                                        <div class="app-desc">
+                                            <strong>Unauthorized Use</strong>
+                                            <p>Using celebrity likenesses without consent</p>
+                                        </div>
+                                    </div>
+                                    <div class="app-item negative">
+                                        <div class="app-icon-impact">💼</div>
+                                        <div class="app-desc">
+                                            <strong>Job Displacement</strong>
+                                            <p>Reducing opportunities for human actors</p>
+                                        </div>
+                                    </div>
+                                    <div class="app-item negative">
+                                        <div class="app-icon-impact">©️</div>
+                                        <div class="app-desc">
+                                            <strong>IP Violations</strong>
+                                            <p>Complex intellectual property disputes</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>The potential for deepfakes to revolutionize content creation is vast, but it also raises questions about intellectual property and the ethical use of an individual's likeness without consent. Regulations are being considered to protect individuals and ensure fair use.</p>
+                    </div>
+                </div>
+
+                <div class="impact-sector-card tab-content" id="personal-privacy-impact" style="display: none;">
+                    <div class="impact-header">
+                        <div class="impact-icon-container">
+                            <div class="impact-icon personal-icon">
+                                <img src="{{ url_for('static', filename='images/personal-icon.png') }}" alt="Privacy Impact">
+                            </div>
+                        </div>
+                        <div class="impact-meta">
+                            <h2>Personal Privacy</h2>
+                            <div class="impact-details">
+                                <div class="impact-severity critical">Critical Risk</div>
+                                <div class="impact-scope">Individual Rights</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="impact-content">
+                        <p>Deepfakes can be used to create malicious content such as revenge porn or false incriminating videos. This can lead to severe personal and social consequences for the individuals targeted.</p>
+                        
+                        <div class="privacy-threats">
+                            <h4>Privacy Violation Types</h4>
+                            <div class="threat-matrix">
+                                <div class="threat-category harassment">
+                                    <div class="threat-header">
+                                        <div class="threat-icon">🎯</div>
+                                        <strong>Targeted Harassment</strong>
+                                    </div>
+                                    <div class="threat-examples">
+                                        <span>Revenge Porn</span>
+                                        <span>Cyberbullying</span>
+                                        <span>Character Assassination</span>
+                                    </div>
+                                </div>
+                                <div class="threat-category fraud">
+                                    <div class="threat-header">
+                                        <div class="threat-icon">🎭</div>
+                                        <strong>Identity Fraud</strong>
+                                    </div>
+                                    <div class="threat-examples">
+                                        <span>Impersonation</span>
+                                        <span>False Evidence</span>
+                                        <span>Social Engineering</span>
+                                    </div>
+                                </div>
+                                <div class="threat-category manipulation">
+                                    <div class="threat-header">
+                                        <div class="threat-icon">🧠</div>
+                                        <strong>Psychological Manipulation</strong>
+                                    </div>
+                                    <div class="threat-examples">
+                                        <span>Blackmail</span>
+                                        <span>Emotional Abuse</span>
+                                        <span>Reputation Damage</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="protection-strategies">
+                            <h4>Protection Measures</h4>
+                            <div class="strategy-list">
+                                <div class="strategy-item">
+                                    <div class="strategy-step">1</div>
+                                    <div class="strategy-content">
+                                        <strong>Legal Frameworks</strong>
+                                        <p>Development of specific laws targeting deepfake abuse</p>
+                                    </div>
+                                </div>
+                                <div class="strategy-item">
+                                    <div class="strategy-step">2</div>
+                                    <div class="strategy-content">
+                                        <strong>Awareness Campaigns</strong>
+                                        <p>Educating the public about deepfake risks and detection</p>
+                                    </div>
+                                </div>
+                                <div class="strategy-item">
+                                    <div class="strategy-step">3</div>
+                                    <div class="strategy-content">
+                                        <strong>Platform Policies</strong>
+                                        <p>Social media platforms implementing detection and removal</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>There is a growing need for legal frameworks to address the misuse of deepfake technology in personal privacy violations. Awareness campaigns and educational programs are also crucial in helping the public understand and protect themselves from such threats.</p>
+                    </div>
+                </div>
+
+                <div class="impact-sector-card tab-content" id="economic-impact" style="display: none;">
+                    <div class="impact-header">
+                        <div class="impact-icon-container">
+                            <div class="impact-icon economic-icon">
+                                <img src="{{ url_for('static', filename='images/economic-icon.png') }}" alt="Economic Impact">
+                            </div>
+                        </div>
+                        <div class="impact-meta">
+                            <h2>Economic Impact</h2>
+                            <div class="impact-details">
+                                <div class="impact-severity high">High Risk</div>
+                                <div class="impact-scope">Financial Systems</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="impact-content">
+                        <p>Deepfakes can have significant economic impacts, particularly in areas such as fraud and cybersecurity. Businesses may suffer financial losses due to deepfake-enabled scams or phishing attacks.</p>
+                        
+                        <div class="economic-analysis">
+                            <div class="economic-risks">
+                                <h4>Financial Risks</h4>
+                                <div class="risk-cards">
+                                    <div class="risk-card fraud">
+                                        <div class="risk-header">
+                                            <div class="risk-icon">💳</div>
+                                            <strong>Corporate Fraud</strong>
+                                        </div>
+                                        <div class="risk-details">
+                                            <p>CEO impersonation and fake authorization calls</p>
+                                        </div>
+                                    </div>
+                                    <div class="risk-card market">
+                                        <div class="risk-header">
+                                            <div class="risk-icon">📈</div>
+                                            <strong>Market Manipulation</strong>
+                                        </div>
+                                        <div class="risk-details">
+                                            <p>Fake announcements affecting stock prices</p>
+                                        </div>
+                                    </div>
+                                    <div class="risk-card trust">
+                                        <div class="risk-header">
+                                            <div class="risk-icon">🤝</div>
+                                            <strong>Trust Erosion</strong>
+                                        </div>
+                                        <div class="risk-details">
+                                            <p>Reduced confidence in digital communications</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="economic-opportunities">
+                                <h4>Market Opportunities</h4>
+                                <div class="opportunity-sectors">
+                                    <div class="sector-opportunity detection">
+                                        <div class="opp-icon">🔍</div>
+                                        <div class="opp-content">
+                                            <strong>Deepfake Detection</strong>
+                                            <p>Investments in deepfake detection and prevention solutions may increase</p>
+                                        </div>
+                                    </div>
+                                    <div class="sector-opportunity security">
+                                        <div class="opp-icon">🛡️</div>
+                                        <div class="opp-content">
+                                            <strong>Job Opportunities</strong>
+                                            <p>Demand for experts in domains within Cybersecurity will rise to combat increased fraud</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>The rise of deepfake technology has led to increased investment in detection and prevention solutions. Companies are developing sophisticated tools to identify deepfakes and protect their assets. This has also created new job opportunities in cybersecurity and digital forensics.</p>
+                    </div>
+                </div>
+
+                <div class="impact-sector-card tab-content" id="social-impact" style="display: none;">
+                    <div class="impact-header">
+                        <div class="impact-icon-container">
+                            <div class="impact-icon social-icon">
+                                <img src="{{ url_for('static', filename='images/social-icon.png') }}" alt="Social Impact">
+                            </div>
+                        </div>
+                        <div class="impact-meta">
+                            <h2>Social Impact</h2>
+                            <div class="impact-details">
+                                <div class="impact-severity medium">Medium Risk</div>
+                                <div class="impact-scope">Social Fabric</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="impact-content">
+                        <p>The rise of deepfakes is making it harder than ever to know what’s real online. Deepfakes can be used to spread misinformation, impersonate people, and create confusion. 
+                            As a result, more people are starting to question whether they can trust what they see and hear on the internet.
+                            This growing uncertainty is creating trust and credibility issues for media and social platforms.</p>
+                        
+                        <div class="social-consequences">
+                            <div class="social-solutions">
+                                <h4>Mitigation Strategies</h4>
+                                <div class="solution-framework">
+                                    <div class="solution-pillar education">
+                                        <div class="pillar-icon">📚</div>
+                                        <div class="pillar-content">
+                                            <strong>Media Literacy</strong>
+                                            <ul>
+                                                <li>Critical thinking skills</li>
+                                                <li>Source verification training</li>
+                                                <li>Digital awareness programs</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="solution-pillar technology">
+                                        <div class="pillar-icon">🔧</div>
+                                        <div class="pillar-content">
+                                            <strong>Technical Solutions</strong>
+                                            <ul>
+                                                <li>Automated detection tools</li>
+                                                <li>Content authentication</li>
+                                                <li>Blockchain verification</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="solution-pillar community">
+                                        <div class="pillar-icon">🤝</div>
+                                        <div class="pillar-content">
+                                            <strong>Community Response</strong>
+                                            <ul>
+                                                <li>Peer fact-checking</li>
+                                                <li>Social responsibility</li>
+                                                <li>Cultural awareness</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>Educational initiatives and media literacy programs are essential to help individuals critically evaluate the information they consume. Building a more informed and discerning public can mitigate some of the negative social impacts of deepfakes.</p>
+                    </div>
+                </div>
+
+                <div class="impact-sector-card tab-content" id="legal-impact" style="display: none;">
+                    <div class="impact-header">
+                        <div class="impact-icon-container">
+                            <div class="impact-icon legal-icon">
+                                <img src="{{ url_for('static', filename='images/legal-icon.png') }}" alt="Legal Impact">
+                            </div>
+                        </div>
+                        <div class="impact-meta">
+                            <h2>Legal Impact</h2>
+                            <div class="impact-details">
+                                <div class="impact-severity evolving">Evolving</div>
+                                <div class="impact-scope">Legal Framework</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="impact-content">
+                        <p>Deepfakes present new challenges for the legal system. Laws around defamation, privacy, and digital rights are being tested and redefined in the context of deepfake technology.</p>
+                        
+                        <div class="legal-framework">
+                            <div class="legal-challenges">
+                                <h4>Legal Challenges</h4>
+                                <div class="challenge-areas">
+                                    <div class="challenge-area">
+                                        <div class="challenge-icon-impact">⚡</div>
+                                        <div class="challenge-content-impact">
+                                            <strong>Jurisdictional Issues</strong>
+                                            <p>Cross-border enforcement and varying national laws</p>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-area">
+                                        <div class="challenge-icon-impact">🎯</div>
+                                        <div class="challenge-content-impact">
+                                            <strong>Evidence Authentication</strong>
+                                            <p>Determining authenticity in legal proceedings</p>
+                                        </div>
+                                    </div>
+                                    <div class="challenge-area">
+                                        <div class="challenge-icon-impact">⚖️</div>
+                                        <div class="challenge-content-impact">
+                                            <strong>Burden of Proof</strong>
+                                            <p>Establishing who bears responsibility for verification</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="regulatory-progress">
+                                <h4>Regulatory Development</h4>
+                                <div class="progress-timeline">
+                                    <div class="progress-item completed">
+                                        <div class="progress-marker"></div>
+                                        <div class="progress-content">
+                                            <strong>Initial Legislation</strong>
+                                            <p>First laws targeting malicious deepfakes</p>
+                                            <span class="progress-year">2019-2021</span>
+                                        </div>
+                                    </div>
+                                    <div class="progress-item current">
+                                        <div class="progress-marker"></div>
+                                        <div class="progress-content">
+                                            <strong>Comprehensive Frameworks</strong>
+                                            <p>Detailed regulations and enforcement mechanisms</p>
+                                            <span class="progress-year">2022-2025</span>
+                                        </div>
+                                    </div>
+                                    <div class="progress-item future">
+                                        <div class="progress-marker"></div>
+                                        <div class="progress-content">
+                                            <strong>International Standards</strong>
+                                            <p>Global cooperation and unified approaches</p>
+                                            <span class="progress-year">2025+</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>Governments and legal experts are working to develop new regulations and legal frameworks to address the unique issues posed by deepfakes. This includes creating laws that specifically target the malicious use of deepfake technology and protecting the rights of individuals.</p>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="section tab-content" id="political-impact" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/political-icon.png') }}" alt="Political Impact">
+
+        <div class="educational-quicklinks">
+            <h3>Explore More Resources:</h3>
+            <div class="quicklinks-grid">
+                <a href="creation" class="quicklink-card">
+                    <div class="quicklink-icon">🛠️</div>
+                    <span>Creation of Deepfakes</span>
+                </a>
+                <a href="legal_and_ethics" class="quicklink-card">
+                    <div class="quicklink-icon">⚖️</div>
+                    <span>Legal and Ethics</span>
+                </a>
+                <a href="history_of_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">📚</div>
+                    <span>History of Deepfakes</span>
+                </a>
+                <a href="future_trends" class="quicklink-card">
+                    <div class="quicklink-icon">🔮</div>
+                    <span>Future Trends</span>
+                </a>
+                <a href="case_studies" class="quicklink-card">
+                    <div class="quicklink-icon">📋</div>
+                    <span>Case Studies</span>
+                </a>
+                <a href="identify_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">🔍</div>
+                    <span>How to Identify Deepfakes</span>
+                </a>
+                <a href="protect_yourself" class="quicklink-card">
+                    <div class="quicklink-icon">🛡️</div>
+                    <span>Protect Yourself Against Deepfakes</span>
+                </a>
             </div>
-            <div class="text-container">
-                <h2>Political Impact</h2>
-                <p>Deepfakes can be used to spread misinformation and manipulate public opinion. For example, doctored videos of political figures can be used to influence elections or incite unrest.</p>
-                <br>
-                <p>Governments and organizations are increasingly concerned about the potential for deepfakes to disrupt democratic processes. Efforts are being made to develop technologies and policies to detect and mitigate the impact of deepfakes on politics.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="entertainment-impact" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/entertainment-icon.png') }}" alt="Entertainment Impact">
-            </div>
-            <div class="text-container">
-                <h2>Entertainment</h2>
-                <p>In the entertainment industry, deepfakes can be used to create realistic CGI effects, resurrect deceased actors, or create new content altogether. However, they also pose risks of unauthorized use of a celebrity's likeness.</p>
-                <br>
-                <p>The potential for deepfakes to revolutionize content creation is vast, but it also raises questions about intellectual property and the ethical use of an individual's likeness without consent. Regulations are being considered to protect individuals and ensure fair use.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="personal-privacy-impact" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/personal-icon.png') }}" alt="Privacy Impact">
-            </div>
-            <div class="text-container">
-                <h2>Personal Privacy</h2>
-                <p>Deepfakes can be used to create malicious content such as revenge porn or false incriminating videos. This can lead to severe personal and social consequences for the individuals targeted.</p>
-                <br>
-                <p>There is a growing need for legal frameworks to address the misuse of deepfake technology in personal privacy violations. Awareness campaigns and educational programs are also crucial in helping the public understand and protect themselves from such threats.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="economic-impact" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/economic-icon.png') }}" alt="Economic Impact">
-            </div>
-            <div class="text-container">
-                <h2>Economic Impact</h2>
-                <p>Deepfakes can have significant economic impacts, particularly in areas such as fraud and cybersecurity. Businesses may suffer financial losses due to deepfake-enabled scams or phishing attacks.</p>
-                <br>
-                <p>The rise of deepfake technology has led to increased investment in detection and prevention solutions. Companies are developing sophisticated tools to identify deepfakes and protect their assets. This has also created new job opportunities in cybersecurity and digital forensics.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="social-impact" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/social-icon.png') }}" alt="Social Impact">
-            </div>
-            <div class="text-container">
-                <h2>Social Impact</h2>
-                <p>Deepfakes can influence social interactions and trust. The ability to create convincing fake content can lead to a general mistrust of media and information sources.</p>
-                <br>
-                <p>Educational initiatives and media literacy programs are essential to help individuals critically evaluate the information they consume. Building a more informed and discerning public can mitigate some of the negative social impacts of deepfakes.</p>
-            </div>
-        </div>
-        
-        <div class="section tab-content" id="legal-impact" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/legal-icon.png') }}" alt="Legal Impact">
-            </div>
-            <div class="text-container">
-                <h2>Legal Impact</h2>
-                <p>Deepfakes present new challenges for the legal system. Laws around defamation, privacy, and digital rights are being tested and redefined in the context of deepfake technology.</p>
-                <br>
-                <p>Governments and legal experts are working to develop new regulations and legal frameworks to address the unique issues posed by deepfakes. This includes creating laws that specifically target the malicious use of deepfake technology and protecting the rights of individuals.</p>
-            </div>
-        </div>
-        </div>
-        <div class="text-align-left educational-quicklinks">
-            <h3>View more resources:</h3>
-            <a href="creation">Creation of Deepfakes</a>
-            <div class="divider"></div>
-            <!-- <a href="impact_on_society">Impact on Society</a>
-            <div class="divider"></div> -->
-            <a href="legal_and_ethics">Legal and Ethics</a>
-            <div class="divider"></div>
-            <a href="history_of_deepfakes">History of Deepfakes</a>
-            <div class="divider"></div>
-            <a href="future_trends">Future Trends</a>
-            <div class="divider"></div>
-            <a href="case_studies">Case Studies</a>
-            <div class="divider"></div>
-            <a href="identify_deepfakes">How to Identify Deepfakes</a>
-            <div class="divider"></div>
-            <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
-            <div class="divider"></div>
         </div>
     </section>
 

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Try Physiological Signal Detection</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             let form = document.getElementById("upload-form");
@@ -35,43 +35,100 @@
     <header>
         <div id="navbar-placeholder"></div>
     </header>
-    <section class="content">
-        <div class="page-intro">
-            <h1>Try Physiological Signal Detection <span class="experimental-badge">EXPERIMENTAL</span></h1>
-            <p>This physiological signal detection analyzes heart rate patterns and subtle facial color changes using Remote Photoplethysmography.
-                 Results may vary based on video quality and lighting conditions, and should not be taken as the complete truth.</p>
-        </div>
 
+    <!-- Hero Section -->
+    <section class="try-hero">
+        <div class="hero-background">
+            <div class="animated-pulse"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-icon">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#667eea" stroke-width="2" fill="url(#heroGradient)"/>
+                    <defs>
+                        <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.8" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="pulse-indicator"></div>
+            </div>
+            <h1>Try Physiological Signal Detection 
+                <span class="experimental-badge"><p>EXPERIMENTAL</p></span>
+            </h1>
+            <p class="hero-description">This physiological signal detection analyzes heart rate patterns and subtle facial color changes using Remote Photoplethysmography. Results may vary based on video quality and lighting conditions, and should not be taken as the complete truth.</p>
+        </div>
+    </section>
+
+    <section class="try-container">
         <div class="detection-methods">
             <!-- File Upload Method -->
-            <div class="detection-method">
+            <div class="detection-method upload-method">
                 <div class="method-header">
-                    <div class="method-icon">📁</div>
-                    <h2 class="method-title">Upload Video File</h2>
+                    <div class="method-icon-try">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/>
+                            <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2"/>
+                            <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/>
+                            <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/>
+                            <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="method-text">
+                        <h2 class="method-title">Upload Video File</h2>
+                        <p class="method-description">Upload a video file from your device for analysis. Supports most common video formats.</p>
+                    </div>
                 </div>
-                <p class="method-description">Upload a video file from your device for analysis. Supports most common video formats.</p>
                 
-                <form id="upload-form" enctype="multipart/form-data">
+                <form id="upload-form" enctype="multipart/form-data" class="upload-form">
                     <div id="dropbox" class="dropbox">
-                        <p>Drag & drop a video file here, or click to select one</p>
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-content">
+                            <h3>Drop your video here</h3>
+                            <p>or click to browse files</p>
+                            <span class="file-types">MP4, AVI, MOV, WebM supported</span>
+                        </div>
                         <input type="file" name="file" id="file" accept="video/*" required>
                         <video id="video-preview" controls style="display: none;"></video>
                     </div>
-                    <button type="submit" id="submitButton">Analyze Video</button>
-                    <div id="loadingSpinner">
-                        <div class="spinner"></div>
-                        <p>Processing video... Please wait.</p>
+                    <button type="submit" id="submitButton" class="analyze-button">
+                        <span>Analyze Video</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                    <div id="loadingSpinner" class="loading-spinner">
+                        <div class="spinner-container">
+                            <div class="spinner"></div>
+                            <div class="processing-waves">
+                                <div class="wave wave-1"></div>
+                                <div class="wave wave-2"></div>
+                                <div class="wave wave-3"></div>
+                            </div>
+                        </div>
+                        <div class="loading-text">
+                            <h4>Processing video...</h4>
+                            <p>Analyzing physiological signals. Please wait.</p>
+                        </div>
                     </div>
                 </form>
             </div>
 
             <!-- Webcam Detection Method -->
-            <div class="detection-method">
+            <div class="detection-method webcam-method">
                 <div class="method-header">
-                    <div class="method-icon">📹</div>
-                    <h2 class="method-title">Live Webcam Detection</h2>
+                    <div class="method-icon-try">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="method-text">
+                        <h2 class="method-title">Live Webcam Detection</h2>
+                        <p class="method-description">Use your webcam for real-time detection. Record a short video clip and analyze it instantly.</p>
+                    </div>
                 </div>
-                <p class="method-description">Use your webcam for real-time detection. Record a short video clip and analyze it instantly.</p>
                 
                 <div class="webcam-controls">
                     <div class="camera-selection">
@@ -80,23 +137,40 @@
                     </div>
                     
                     <div class="webcam-preview-container">
-                        <video id="webcam-preview" width="400" autoplay muted style="display: none;"></video>
+                        <video id="webcam-preview" width="600" autoplay muted style="display: none;"></video>
+                        <div class="preview-placeholder">
+                            <div class="camera-icon">📹</div>
+                            <p>Camera preview will appear here</p>
+                        </div>
                     </div>
                     
                     <div class="webcam-buttons">
-                        <button id="startWebcamBtn" class="button">Start Recording</button>
-                        <button id="stopWebcamBtn" class="button" disabled>Stop & Analyze</button>
+                        <button id="startWebcamBtn" class="webcam-button start-btn">
+                            <span>Start Recording</span>
+                            <div class="record-indicator"></div>
+                        </button>
+                        <button id="stopWebcamBtn" class="webcam-button stop-btn" disabled>
+                            <span>Stop & Analyze</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="red">
+                                <rect x="6" y="6" width="12" height="12" stroke="red" stroke-width="2"/>
+                            </svg>
+                        </button>
                     </div>
                     
-                    <div id="webcamSpinner" style="display:none;">
-                        <div class="spinner"></div>
-                        <p>Processing live video...</p>
+                    <div id="webcamSpinner" class="webcam-loading">
+                        <div class="spinner-container">
+                            <div class="spinner"></div>
+                        </div>
+                        <div class="loading-text">
+                            <h4>Processing live video...</h4>
+                            <p>Analyzing real-time physiological signals.</p>
+                        </div>
                     </div>
                 </div>
                 
-                <form id="webcamUploadForm" method="POST" enctype="multipart/form-data" action="/physiological_signal_try" style="display:none;">
-                    <input type="file" name="file" id="webcamFileInput">
-                    <button type="submit">Upload and Analyze</button>
+                <form id="webcamUploadForm" class="webcam-upload-form" method="POST" enctype="multipart/form-data" action="/physiological_signal_try" style="display:none;">
+                    <input type="file" name="file" id="webcamFileInput" style="display: none;">
+                    <button type="submit" class="webcam-button webcam-upload-button">UPLOAD RECORDING</button>
                 </form>
             </div>
         </div>

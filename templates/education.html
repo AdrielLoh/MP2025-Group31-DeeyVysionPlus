@@ -3,55 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Educational Resources</title>
+    <title>Educational Resources - DeepVysion+</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
 
-    <section class="content">
-        <h1>Educational Resources</h1>
-        <p class="intro-text">Explore our educational resources to learn more about deepfake technology, its applications, detection methods, and how to protect yourself. Click on a topic to dive deeper into the subject.</p>
+    <section class="content margin-top-content">
+        <div class="header">
+            <h1 class="title">Educational Resources</h1>
+            <p class="intro-text">Explore our educational resources to learn more about deepfake technology, its applications, detection methods, and how to protect yourself. Click on a topic to dive deeper into the subject.</p>
+        </div>
         
         <div class="search-bar">
             <input type="text" class="search-input" placeholder="Search for topics...">
         </div>
 
         <div class="clickable-boxes">
-            <a href="creation" class="box hidden">
+            <a href="creation" class="box">
                 <h2>Creating Deepfakes</h2>
-                <p>Understand the process behind creating a deepfake.</p>
+                <p>Understand the process behind creating a deepfake using advanced AI and machine learning techniques.</p>
             </a>
-            <a href="impact_on_society" class="box hidden">
+            <a href="impact_on_society" class="box">
                 <h2>Impact on Society</h2>
-                <p>Understand how deepfakes affect various aspects of society.</p>
+                <p>Understand how deepfakes affect various aspects of society, from politics to entertainment.</p>
             </a>
-            <a href="legal_and_ethics" class="box hidden">
+            <a href="legal_and_ethics" class="box">
                 <h2>Legal and Ethics</h2>
-                <p>Explore the legal and ethical considerations surrounding deepfakes.</p>
+                <p>Explore the legal and ethical considerations surrounding deepfakes in our digital age.</p>
             </a>
-            <a href="history_of_deepfakes" class="box hidden">
+            <a href="history_of_deepfakes" class="box">
                 <h2>History of Deepfakes</h2>
-                <p>Learn about the evolution of deepfake technology.</p>
+                <p>Learn about the evolution of deepfake technology from its inception to modern applications.</p>
             </a>
-            <a href="future_trends" class="box hidden">
+            <a href="future_trends" class="box">
                 <h2>Future Trends</h2>
                 <p>Analyze the potential future developments in deepfakes and their implications for different sectors.</p>
             </a>
-            <a href="case_studies" class="box hidden">
+            <a href="case_studies" class="box">
                 <h2>Case Studies</h2>
-                <p>Explore detailed deepfake incidents that happened in the past and their impacts.</p>
+                <p>Explore detailed deepfake incidents that happened in the past and their impacts on society.</p>
             </a>
             <a href="identify_deepfakes" class="box">
                 <h2>How to Identify Deepfakes</h2>
-                <p>Learn practical tips and techniques to identify deepfakes.</p>
+                <p>Learn practical tips and techniques to identify deepfakes using visual and audio cues.</p>
             </a>
             <a href="protect_yourself" class="box">
                 <h2>Protect Yourself Against Deepfakes</h2>
-                <p>Discover ways to protect yourself from the risks posed by deepfakes.</p>
+                <p>Discover ways to protect yourself from the risks posed by deepfakes in the digital world.</p>
             </a>
         </div>
     </section>
@@ -59,6 +61,41 @@
     <div id="footer-placeholder"></div>
 
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script>
+        // Search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-input');
+            const boxes = document.querySelectorAll('.box');
 
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                boxes.forEach(box => {
+                    const title = box.querySelector('h2').textContent.toLowerCase();
+                    const description = box.querySelector('p').textContent.toLowerCase();
+                    
+                    if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                        box.style.display = 'block';
+                        box.style.animation = 'fadeInUp 0.3s ease-out';
+                    } else {
+                        box.style.display = 'none';
+                    }
+                });
+            });
+
+            // Add hover sound effect simulation
+            boxes.forEach(box => {
+                if (!box.classList.contains('hidden')) {
+                    box.addEventListener('mouseenter', function() {
+                        this.style.transform = 'translateY(-10px) scale(1.02)';
+                    });
+                    
+                    box.addEventListener('mouseleave', function() {
+                        this.style.transform = 'translateY(0) scale(1)';
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>How to Protect Yourself Against Deepfakes</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
@@ -13,140 +13,585 @@
     </header>
 
     <div class="banner" id="protect-yourself-banner">
-        <!-- <h1>Deepfake Creation</h1> -->
+        <div class="banner-content">
+            <h1>How to Protect Yourself Against Deepfakes</h1>
+            <p class="intro-text">Deepfakes pose significant risks, but there are strategies you can use to protect yourself. Below are key measures you can take to mitigate these risks, along with information on the relevant Singaporean government bodies you can contact if you become a victim of deepfake technology.</p>
+        </div>
     </div>
     
-    <section id="how-to-protect-against-deepfakes" class="content text-align-left educational-section">
+    <section id="how-to-protect-against-deepfakes" class="content educational-section">
         <div class="educational">
-        <h1>How to Protect Yourself Against Deepfakes</h1>
-        <p class="intro-text">Deepfakes pose significant risks, but there are strategies you can use to protect yourself. Below are key measures you can take to mitigate these risks, along with information on the relevant Singaporean government bodies you can contact if you become a victim of deepfake technology.</p>
-        
-        <div class="tabs-container">
-            <div class="tabs">
-                <button class="tab active" data-tab="awareness">Awareness</button>
-                <button class="tab" data-tab="online-privacy">Online Privacy</button>
-                <button class="tab" data-tab="legal-protection">Legal Protection</button>
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab tab-button active" data-tab="awareness">
+                        <span class="tab-icon">🧠</span>
+                        <span class="tab-text">Awareness</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="online-privacy">
+                        <span class="tab-icon">🔒</span>
+                        <span class="tab-text">Online Privacy</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="legal-protection">
+                        <span class="tab-icon">⚖️</span>
+                        <span class="tab-text">Legal Protection</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="digital-tools">
+                        <span class="tab-icon">🛠️</span>
+                        <span class="tab-text">Digital Tools</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="protection-container">
+                <div class="protection-strategy-card tab-content" id="awareness" style="display: none;">
+                    <div class="strategy-header">
+                        <div class="strategy-icon-container">
+                            <div class="strategy-icon awareness-icon">
+                                <img src="{{ url_for('static', filename='images/awareness-icon.png') }}" alt="Awareness">
+                            </div>
+                        </div>
+                        <div class="strategy-meta">
+                            <h2>Stay Informed and Aware</h2>
+                            <div class="strategy-details">
+                                <div class="strategy-priority high">High Priority</div>
+                                <div class="strategy-difficulty easy">Easy</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="strategy-content">
+                        <p>Being aware of the latest trends in deepfake technology is your first line of defense. Here's how you can stay informed:</p>
+                        
+                        <div class="awareness-methods">
+                            <h4>Information Sources & Education</h4>
+                            <div class="method-grid">
+                                <div class="awareness-method reliable-sources">
+                                    <div class="method-header">
+                                        <div class="method-icon">📰</div>
+                                        <div class="method-info">
+                                            <strong>Follow Reputable Sources</strong>
+                                            <div class="method-tags">
+                                                <span class="tag ongoing">Ongoing</span>
+                                                <span class="tag essential">Essential</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p>Regularly check technology news websites, cybersecurity blogs, and official announcements from government bodies for updates on deepfake technology.</p>
+                                    <div class="recommended-sources">
+                                        <strong>Recommended Sources:</strong>
+                                        <div class="source-list">
+                                            <span class="source-item">CSA Singapore</span>
+                                            <span class="source-item">Cybersecurity Insiders</span>
+                                            <span class="source-item">MIT Technology Review</span>
+                                            <span class="source-item">IEEE Security</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="awareness-method education">
+                                    <div class="method-header">
+                                        <div class="method-icon">🎓</div>
+                                        <div class="method-info">
+                                            <strong>Participate in Education</strong>
+                                            <div class="method-tags">
+                                                <span class="tag periodic">Periodic</span>
+                                                <span class="tag valuable">Valuable</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p>Engage in workshops, seminars, and online courses that focus on digital literacy, media manipulation, and cybersecurity.</p>
+                                    <div class="education-opportunities">
+                                        <strong>Learning Opportunities:</strong>
+                                        <div class="opportunity-list">
+                                            <div class="opportunity-item">
+                                                <span class="opp-icon">🏢</span>
+                                                <span>Corporate workshops</span>
+                                            </div>
+                                            <div class="opportunity-item">
+                                                <span class="opp-icon">💻</span>
+                                                <span>Online courses</span>
+                                            </div>
+                                            <div class="opportunity-item">
+                                                <span class="opp-icon">🎪</span>
+                                                <span>Cybersecurity events</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="awareness-method trusted-platforms">
+                                    <div class="method-header">
+                                        <div class="method-icon">🔗</div>
+                                        <div class="method-info">
+                                            <strong>Use Trusted Platforms</strong>
+                                            <div class="method-tags">
+                                                <span class="tag daily">Daily</span>
+                                                <span class="tag critical">Critical</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p>Be cautious of unfamiliar websites or social media platforms that could spread misinformation or deepfake content. Stick to well-known, reputable sources for news and information.</p>
+                                    <div class="platform-verification">
+                                        <strong>Verification Checklist:</strong>
+                                        <div class="checklist-items">
+                                            <div class="checklist-item">
+                                                <span class="check-icon">✓</span>
+                                                <span>Check domain reputation</span>
+                                            </div>
+                                            <div class="checklist-item">
+                                                <span class="check-icon">✓</span>
+                                                <span>Verify news sources</span>
+                                            </div>
+                                            <div class="checklist-item">
+                                                <span class="check-icon">✓</span>
+                                                <span>Cross-reference information</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="protection-strategy-card tab-content" id="online-privacy" style="display: none;">
+                    <div class="strategy-header">
+                        <div class="strategy-icon-container">
+                            <div class="strategy-icon privacy-icon">
+                                <img src="{{ url_for('static', filename='images/personal-icon.png') }}" alt="Online Privacy">
+                            </div>
+                        </div>
+                        <div class="strategy-meta">
+                            <h2>Enhance Online Privacy</h2>
+                            <div class="strategy-details">
+                                <div class="strategy-priority critical">Critical</div>
+                                <div class="strategy-difficulty moderate">Moderate</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="strategy-content">
+                        <p>Protecting your online privacy can significantly reduce your risk of becoming a target of deepfakes. Here are some key steps:</p>
+                        
+                        <div class="privacy-framework">
+                            <h4>Privacy Protection Strategy</h4>
+                            <div class="privacy-layers">
+                                <div class="privacy-layer information">
+                                    <div class="layer-header">
+                                        <div class="layer-icon">📊</div>
+                                        <div class="layer-title">
+                                            <strong>Information Management</strong>
+                                            <span class="layer-impact">High Impact</span>
+                                        </div>
+                                    </div>
+                                    <div class="layer-content">
+                                        <div class="protection-measure">
+                                            <strong>Limit Personal Information</strong>
+                                            <p>Be mindful of the personal information and images you share on social media. The more information available about you online, the easier it is for someone to create a deepfake.</p>
+                                            <div class="action-items">
+                                                <div class="action-item">
+                                                    <span class="action-icon">🔒</span>
+                                                    <span>Minimize photo uploads</span>
+                                                </div>
+                                                <div class="action-item">
+                                                    <span class="action-icon">📝</span>
+                                                    <span>Limit personal details</span>
+                                                </div>
+                                                <div class="action-item">
+                                                    <span class="action-icon">📍</span>
+                                                    <span>Avoid location sharing</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="privacy-layer settings">
+                                    <div class="layer-header">
+                                        <div class="layer-icon">⚙️</div>
+                                        <div class="layer-title">
+                                            <strong>Privacy Settings</strong>
+                                            <span class="layer-impact">Medium Impact</span>
+                                        </div>
+                                    </div>
+                                    <div class="layer-content">
+                                        <div class="protection-measure">
+                                            <strong>Adjust Privacy Settings</strong>
+                                            <p>Use the privacy settings on social media platforms to control who can view your content. Consider making your profiles private to limit access to your personal information.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="privacy-layer security">
+                                    <div class="layer-header">
+                                        <div class="layer-icon">🛡️</div>
+                                        <div class="layer-title">
+                                            <strong>Security Awareness</strong>
+                                            <span class="layer-impact">Critical Impact</span>
+                                        </div>
+                                    </div>
+                                    <div class="layer-content">
+                                        <div class="protection-measure">
+                                            <strong>Be Wary of Phishing Attempts</strong>
+                                            <p>Be cautious of suspicious emails, messages, or links that could be phishing attempts designed to steal your personal information.</p>
+                                            <div class="threat-indicators">
+                                                <strong>Red Flags to Watch:</strong>
+                                                <div class="indicator-list">
+                                                    <div class="indicator-item">
+                                                        <span class="indicator-icon">⚠️</span>
+                                                        <span>Urgent action requests</span>
+                                                    </div>
+                                                    <div class="indicator-item">
+                                                        <span class="indicator-icon">🔗</span>
+                                                        <span>Suspicious links</span>
+                                                    </div>
+                                                    <div class="indicator-item">
+                                                        <span class="indicator-icon">📧</span>
+                                                        <span>Unknown senders</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="protection-strategy-card tab-content" id="legal-protection" style="display: none;">
+                    <div class="strategy-header">
+                        <div class="strategy-icon-container">
+                            <div class="strategy-icon legal-icon">
+                                <img src="{{ url_for('static', filename='images/legal-icon.png') }}" alt="Legal Protection">
+                            </div>
+                        </div>
+                        <div class="strategy-meta">
+                            <h2>Legal Protection</h2>
+                            <div class="strategy-details">
+                                <div class="strategy-priority essential">Essential</div>
+                                <div class="strategy-difficulty complex">Complex</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="strategy-content">
+                        <p>Understanding your legal rights and the steps you can take if you are a victim of deepfake technology is crucial. Here's what you can do:</p>
+                        
+                        <div class="legal-framework">
+                            <h4>Legal Rights & Protections</h4>
+                            <div class="rights-overview">
+                                <div class="rights-section singapore-laws">
+                                    <div class="section-header">
+                                        <div class="section-icon">🇸🇬</div>
+                                        <strong>Singapore Legal Framework</strong>
+                                    </div>
+                                    <div class="laws-list">
+                                        <div class="law-item">
+                                            <div class="law-name">Protection from Harassment Act (POHA)</div>
+                                            <div class="law-coverage">Covers harassment, stalking, and threatening behavior</div>
+                                        </div>
+                                        <div class="law-item">
+                                            <div class="law-name">Computer Misuse Act</div>
+                                            <div class="law-coverage">Addresses unauthorized computer access and data misuse</div>
+                                        </div>
+                                        <div class="law-item">
+                                            <div class="law-name">Personal Data Protection Act (PDPA)</div>
+                                            <div class="law-coverage">Protects personal data from misuse</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="legal-steps">
+                                    <div class="step-header">
+                                        <strong>Steps to Take if Victimized</strong>
+                                    </div>
+                                    <div class="step-sequence">
+                                        <div class="legal-step immediate">
+                                            <div class="step-number">1</div>
+                                            <div class="step-content">
+                                                <strong>Immediate Action</strong>
+                                                <p>Document and preserve evidence of the deepfake content</p>
+                                                <div class="step-actions">
+                                                    <span class="action">Screenshot/screen record</span>
+                                                    <span class="action">Save URLs and timestamps</span>
+                                                    <span class="action">Note distribution platforms</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="legal-step consultation">
+                                            <div class="step-number">2</div>
+                                            <div class="step-content">
+                                                <strong>Legal Consultation</strong>
+                                                <p>Seek professional legal advice to understand your options</p>
+                                                <div class="step-actions">
+                                                    <span class="action">Contact a lawyer</span>
+                                                    <span class="action">Discuss potential claims</span>
+                                                    <span class="action">Understand remedies</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="legal-step reporting">
+                                            <div class="step-number">3</div>
+                                            <div class="step-content">
+                                                <strong>Official Reporting</strong>
+                                                <p>Report to relevant authorities and platforms</p>
+                                                <div class="step-actions">
+                                                    <span class="action">File police report</span>
+                                                    <span class="action">Contact regulatory bodies</span>
+                                                    <span class="action">Platform reporting</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="singapore-authorities">
+                            <h4>Singapore Government Bodies</h4>
+                            <div class="authorities-grid">
+                                <div class="authority-card csa">
+                                    <div class="authority-header">
+                                        <div class="authority-logo">🔐</div>
+                                        <div class="authority-info">
+                                            <strong>Cyber Security Agency (CSA)</strong>
+                                            <span class="authority-focus">Cyber Threats</span>
+                                        </div>
+                                    </div>
+                                    <div class="authority-description">
+                                        <p>CSA provides resources and support for cyber threats.</p>
+                                        <div class="contact-info">
+                                            <div class="contact-item">
+                                                <span class="contact-icon">🌐</span>
+                                                <a target="_blank" href="https://www.csa.gov.sg" class="authority-link">www.csa.gov.sg</a>
+                                            </div>
+                                            <div class="services-offered">
+                                                <span class="service">Incident response</span>
+                                                <span class="service">Threat intelligence</span>
+                                                <span class="service">Advisory services</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="authority-card imda">
+                                    <div class="authority-header">
+                                        <div class="authority-logo">📺</div>
+                                        <div class="authority-info">
+                                            <strong>Infocomm Media Development Authority (IMDA)</strong>
+                                            <span class="authority-focus">Media Content</span>
+                                        </div>
+                                    </div>
+                                    <div class="authority-description">
+                                        <p>IMDA regulates media content and can be contacted if you find harmful deepfake content online.</p>
+                                        <div class="contact-info">
+                                            <div class="contact-item">
+                                                <span class="contact-icon">🌐</span>
+                                                <a target="_blank" href="https://www.imda.gov.sg" class="authority-link">www.imda.gov.sg</a>
+                                            </div>
+                                            <div class="services-offered">
+                                                <span class="service">Content regulation</span>
+                                                <span class="service">Platform oversight</span>
+                                                <span class="service">Public complaints</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="authority-card spf">
+                                    <div class="authority-header">
+                                        <div class="authority-logo">👮</div>
+                                        <div class="authority-info">
+                                            <strong>Singapore Police Force (SPF)</strong>
+                                            <span class="authority-focus">Criminal Activities</span>
+                                        </div>
+                                    </div>
+                                    <div class="authority-description">
+                                        <p>For criminal activities involving deepfakes, you can file a report with the SPF.</p>
+                                        <div class="contact-info">
+                                            <div class="contact-item">
+                                                <span class="contact-icon">🌐</span>
+                                                <a target="_blank" href="https://www.police.gov.sg" class="authority-link">www.police.gov.sg</a>
+                                            </div>
+                                            <div class="services-offered">
+                                                <span class="service">Criminal investigation</span>
+                                                <span class="service">Evidence collection</span>
+                                                <span class="service">Legal enforcement</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="protection-strategy-card tab-content" id="digital-tools" style="display: none;">
+                    <div class="strategy-header">
+                        <div class="strategy-icon-container">
+                            <div class="strategy-icon tools-icon">
+                                <img src="{{ url_for('static', filename='images/tools-icon.png') }}" alt="Digital Tools">
+                            </div>
+                        </div>
+                        <div class="strategy-meta">
+                            <h2>Use Digital Tools</h2>
+                            <div class="strategy-details">
+                                <div class="strategy-priority recommended">Recommended</div>
+                                <div class="strategy-difficulty technical">Technical</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="strategy-content">
+                        <p>Leveraging digital tools and technologies can help you protect yourself from deepfakes. Here are some recommended actions:</p>
+                        
+                        <div class="digital-toolkit">
+                            <h4>Protection Toolkit</h4>
+                            <div class="tool-categories">
+                                <div class="tool-category detection">
+                                    <div class="category-header">
+                                        <div class="category-icon">🔍</div>
+                                        <strong>Detection Tools</strong>
+                                    </div>
+                                    <p>Use online deepfake detection tools to analyze audio and videos if
+                                        you are unsure about authenticity, before you share or trust it.
+                                    </p>
+                                    <div class="tools-list">
+                                        <div class="tool-item">
+                                            <div class="tool-info">
+                                                <div class="tool-name">Deepware Scanner</div>
+                                            </div>
+                                            <div class="tool-description">
+                                                <p>AI-powered detection for video content analysis</p>
+                                                <div class="tool-features">
+                                                    <span class="feature">Real-time scanning</span>
+                                                    <span class="feature">Batch processing</span>
+                                                    <span class="feature">API access</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tool-item">
+                                            <div class="tool-info">
+                                                <div class="tool-name">Sensity AI</div>
+                                            </div>
+                                            <div class="tool-description">
+                                                <p>Enterprise-grade deepfake detection platform</p>
+                                                <div class="tool-features">
+                                                    <span class="feature">Advanced algorithms</span>
+                                                    <span class="feature">Multi-format support</span>
+                                                    <span class="feature">Threat intelligence</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tool-item">
+                                            <div class="tool-info">
+                                                <div class="tool-name">Resemble AI</div>
+                                            </div>
+                                            <div class="tool-description">
+                                                <p>Comprehensive deepfake detection suite</p>
+                                                <div class="tool-features">
+                                                    <span class="feature">Multi-modal Detection</span>
+                                                    <span class="feature">API Integration</span>
+                                                    <span class="feature">Cloud & On-Premise</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tool-category monitoring">
+                                    <div class="category-header">
+                                        <div class="category-icon">👁️</div>
+                                        <strong>Monitoring Tools</strong>
+                                    </div>
+                                    <div class="tools-list">
+                                        <div class="tool-item">
+                                            <div class="tool-info">
+                                                <div class="tool-name">Google Alerts</div>
+                                                <div class="tool-cost">Free</div>
+                                            </div>
+                                            <div class="tool-description">
+                                                <p>Set up Google Alerts to receive notifications whenever keywords like your name, 
+                                                    emails, and other information appears in new web pages.</p>
+                                                <div class="setup-guide">
+                                                    <strong>Quick Setup:</strong>
+                                                    <div class="setup-steps">
+                                                        <span class="setup-step">Create alert for your name</span>
+                                                        <span class="setup-step">Add image search terms</span>
+                                                        <span class="setup-step">Set frequency to daily</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tool-category security">
+                                    <div class="category-header">
+                                        <div class="category-icon">🛡️</div>
+                                        <strong>Security Tools</strong>
+                                    </div>
+                                    <div class="tools-list">
+                                        <div class="tool-item">
+                                            <div class="tool-info">
+                                                <div class="tool-name">Blockchain-based content verification</div>
+                                                <div class="tool-status">Emerging</div>
+                                            </div>
+                                            <div class="tool-description">
+                                                <p>Blockchain-based systems create a secure, tamper-proof "fingeprint" whenever a photo, video, or audio is created.
+                                                    If you see a video online, you can check its blockchain record to see if it’s authentic, 
+                                                    when/where it was made, and whether it’s been altered.</p>
+                                                <div class="emerging-tech">
+                                                    <span class="tech">Digital watermarking</span>
+                                                    <span class="tech">Content provenance</span>
+                                                    <span class="tech">Tamper detection</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="section tab-content" id="awareness" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/awareness-icon.png') }}" alt="Awareness">
+        <div class="educational-quicklinks">
+            <h3>Explore More Resources:</h3>
+            <div class="quicklinks-grid">
+                <a href="creation" class="quicklink-card">
+                    <div class="quicklink-icon">🛠️</div>
+                    <span>Creation of Deepfakes</span>
+                </a>
+                <a href="impact_on_society" class="quicklink-card">
+                    <div class="quicklink-icon">🌍</div>
+                    <span>Impact on Society</span>
+                </a>
+                <a href="legal_and_ethics" class="quicklink-card">
+                    <div class="quicklink-icon">⚖️</div>
+                    <span>Legal and Ethics</span>
+                </a>
+                <a href="history_of_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">📚</div>
+                    <span>History of Deepfakes</span>
+                </a>
+                <a href="future_trends" class="quicklink-card">
+                    <div class="quicklink-icon">🔮</div>
+                    <span>Future Trends</span>
+                </a>
+                <a href="case_studies" class="quicklink-card">
+                    <div class="quicklink-icon">📋</div>
+                    <span>Case Studies</span>
+                </a>
+                <a href="identify_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">🔍</div>
+                    <span>How to Identify Deepfakes</span>
+                </a>
             </div>
-            <div class="text-container">
-                <h2>Stay Informed and Aware</h2>
-                <p>Being aware of the latest trends in deepfake technology is your first line of defense. Here’s how you can stay informed:</p>
-                <br>
-                <div class="highlight-box">
-                    <strong>Follow Reputable Sources:</strong> Regularly check technology news websites, cybersecurity blogs, and official announcements from government bodies for updates on deepfake technology.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Participate in Workshops and Seminars:</strong> Engage in workshops, seminars, and online courses that focus on digital literacy, media manipulation, and cybersecurity.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Use Trusted Platforms:</strong> Be cautious of unfamiliar websites or social media platforms that could spread misinformation or deepfake content. Stick to well-known, reputable sources for news and information.
-                </div>
-            </div>
-        </div>
-
-        <div class="section tab-content" id="online-privacy" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/personal-icon.png') }}" alt="Online Privacy">
-            </div>
-            <div class="text-container">
-                <h2>Enhance Online Privacy</h2>
-                <p>Protecting your online privacy can significantly reduce your risk of becoming a target of deepfakes. Here are some key steps:</p>
-                <br>
-                <div class="highlight-box">
-                    <strong>Limit Personal Information:</strong> Be mindful of the personal information and images you share on social media. The more information available about you online, the easier it is for someone to create a deepfake.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Adjust Privacy Settings:</strong> Use the privacy settings on social media platforms to control who can view your content. Consider making your profiles private to limit access to your personal information.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Be Wary of Phishing Attempts:</strong> Be cautious of suspicious emails, messages, or links that could be phishing attempts designed to steal your personal information.
-                </div>
-            </div>
-        </div>
-
-        <div class="section tab-content" id="legal-protection" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/legal-icon.png') }}" alt="Legal Protection">
-            </div>
-            <div class="text-container">
-                <h2>Legal Protection</h2>
-                <p>Understanding your legal rights and the steps you can take if you are a victim of deepfake technology is crucial. Here’s what you can do:</p>
-                <br>
-                <div class="highlight-box">
-                    <strong>Know Your Rights:</strong> Familiarize yourself with the laws surrounding privacy, defamation, and cybercrime in your country. In Singapore, deepfake technology used for malicious purposes may fall under laws like the Protection from Harassment Act (POHA) or the Computer Misuse Act.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Consult a Lawyer:</strong> If you believe you have been a victim of a deepfake, seek legal advice to understand your options for recourse. A lawyer can help you navigate the legal system and take appropriate action.
-                </div>
-                <br>
-                <br>
-                    If you encounter a malicious deepfake, report it to the relevant authorities. In Singapore, you can contact the following government bodies:
-
-                <br>
-                <div class="highlight-box">
-                    <strong>Cyber Security Agency of Singapore (CSA):</strong> CSA provides resources and support for cyber threats. <br>More information is availiable at: <a target="_blank" href="https://www.csa.gov.sg" style="color: var(--links-highlights-brighter)">www.csa.gov.sg</a>.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Infocomm Media Development Authority (IMDA):</strong> IMDA regulates media content and can be contacted if you find harmful deepfake content online. <br>More information is available at: <a target="_blank" href="https://www.imda.gov.sg" style="color: var(--links-highlights-brighter)">www.imda.gov.sg</a>.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Singapore Police Force (SPF):</strong> For criminal activities involving deepfakes, you can file a report with the SPF. <br>More information is availiable at: <a target="_blank" href="https://www.police.gov.sg" style="color: var(--links-highlights-brighter)">www.police.gov.sg</a>.
-                </div>
-            </div>
-        </div>
-
-        <div class="section tab-content" id="digital-tools" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/tools-icon.png') }}" alt="Digital Tools">
-            </div>
-            <div class="text-container">
-                <h2>Use Digital Tools</h2>
-                <p>Leveraging digital tools and technologies can help you protect yourself from deepfakes. Here are some recommended actions:</p>
-                <br>
-                <div class="highlight-box">
-                    <strong>Install Anti-Deepfake Software:</strong> Consider using software designed to detect deepfakes. Tools like Deepware or Sensity can analyze content and alert you if it’s likely to be fake.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Monitor Online Presence:</strong> Regularly search for your name and images online to see if any unauthorized deepfake content is being circulated.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Enable Content Alerts:</strong> Set up Google Alerts or similar services to notify you when new content related to your name or likeness appears online.
-                </div>
-            </div>
-        </div>
-        </div>
-        <div class="text-align-left educational-quicklinks">
-            <h3>View more resources:</h3>
-            <a href="creation">Creation of Deepfakes</a>
-            <div class="divider"></div>
-            <a href="impact_on_society">Impact on Society</a>
-            <div class="divider"></div>
-            <a href="legal_and_ethics">Legal and Ethics</a>
-            <div class="divider"></div>
-            <a href="history_of_deepfakes">History of Deepfakes</a>
-            <div class="divider"></div>
-            <a href="future_trends">Future Trends</a>
-            <div class="divider"></div>
-            <a href="case_studies">Case Studies</a>
-            <div class="divider"></div>
-            <a href="identify_deepfakes">How to Identify Deepfakes</a>
-            <div class="divider"></div>
-            <!-- <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
-            <div class="divider"></div> -->
         </div>
     </section>
 

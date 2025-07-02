@@ -3,69 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - DeepVysion+</title>
+    <title>Educational Resources - DeepVysion+</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../static/css/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
+    
     <div class="banner" id="about-banner">
         <h1>About Us</h1>
     </div>
+    
     <section class="content about-section">
-        <div class="about-intro">
-            <img src="../static/images/hr-group.png">
+        <div class="about-intro animate-on-scroll">
+            <img src="../static/images/hr-group.png" alt="Team">
             <p>
-            <b style="color: var(--accents-buttons); font-size: 24px;">Who we are</b><br> We are a dedicated team of students from Temasek Polytechnic, 
-            passionately engaged in an innovative deepfake technology project. 
+                <b>Who we are</b>
+                We are a dedicated team of students from Temasek Polytechnic, passionately engaged in an innovative deepfake technology project.
             </p>
         </div>
-        <div class="about-intro">
-            <img src="../static/images/mission.png">
+        <div class="about-intro animate-on-scroll">
+            <img src="../static/images/mission.png" alt="Mission">
             <p>
-                <b style="color: var(--accents-buttons); font-size: 24px;">Our mission</b><br> Is to delve into the fascinating world of deepfake technology, exploring its vast potential and the 
-                significant implications it holds for society.
+                <b>Our mission</b>
+                Is to delve into the fascinating world of deepfake technology, exploring its vast potential and the significant implications it holds for society.
             </p>
         </div>
-        <div class="about-intro">
-            <img src="../static/images/archery.png">
+        <div class="about-intro animate-on-scroll">
+            <img src="../static/images/archery.png" alt="Goal">
             <p>
-                <b style="color: var(--accents-buttons); font-size: 24px;">Our Goal</b><br>Is to uncover the complexities of deepfake technology, raise awareness about its ethical considerations, 
-                and contribute to the ongoing discourse on its impact on various aspects of life.
+                <b>Our Goal</b>
+                Is to uncover the complexities of deepfake technology, raise awareness about its ethical considerations, and contribute to the ongoing discourse on its impact on various aspects of life.
             </p>
         </div>
     </section>
 
     <section class="content team-section">
-        <h2 style="font-size: 2.2em;">Meet the Creators (DeepVision)</h2>
+        <h2>Meet the Creators (DeepVision)</h2>
         <div class="team-container">
-            <div class="team-member">
+            <div class="team-member animate-on-scroll">
                 <img src="../static/images/flanders_v2.jpeg" alt="Flanders">
                 <div class="team-member-text">
-                    <h3>Flanders</h3><br>
+                    <h3>Flanders</h3>
                     <p>I am Flanders, the team leader of DeepVision. My role involves overseeing the project and ensuring that all aspects are executed efficiently. I am passionate about technology and its potential impact on society.</p>
                 </div>
             </div>
-            <div class="team-member">
+            <div class="team-member animate-on-scroll">
                 <img src="../static/images/chermaine_v2.jpeg" alt="Chermaine">
                 <div class="team-member-text">
-                    <h3>Chermaine</h3><br>
+                    <h3>Chermaine</h3>
                     <p>Chermaine is our lead researcher. She delves into the intricacies of deepfake technology and its ethical implications. Her dedication to uncovering the truth behind this technology is unparalleled.</p>
                 </div>
             </div>
-            <div class="team-member">
+            <div class="team-member animate-on-scroll">
                 <img src="../static/images/jovan_v2.jpeg" alt="Jovan">
                 <div class="team-member-text">
-                    <h3>Jovan</h3><br>
+                    <h3>Jovan</h3>
                     <p>Jovan is responsible for the technical aspects of our project. His expertise in programming and machine learning enables us to create and detect deepfakes with precision.</p>
                 </div>
             </div>
-            <div class="team-member">
+            <div class="team-member animate-on-scroll">
                 <img src="../static/images/yongzheng.jpeg" alt="Yong Zheng">
                 <div class="team-member-text">
-                    <h3>Yong Zheng</h3><br>
+                    <h3>Yong Zheng</h3>
                     <p>Yong Zheng manages our data analysis and interpretation. He ensures that our findings are accurate and meaningful, contributing significantly to the overall success of the project.</p>
                 </div>
             </div>
@@ -73,33 +75,59 @@
     </section>
 
     <section class="content successors-section">
-        <h2 style="font-size: 2.2em; margin-bottom: 2em;">Successors (DeepVysion+)</h2>
+        <h2>Successors (DeepVysion+)</h2>
         <div class="successors-container">
-            <div class="successor">
-                <img src="../static/images/eugene.jfif" alt="">
-                <h3>Eugene Ng Hong Ping</h3><br>
+            <div class="successor animate-on-scroll">
+                <img src="../static/images/eugene.jfif" alt="Eugene Ng Hong Ping">
+                <h3>Eugene Ng Hong Ping</h3>
             </div>
-            <div class="successor">
-                <img src="../static/images/han_jiun.jfif" alt="">
-                <h3>Han Jiun</h3><br>
+            <div class="successor animate-on-scroll">
+                <img src="../static/images/han_jiun.jfif" alt="Han Jiun">
+                <h3>Han Jiun</h3>
             </div>
-            <div class="successor">
-                <img src="../static/images/xiang_lin.jfif" alt="">
-                <h3>Lee Xiang Lin</h3><br>
+            <div class="successor animate-on-scroll">
+                <img src="../static/images/xiang_lin.jfif" alt="Lee Xiang Lin">
+                <h3>Lee Xiang Lin</h3>
             </div>
-            <div class="successor">
-                <img src="../static/images/zarah.jfif" alt="">
-                <h3>Zarah Lynn Maxwell</h3><br>
+            <div class="successor animate-on-scroll">
+                <img src="../static/images/zarah.jfif" alt="Zarah Lynn Maxwell">
+                <h3>Zarah Lynn Maxwell</h3>
             </div>
-            <div class="successor">
-                <img src="../static/images/adriel.jfif" alt="">
-                <h3>Adriel Loh Cheng Jun</h3><br>
+            <div class="successor animate-on-scroll">
+                <img src="../static/images/adriel.jfif" alt="Adriel Loh Cheng Jun">
+                <h3>Adriel Loh Cheng Jun</h3>
             </div>
         </div>
     </section>
 
     <div id="footer-placeholder"></div>
 
+    <script>
+        // Scroll animation observer
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all animated elements
+        document.addEventListener('DOMContentLoaded', () => {
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            animatedElements.forEach(el => observer.observe(el));
+
+            // Add staggered animation delays
+            animatedElements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
     <script src="../static/js/scripts.js"></script>
 </body>
 </html>

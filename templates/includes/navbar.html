@@ -1,13 +1,31 @@
-<nav>
-    <div class="nav-left">
-        <a href="/" class="brand">DeepVysion+</a>
+<!-- NAVBAR COMPONENT -->
+<nav id="navbar">
+    <div class="nav-container">
+        <div class="nav-left">
+            <a href="/" class="brand">DeepVysion+</a>
+        </div>
+        <ul class="nav-right">
+            <li><a href="/" class="active">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/education">Education</a></li>
+            <li><a href="/detection">Detection</a></li>
+            <li><a href="/challenge">Challenge Hub</a></li>
+        </ul>
+
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
     </div>
-    <ul class="nav-right">
-        <li><a href="/">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <!-- <li><a href="/creation">Creation</a></li> -->
-        <li><a href="/education">Education</a></li>
-        <li><a href="/detection">Detection</a></li>
-        <li><a href="/challenge">Challenge Hub</a></li>
-    </ul>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-menu">
+            <li><a href="/" class="mobile-nav-link">Home</a></li>
+            <li><a href="/about" class="mobile-nav-link">About</a></li>
+            <li><a href="/education" class="mobile-nav-link">Education</a></li>
+            <li><a href="/detection" class="mobile-nav-link">Detection</a></li>
+            <li><a href="/challenge" class="mobile-nav-link">Challenge Hub</a></li>
+        </ul>
+    </div>
 </nav>

@@ -4,75 +4,184 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Physiological Signal Analysis</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
     
-    <section id="physiological-signal-analysis" class="content">
-        <h1>Physiological Signal Analysis</h1>
-        <p class="intro-text">Physiological signal analysis involves studying involuntary physiological signals, such as heartbeat and breathing patterns, that are difficult to replicate in deepfake videos. These signals provide a means to differentiate between real and manipulated content.</p>
-        
-        <div class="section" id="how-it-works">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/how-it-works-icon.png') }}" alt="How It Works">
-            </div>
-            <div class="text-container">
-                <h2>How It Works</h2>
-                <p>Techniques like Remote Photoplethysmography (rPPG) analyze subtle changes in skin color that occur due to blood flow, which is influenced by the heartbeat. These changes are difficult to fake consistently in deepfake videos. By tracking these signals, it is possible to identify discrepancies that suggest manipulation.</p>
-            </div>
+    <!-- Hero Banner Section -->
+    <section class="physiological-hero">
+        <div class="hero-background">
+            <div class="floating-particles"></div>
+            <div class="pulse-waves"></div>
         </div>
-        
-        <div class="section" id="advantages">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/advantages-icon.png') }}" alt="Advantages">
+        <div class="hero-content">
+            <div class="hero-icon">
+                <div class="heartbeat-animation">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#667eea" stroke-width="2" fill="url(#heartGradient)"/>
+                        <defs>
+                            <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring pulse-ring-2"></div>
+                </div>
             </div>
-            <div class="text-container">
-                <h2>Advantages</h2>
-                <ul>
-                    <li>Exploits physiological signals that are hard to fake.</li>
-                    <li>Can be applied passively without requiring active participation from the subject.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="section" id="challenges">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/challenges-icon.png') }}" alt="Challenges">
-            </div>
-            <div class="text-container">
-                <h2>Challenges</h2>
-                <ul>
-                    <li>Effectiveness can be influenced by video quality and lighting conditions.</li>
-                    <li>May require high-resolution video to accurately capture subtle changes.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="section" id="applications">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/applications-icon.png') }}" alt="Applications">
-            </div>
-            <div class="text-container">
-                <h2>Applications</h2>
-                <p>This method is used in various applications, including forensic analysis, authentication systems, and health monitoring, where the authenticity of video content is critical.</p>
-            </div>
-        </div>
-
-        <div class="section" id="try-it-out">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/try-it-out-icon.png') }}" alt="Try It Out">
-            </div>
-            <div class="text-container">
-                <h2>Try It Out</h2>
-                <a href="{{ url_for('physiological_signal_try') }}" class="try-button">Try Physiological Signal Analysis</a>
+            <h1>Physiological Signal Analysis</h1>
+            <p class="hero-subtitle">Detecting deepfakes through biological authenticity</p>
+            <div class="scroll-indicator">
+                <div class="scroll-arrow">↓</div>
             </div>
         </div>
     </section>
+
+    <!-- Introduction Section with Visual Elements -->
+    <div class="content">
+        <!-- How It Works Section -->
+        <div class="methodology-section">
+            <h2 class="section-title">How the Technology Works</h2>
+            <div class="methodology-grid">
+                
+                <div class="method-card">
+                    <div class="method-icon">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="3" stroke="#667eea" stroke-width="2" fill="url(#pulseGradient)"/>
+                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="#667eea" stroke-width="2"/>
+                            <defs>
+                                <linearGradient id="pulseGradient">
+                                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.3" />
+                                    <stop offset="100%" style="stop-color:#667eea;stop-opacity:0.8" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h3>Remote Photoplethysmography</h3>
+                    <p>We use 3 different rPPG algorithms to extract physiological signals from microscopic color variations in facial skin caused by blood circulation. 
+                        These subtle changes create unique physiological fingerprints that are extremely difficult to synthesize.</p>
+                    <div class="method-progress">
+                        <div class="progress-bar" style="--progress: 95%"></div>
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-icon">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 12h6l3-9 3 9h6" stroke="#667eea" stroke-width="2" fill="none"/>
+                            <circle cx="12" cy="12" r="2" fill="#667eea"/>
+                            <defs>
+                                <linearGradient id="waveGradient">
+                                    <stop offset="0%" style="stop-color:#4facfe" />
+                                    <stop offset="100%" style="stop-color:#00f2fe" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h3>Signal Processing</h3>
+                    <p>We then process the extracted physiological signals to engineer meaningful and structured statistical and frequency domain features.
+                        These features will then be passed into a machine learning model to perform predictions.</p>
+                    <div class="method-progress">
+                        <div class="progress-bar" style="--progress: 88%"></div>
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-icon">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#667eea" stroke-width="2" fill="url(#starGradient)"/>
+                            <defs>
+                                <linearGradient id="starGradient">
+                                    <stop offset="0%" style="stop-color:#f093fb;stop-opacity:0.3" />
+                                    <stop offset="100%" style="stop-color:#f5576c;stop-opacity:0.8" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h3>AI Pattern Recognition</h3>
+                    <p>We then use an XGBoost machine learning model trained on an extensive dataset of authentic and deepfake physiological signals, to determine the authenticity of the physioloical features.</p>
+                    <div class="method-progress">
+                        <div class="progress-bar" style="--progress: 92%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advantages vs Challenges Section -->
+        <div class="comparison-section">
+            <div class="advantages-panel">
+                <h2>Key Advantages</h2>
+                <div class="advantage-list">
+                    <div class="advantage-item">
+                        <div class="advantage-icon">✨</div>
+                        <div class="advantage-content">
+                            <h4>Biological Authenticity</h4>
+                            <p>Physiological signals are biological factors that deepfake generators struggle to replicate authentically.</p>
+                        </div>
+                    </div>
+                    <div class="advantage-item">
+                        <div class="advantage-icon">🔍</div>
+                        <div class="advantage-content">
+                            <h4>Passive Detection</h4>
+                            <p>Extracts signals purely using raw RGB data; No need for any special tools.</p>
+                        </div>
+                    </div>
+                    <div class="advantage-item">
+                        <div class="advantage-icon">⚡</div>
+                        <div class="advantage-content">
+                            <h4>Robust to New Generators</h4>
+                            <p>rPPG doesn't rely on any generator-specific artifacts, and is robust against newer deepfake architectures.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="challenges-panel">
+                <h2>Technical Challenges</h2>
+                <div class="challenge-list">
+                    <div class="challenge-item">
+                        <div class="challenge-icon">📹</div>
+                        <div class="challenge-content">
+                            <h4>Quality Dependencies</h4>
+                            <p>Requires good video quality and optimal lighting conditions for best analysis</p>
+                        </div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="challenge-icon">🌊</div>
+                        <div class="challenge-content">
+                            <h4>Environmental Factors</h4>
+                            <p>Ambient lighting and camera movement can interfere with signal detection</p>
+                        </div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="challenge-icon">⚙️</div>
+                        <div class="challenge-content">
+                            <h4>Sensitive to Manipulations</h4>
+                            <p>Video manipulations such as blur, cropping, and obstructions can interfere with signal detection.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Demo Section -->
+        <div class="demo-section">
+            <div class="demo-text">
+                <h2>Try Physiological Deepfake Detection</h2>
+                <p>Ready to try our physiological signal analysis? Click here to upload your own video content or record a live video,
+                     and our model will analyze biological signals using rPPG to determine authenticity.</p>
+                <a href="{{ url_for('physiological_signal_try') }}" class="cta-button">
+                    <span>Try Physiological Analysis</span>
+                    <div class="button-arrow">→</div>
+                </a>
+            </div>
+        </div>
+    </div>
 
     <div id="footer-placeholder"></div>
 

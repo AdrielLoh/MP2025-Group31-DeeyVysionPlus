@@ -4,79 +4,170 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Audio Analysis</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
-
-    <section id="audio-analysis" class="content">
-        <h1>Audio Analysis</h1>
-        <p class="intro-text">Audio analysis involves examining the audio component of videos for signs of manipulation. Techniques include analyzing the pitch, tone, and consistency of speech, as well as detecting any anomalies that suggest the audio has been artificially generated or altered.</p>
-        
-        <div class="section" id="how-it-works">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/how-it-works-icon.png') }}" alt="How It Works">
-            </div>
-            <div class="text-container">
-                <h2>How It Works</h2>
-                <p>Audio analysis techniques use algorithms to analyze the characteristics of speech, such as pitch, cadence, and spectral features. These techniques can detect inconsistencies that arise when audio is synthesized or manipulated, such as unnatural pitch changes, irregular speech patterns, and mismatched lip-sync.</p>
-            </div>
+    
+    <!-- Hero Banner Section -->
+    <section class="physiological-hero">
+        <div class="hero-background">
+            <div class="floating-particles"></div>
+            <div class="pulse-waves"></div>
         </div>
-        
-        
-        <div class="section" id="advantages">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/advantages-icon.png') }}" alt="Advantages">
+        <div class="hero-content">
+            <div class="hero-icon">
+                <!-- Custom Audio SVG Hero Icon -->
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                    <circle cx="30" cy="30" r="28" stroke="#667eea" stroke-width="2" fill="url(#audioBg)"/>
+                    <polyline points="12,40 18,20 24,33 30,25 36,40 42,18 48,33" fill="none" stroke="#764ba2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="27" y="43" width="6" height="8" rx="2" fill="#4facfe" opacity="0.7"/>
+                    <rect x="24" y="32" width="12" height="14" rx="6" fill="#764ba2" opacity="0.8"/>
+                    <rect x="50" y="40" width="3" height="8" rx="1.5" fill="#00f2fe" opacity="0.5"/>
+                    <rect x="7" y="36" width="3" height="12" rx="1.5" fill="#00f2fe" opacity="0.4"/>
+                    <defs>
+                        <radialGradient id="audioBg" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#f093fb;stop-opacity:0.08"/>
+                            <stop offset="100%" style="stop-color:#667eea;stop-opacity:0.18"/>
+                        </radialGradient>
+                    </defs>
+                </svg>
+                <div class="pulse-indicator"></div>
             </div>
-            <div class="text-container">
-                <h2>Advantages</h2>
-                <ul>
-                    <li>Can detect subtle inconsistencies in audio that are hard to fake.</li>
-                    <li>Useful for analyzing both audio-only content and audio within videos.</li>
-                </ul>
-            </div>
-        </div>
-        
-        
-        <div class="section" id="challenges">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/challenges-icon.png') }}" alt="Challenges">
-            </div>
-            <div class="text-container">
-                <h2>Challenges</h2>
-                <ul>
-                    <li>High-quality audio is necessary for accurate analysis.</li>
-                    <li>Background noise and poor recording conditions can affect detection accuracy.</li>
-                </ul>
-            </div>
-        </div>
-        
-        
-        <div class="section" id="applications">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/applications-icon.png') }}" alt="Applications">
-            </div>
-            <div class="text-container">
-                <h2>Applications</h2>
-                <p>Audio analysis is employed in fields such as media verification, law enforcement, and content moderation on social media platforms to ensure the integrity and authenticity of audio content.</p>
-            </div>
-        </div>
-
-
-        <div class="section" id="try-it-out">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/try-it-out-icon.png') }}" alt="Try It Out">
-            </div>
-            <div class="text-container">
-                <h2>Try It Out</h2>
-                <a href="{{ url_for('audio_analysis_try_page') }}" class="try-button">Try Audio Analysis</a>
+            <h1>Audio Deepfake Analysis</h1>
+            <p class="hero-subtitle">Detecting deepfakes through speech features and audio artifacts</p>
+            <div class="scroll-indicator">
+                <div class="scroll-arrow">↓</div>
             </div>
         </div>
     </section>
+
+    <!-- Introduction Section with Visual Elements -->
+    <div class="content">
+        <!-- How It Works Section -->
+        <div class="methodology-section">
+            <h2 class="section-title">How the Technology Works</h2>
+            <div class="methodology-grid">
+
+                <div class="method-card">
+                    <div class="method-icon">
+                        <!-- Waveform Icon -->
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <polyline points="10,40 16,28 22,36 28,24 34,44 40,18 50,33" fill="none" stroke="#667eea" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3>Audio Extraction & Preprocessing</h3>
+                    <p>Extracts and normalizes audio from uploaded video or audio files, preparing it for feature analysis.</p>
+                    <div class="method-progress">
+                        <div class="progress-bar" style="--progress: 91%"></div>
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-icon">
+                        <!-- Mel/MFCC Icon -->
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <rect x="14" y="20" width="8" height="24" rx="2" fill="#4facfe"/>
+                            <rect x="26" y="28" width="8" height="16" rx="2" fill="#764ba2"/>
+                            <rect x="38" y="22" width="8" height="28" rx="2" fill="#00f2fe"/>
+                        </svg>
+                    </div>
+                    <h3>Feature Engineering</h3>
+                    <p>Computes mel-spectrogram, MFCC, delta MFCC, pitch (F0), and energy features for every audio segment.</p>
+                    <div class="method-progress">
+                        <div class="progress-bar" style="--progress: 94%"></div>
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-icon">
+                        <!-- Neural Net/EQ Icon -->
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <circle cx="30" cy="30" r="13" stroke="#f093fb" stroke-width="2" fill="#764ba2" opacity="0.15"/>
+                            <polyline points="20,38 28,26 34,34 40,20" fill="none" stroke="#f093fb" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Deep Learning Classification</h3>
+                    <p>The neural network analyzes these engineered features to detect synthetic speech artifacts and classify as real or fake.</p>
+                    <div class="method-progress">
+                        <div class="progress-bar" style="--progress: 95%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advantages vs Challenges Section -->
+        <div class="comparison-section">
+            <div class="advantages-panel">
+                <h2>Key Advantages</h2>
+                <div class="advantage-list">
+                    <div class="advantage-item">
+                        <div class="advantage-icon">🔊</div>
+                        <div class="advantage-content">
+                            <h4>Speech Authenticity</h4>
+                            <p>Detects subtle anomalies in speech, intonation, and prosody that are difficult for deepfake generators to synthesize.</p>
+                        </div>
+                    </div>
+                    <div class="advantage-item">
+                        <div class="advantage-icon">🦻</div>
+                        <div class="advantage-content">
+                            <h4>Works When Video Fails</h4>
+                            <p>Can analyze cases where only audio is available, or visual cues are missing or misleading.</p>
+                        </div>
+                    </div>
+                    <div class="advantage-item">
+                        <div class="advantage-icon">📈</div>
+                        <div class="advantage-content">
+                            <h4>Feature-Rich</h4>
+                            <p>Utilizes a variety of acoustic features (mel, MFCC, pitch, energy) for robust detection and model interpretability.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="challenges-panel">
+                <h2>Technical Challenges</h2>
+                <div class="challenge-list">
+                    <div class="challenge-item">
+                        <div class="challenge-icon">🤫</div>
+                        <div class="challenge-content">
+                            <h4>Noise Sensitivity</h4>
+                            <p>Background noise, reverb, or audio compression can mask artifacts and degrade model accuracy.</p>
+                        </div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="challenge-icon">🗣️</div>
+                        <div class="challenge-content">
+                            <h4>Language/Accent Issues</h4>
+                            <p>Detection models may underperform on languages or accents not present in the training data.</p>
+                        </div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="challenge-icon">🎛️</div>
+                        <div class="challenge-content">
+                            <h4>Audio Manipulations</h4>
+                            <p>Compression, equalization, and mixing can distort critical acoustic features needed for detection.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Demo Section -->
+        <div class="demo-section">
+            <div class="demo-text">
+                <h2>Try Audio Deepfake Detection</h2>
+                <p>Upload or record an audio or video clip. Our system will analyze speech features and audio patterns to determine authenticity using deep learning.</p>
+                <a href="{{ url_for('audio_analysis_try_page') }}" class="cta-button">
+                    <span>Try Audio Analysis</span>
+                    <div class="button-arrow">→</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
 
     <div id="footer-placeholder"></div>
 

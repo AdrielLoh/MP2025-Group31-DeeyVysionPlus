@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legal and Ethics</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
@@ -14,79 +13,554 @@
     </header>
 
     <div class="banner" id="law-ethics-banner">
-        <!-- <h1>Deepfake Creation</h1> -->
+        <div class="banner-content">
+            <h1>Legal and Ethics</h1>
+            <p class="intro-text">The rise of deepfake technology has brought about numerous legal and ethical concerns. This section delves into the challenges and considerations in these areas.</p>
+        </div>
     </div>
 
     <section id="legal-ethics" class="content educational-section">
-        <div class="text-align-left educational">
-        <h1>Legal and Ethics</h1>
-        <p class="intro-text">The rise of deepfake technology has brought about numerous legal and ethical concerns. This section delves into the challenges and considerations in these areas.</p>
+        <div class="educational">
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab tab-button active" data-tab="legal-challenges">
+                        <span class="tab-icon">⚖️</span>
+                        <span class="tab-text">Legal Challenges</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="ethical-considerations">
+                        <span class="tab-icon">🤔</span>
+                        <span class="tab-text">Ethical Considerations</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="regulatory-efforts">
+                        <span class="tab-icon">📋</span>
+                        <span class="tab-text">Regulatory Efforts</span>
+                    </button>
+                </div>
+            </div>
 
-        <div class="tabs-container">
-            <div class="tabs">
-                <button class="tab active" data-tab="legal-challenges">Legal Challenges</button>
-                <button class="tab" data-tab="ethical-considerations">Ethical Considerations</button>
-                <button class="tab" data-tab="regulatory-efforts">Regulatory Efforts</button>
-            </div>
-        </div>
-        <div class="section tab-content" id="legal-challenges" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/legal-icon.png') }}" alt="Legal Challenges">
-            </div>
-            <div class="text-container">
-                <h2>Legal Challenges</h2>
-                <p>Deepfakes create complex legal challenges, particularly in areas of defamation, intellectual property, and privacy. Legislators are working to develop laws that address the misuse of this technology.</p>
-                <br>
-                <p>Courts are grappling with how to handle cases involving deepfakes, as existing laws may not be sufficient to cover the nuances of this advanced technology. New legislation is being proposed to specifically target the malicious use of deepfakes, ensuring that victims have legal recourse.</p>
+            <div class="legal-ethics-container">
+                <div class="ethics-category-card tab-content" id="legal-challenges" style="display: none;">
+                    <div class="category-header">
+                        <div class="category-icon-container">
+                            <div class="category-icon legal-icon">
+                                <img src="{{ url_for('static', filename='images/legal-icon.png') }}" alt="Legal Challenges">
+                            </div>
+                        </div>
+                        <div class="category-meta">
+                            <h2>Legal Challenges</h2>
+                            <div class="category-details">
+                                <div class="category-status urgent">Urgent</div>
+                                <div class="category-complexity">High Complexity</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="category-content">
+                        <p>Deepfakes create complex legal challenges, particularly in areas of defamation, intellectual property, and privacy. Legislators are working to develop laws that address the misuse of this technology.</p>
+                        
+                        <div class="legal-challenges-breakdown">
+                            <h4>Primary Legal Areas</h4>
+                            <div class="challenge-areas-2">
+                                <div class="challenge-domain defamation">
+                                    <div class="domain-header">
+                                        <div class="domain-icon">📰</div>
+                                        <div class="domain-info">
+                                            <strong>Defamation & Libel</strong>
+                                            <div class="challenge-tags">
+                                                <span class="tag critical">Critical</span>
+                                                <span class="tag active">Active Cases</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="domain-issues">
+                                        <div class="issue-item">
+                                            <span class="issue-icon">•</span>
+                                            <span>False statements damaging reputation</span>
+                                        </div>
+                                        <div class="issue-item">
+                                            <span class="issue-icon">•</span>
+                                            <span>Proving malicious intent</span>
+                                        </div>
+                                        <div class="issue-item">
+                                            <span class="issue-icon">•</span>
+                                            <span>Cross-jurisdictional enforcement</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="challenge-domain intellectual">
+                                    <div class="domain-header">
+                                        <div class="domain-icon">©️</div>
+                                        <div class="domain-info">
+                                            <strong>Intellectual Property</strong>
+                                            <div class="challenge-tags">
+                                                <span class="tag evolving">Evolving</span>
+                                                <span class="tag complex">Complex</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="domain-issues">
+                                        <div class="issue-item">
+                                            <span class="issue-icon">•</span>
+                                            <span>Unauthorized use of likeness</span>
+                                        </div>
+                                        <div class="issue-item">
+                                            <span class="issue-icon">•</span>
+                                            <span>Voice and image rights</span>
+                                        </div>
+                                        <div class="issue-item">
+                                            <span class="issue-icon">•</span>
+                                            <span>Commercial exploitation</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="challenge-domain privacy">
+                                    <div class="domain-header">
+                                        <div class="domain-icon">🔒</div>
+                                        <div class="domain-info">
+                                            <strong>Privacy Violations</strong>
+                                            <div class="challenge-tags">
+                                                <span class="tag urgent">Urgent</span>
+                                                <span class="tag widespread">Widespread</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="domain-issues">
+                                        <div class="issue-item">
+                                            <span class="issue-icon">•</span>
+                                            <span>Non-consensual intimate imagery</span>
+                                        </div>
+                                        <div class="issue-item">
+                                            <span class="issue-icon">•</span>
+                                            <span>Identity theft and impersonation</span>
+                                        </div>
+                                        <div class="issue-item">
+                                            <span class="issue-icon">•</span>
+                                            <span>Harassment and cyberbullying</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="legal-gaps">
+                            <h4>Current Legal Gaps</h4>
+                            <div class="gap-analysis">
+                                <div class="gap-item evidence">
+                                    <div class="gap-header">
+                                        <span class="gap-number">1</span>
+                                        <strong>Evidence Standards</strong>
+                                    </div>
+                                    <p>Courts struggle with authentication and burden of proof for synthetic media</p>
+                                </div>
+                                <div class="gap-item jurisdiction">
+                                    <div class="gap-header">
+                                        <span class="gap-number">2</span>
+                                        <strong>Jurisdictional Issues</strong>
+                                    </div>
+                                    <p>Global reach of deepfakes vs. local legal systems creates enforcement challenges</p>
+                                </div>
+                                <div class="gap-item technology">
+                                    <div class="gap-header">
+                                        <span class="gap-number">3</span>
+                                        <strong>Technology Lag</strong>
+                                    </div>
+                                    <p>Legal frameworks unable to keep pace with rapid technological advancement</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>Courts are grappling with how to handle cases involving deepfakes, as existing laws may not be sufficient to cover the nuances of this advanced technology. New legislation is being proposed to specifically target the malicious use of deepfakes, ensuring that victims have legal recourse.</p>
+                    </div>
+                </div>
+
+                <div class="ethics-category-card tab-content" id="ethical-considerations" style="display: none;">
+                    <div class="category-header">
+                        <div class="category-icon-container">
+                            <div class="category-icon ethical-icon">
+                                <img src="{{ url_for('static', filename='images/ethical-icon.png') }}" alt="Ethical Considerations">
+                            </div>
+                        </div>
+                        <div class="category-meta">
+                            <h2>Ethical Considerations</h2>
+                            <div class="category-details">
+                                <div class="category-status fundamental">Fundamental</div>
+                                <div class="category-complexity">Philosophical</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="category-content">
+                        <p>The ethical implications of deepfakes are vast. They raise questions about consent, identity, and the potential for harm. Ethical guidelines are essential to ensure the responsible use of deepfake technology.</p>
+                        
+                        <div class="ethical-framework">
+                            <h4>Core Ethical Principles</h4>
+                            <div class="principles-grid">
+                                <div class="principle-card consent">
+                                    <div class="principle-header">
+                                        <div class="principle-icon">✋</div>
+                                        <strong>Consent & Autonomy</strong>
+                                    </div>
+                                    <div class="principle-content">
+                                        <p>Individuals should have control over their digital representation</p>
+                                        <div class="principle-considerations">
+                                            <span class="consideration">Informed consent requirements</span>
+                                            <span class="consideration">Right to digital dignity</span>
+                                            <span class="consideration">Posthumous representation rights</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="principle-card truth">
+                                    <div class="principle-header">
+                                        <div class="principle-icon">🔍</div>
+                                        <strong>Truth & Transparency</strong>
+                                    </div>
+                                    <div class="principle-content">
+                                        <p>Clear disclosure when synthetic media is used</p>
+                                        <div class="principle-considerations">
+                                            <span class="consideration">Labeling requirements</span>
+                                            <span class="consideration">Source attribution</span>
+                                            <span class="consideration">Detection tool access</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="principle-card harm">
+                                    <div class="principle-header">
+                                        <div class="principle-icon">🛡️</div>
+                                        <strong>Non-Maleficence</strong>
+                                    </div>
+                                    <div class="principle-content">
+                                        <p>Avoiding harm to individuals and society</p>
+                                        <div class="principle-considerations">
+                                            <span class="consideration">Impact assessment</span>
+                                            <span class="consideration">Vulnerable population protection</span>
+                                            <span class="consideration">Psychological harm prevention</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="principle-card justice">
+                                    <div class="principle-header">
+                                        <div class="principle-icon">⚖️</div>
+                                        <strong>Justice & Fairness</strong>
+                                    </div>
+                                    <div class="principle-content">
+                                        <p>Equitable access and protection for all</p>
+                                        <div class="principle-considerations">
+                                            <span class="consideration">Equal legal protection</span>
+                                            <span class="consideration">Technology accessibility</span>
+                                            <span class="consideration">Bias prevention</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ethical-dilemmas">
+                            <h4>Key Ethical Dilemmas</h4>
+                            <div class="dilemma-scenarios">
+                                <div class="dilemma-scenario entertainment">
+                                    <div class="scenario-header">
+                                        <div class="scenario-icon">🎬</div>
+                                        <div class="scenario-title">
+                                            <strong>Entertainment vs. Exploitation</strong>
+                                            <span class="complexity-indicator moderate">Moderate Complexity</span>
+                                        </div>
+                                    </div>
+                                    <div class="scenario-content">
+                                        <p><strong>Dilemma:</strong> Using deepfakes for entertainment purposes without explicit consent</p>
+                                        <div class="scenario-sides">
+                                            <div class="side pro">
+                                                <strong>Arguments For:</strong>
+                                                <ul>
+                                                    <li>Artistic expression and creativity</li>
+                                                    <li>Technological innovation</li>
+                                                    <li>Economic benefits</li>
+                                                </ul>
+                                            </div>
+                                            <div class="side con">
+                                                <strong>Arguments Against:</strong>
+                                                <ul>
+                                                    <li>Violation of personal autonomy</li>
+                                                    <li>Potential for misuse</li>
+                                                    <li>Setting dangerous precedents</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="dilemma-scenario education">
+                                    <div class="scenario-header">
+                                        <div class="scenario-icon">🎓</div>
+                                        <div class="scenario-title">
+                                            <strong>Educational Use vs. Historical Accuracy</strong>
+                                            <span class="complexity-indicator low">Low Complexity</span>
+                                        </div>
+                                    </div>
+                                    <div class="scenario-content">
+                                        <p><strong>Dilemma:</strong> Creating deepfakes of historical figures for educational content</p>
+                                        <div class="scenario-consensus">
+                                            <strong>General Consensus:</strong> Acceptable with proper disclosure and educational context
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="dilemma-scenario research">
+                                    <div class="scenario-header">
+                                        <div class="scenario-icon">🔬</div>
+                                        <div class="scenario-title">
+                                            <strong>Research Benefits vs. Societal Risk</strong>
+                                            <span class="complexity-indicator high">High Complexity</span>
+                                        </div>
+                                    </div>
+                                    <div class="scenario-content">
+                                        <p><strong>Dilemma:</strong> Advancing deepfake technology for beneficial research while minimizing misuse potential</p>
+                                        <div class="scenario-balance">
+                                            <strong>Balance Needed:</strong> Controlled research environments with strict ethical oversight
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>There is an ongoing debate about the ethical use of deepfakes in various contexts. For instance, while deepfakes can be used for legitimate purposes in entertainment and education, their potential for abuse in creating misleading or harmful content cannot be ignored. Developing robust ethical frameworks is crucial for guiding the responsible development and application of deepfake technology.</p>
+                    </div>
+                </div>
+
+                <div class="ethics-category-card tab-content" id="regulatory-efforts" style="display: none;">
+                    <div class="category-header">
+                        <div class="category-icon-container">
+                            <div class="category-icon regulatory-icon">
+                                <img src="{{ url_for('static', filename='images/regulatory-icon.png') }}" alt="Regulatory Efforts">
+                            </div>
+                        </div>
+                        <div class="category-meta">
+                            <h2>Regulatory Efforts</h2>
+                            <div class="category-details">
+                                <div class="category-status developing">Developing</div>
+                                <div class="category-complexity">Global Coordination</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="category-content">
+                        <p>Various countries are taking steps to regulate deepfake technology. These efforts aim to balance innovation with the need to protect individuals and society from potential harms.</p>
+                        
+                        <div class="global-regulatory-landscape">
+                            <h4>Global Regulatory Approaches</h4>
+                            <div class="regulatory-regions">
+                                <div class="region-card united-states">
+                                    <div class="region-header">
+                                        <div class="region-flag">🇺🇸</div>
+                                        <div class="region-info">
+                                            <strong>United States</strong>
+                                            <span class="approach-type">State-by-State</span>
+                                        </div>
+                                    </div>
+                                    <div class="region-details">
+                                        <div class="legislation-status">
+                                            <span class="status-label">Status:</span>
+                                            <span class="status-value">Multiple state laws enacted</span>
+                                        </div>
+                                        <div class="key-laws">
+                                            <div class="law-item">
+                                                <strong>California AB-602</strong>
+                                                <p>Criminalizes non-consensual deepfake pornography</p>
+                                            </div>
+                                            <div class="law-item">
+                                                <strong>Texas HB-2395</strong>
+                                                <p>Prohibits deepfakes in political campaigns</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="region-card european-union">
+                                    <div class="region-header">
+                                        <div class="region-flag">🇪🇺</div>
+                                        <div class="region-info">
+                                            <strong>European Union</strong>
+                                            <span class="approach-type">Comprehensive Framework</span>
+                                        </div>
+                                    </div>
+                                    <div class="region-details">
+                                        <div class="legislation-status">
+                                            <span class="status-label">Status:</span>
+                                            <span class="status-value">AI Act implementation</span>
+                                        </div>
+                                        <div class="key-laws">
+                                            <div class="law-item">
+                                                <strong>EU AI Act</strong>
+                                                <p>Regulates AI systems including deepfakes</p>
+                                            </div>
+                                            <div class="law-item">
+                                                <strong>GDPR Provisions</strong>
+                                                <p>Privacy protections for synthetic media</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="region-card asia-pacific">
+                                    <div class="region-header">
+                                        <div class="region-flag">🌏</div>
+                                        <div class="region-info">
+                                            <strong>Asia-Pacific</strong>
+                                            <span class="approach-type">Varied Approaches</span>
+                                        </div>
+                                    </div>
+                                    <div class="region-details">
+                                        <div class="legislation-status">
+                                            <span class="status-label">Status:</span>
+                                            <span class="status-value">Country-specific legislation</span>
+                                        </div>
+                                        <div class="key-laws">
+                                            <div class="law-item">
+                                                <strong>China's Draft Rules</strong>
+                                                <p>Strict content moderation requirements</p>
+                                            </div>
+                                            <div class="law-item">
+                                                <strong>Singapore's Framework</strong>
+                                                <p>Platform liability and detection mandates</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="regulatory-challenges">
+                            <h4>Implementation Challenges</h4>
+                            <div class="challenge-matrix">
+                                <div class="challenge-row">
+                                    <div class="challenge-category">
+                                        <div class="category-icon">🌐</div>
+                                        <strong>Cross-Border Issues</strong>
+                                    </div>
+                                    <div class="challenge-details">
+                                        <span class="challenge-point">Jurisdictional conflicts</span>
+                                        <span class="challenge-point">Enforcement difficulties</span>
+                                        <span class="challenge-point">Treaty harmonization needed</span>
+                                    </div>
+                                </div>
+                                <div class="challenge-row">
+                                    <div class="challenge-category">
+                                        <div class="category-icon">⚡</div>
+                                        <strong>Technology Pace</strong>
+                                    </div>
+                                    <div class="challenge-details">
+                                        <span class="challenge-point">Rapid advancement outpaces law</span>
+                                        <span class="challenge-point">Technical expertise gaps</span>
+                                        <span class="challenge-point">Future-proofing difficulties</span>
+                                    </div>
+                                </div>
+                                <div class="challenge-row">
+                                    <div class="challenge-category">
+                                        <div class="category-icon">⚖️</div>
+                                        <strong>Balance Requirements</strong>
+                                    </div>
+                                    <div class="challenge-details">
+                                        <span class="challenge-point">Innovation vs. protection</span>
+                                        <span class="challenge-point">Free speech considerations</span>
+                                        <span class="challenge-point">Economic impact assessment</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="future-regulatory-trends">
+                            <h4>Emerging Regulatory Trends</h4>
+                            <div class="trend-timeline-2">
+                                <div class="trend-item current">
+                                    <div class="trend-marker"></div>
+                                    <div class="trend-content-2">
+                                        <strong>Current Focus (2024-2025)</strong>
+                                        <p>Criminal law targeting malicious deepfakes</p>
+                                        <div class="trend-examples">
+                                            <span>Non-consensual intimate imagery</span>
+                                            <span>Electoral manipulation</span>
+                                            <span>Fraud prevention</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="trend-item upcoming">
+                                    <div class="trend-marker"></div>
+                                    <div class="trend-content-2">
+                                        <strong>Near-term (2025-2027)</strong>
+                                        <p>Platform liability and detection requirements</p>
+                                        <div class="trend-examples">
+                                            <span>Mandatory disclosure systems</span>
+                                            <span>Content moderation standards</span>
+                                            <span>Industry self-regulation</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="trend-item future">
+                                    <div class="trend-marker"></div>
+                                    <div class="trend-content-2">
+                                        <strong>Long-term (2027+)</strong>
+                                        <p>International harmonization and standards</p>
+                                        <div class="trend-examples">
+                                            <span>Global enforcement treaties</span>
+                                            <span>Technical standards adoption</span>
+                                            <span>AI governance integration</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>Regulatory approaches vary across different regions. Some countries are implementing strict laws that ban the creation and distribution of malicious deepfakes, while others are focusing on promoting transparency and accountability among creators and platforms. International cooperation is also being sought to address the global nature of deepfake threats.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="section tab-content" id="ethical-considerations" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/ethical-icon.png') }}" alt="Ethical Considerations">
+        <div class="educational-quicklinks">
+            <h3>Explore More Resources:</h3>
+            <div class="quicklinks-grid">
+                <a href="creation" class="quicklink-card">
+                    <div class="quicklink-icon">🛠️</div>
+                    <span>Creation of Deepfakes</span>
+                </a>
+                <a href="impact_on_society" class="quicklink-card">
+                    <div class="quicklink-icon">🌍</div>
+                    <span>Impact on Society</span>
+                </a>
+                <a href="history_of_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">📚</div>
+                    <span>History of Deepfakes</span>
+                </a>
+                <a href="future_trends" class="quicklink-card">
+                    <div class="quicklink-icon">🔮</div>
+                    <span>Future Trends</span>
+                </a>
+                <a href="case_studies" class="quicklink-card">
+                    <div class="quicklink-icon">📋</div>
+                    <span>Case Studies</span>
+                </a>
+                <a href="identify_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">🔍</div>
+                    <span>How to Identify Deepfakes</span>
+                </a>
+                <a href="protect_yourself" class="quicklink-card">
+                    <div class="quicklink-icon">🛡️</div>
+                    <span>Protect Yourself Against Deepfakes</span>
+                </a>
             </div>
-            <div class="text-container">
-                <h2>Ethical Considerations</h2>
-                <p>The ethical implications of deepfakes are vast. They raise questions about consent, identity, and the potential for harm. Ethical guidelines are essential to ensure the responsible use of deepfake technology.</p>
-                <br>
-                <p>There is an ongoing debate about the ethical use of deepfakes in various contexts. For instance, while deepfakes can be used for legitimate purposes in entertainment and education, their potential for abuse in creating misleading or harmful content cannot be ignored. Developing robust ethical frameworks is crucial for guiding the responsible development and application of deepfake technology.</p>
-            </div>
-        </div>
-
-        <div class="section tab-content" id="regulatory-efforts" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/regulatory-icon.png') }}" alt="Regulatory Efforts">
-            </div>
-            <div class="text-container">
-                <h2>Regulatory Efforts</h2>
-                <p>Various countries are taking steps to regulate deepfake technology. These efforts aim to balance innovation with the need to protect individuals and society from potential harms.</p>
-                <br>
-                <p>Regulatory approaches vary across different regions. Some countries are implementing strict laws that ban the creation and distribution of malicious deepfakes, while others are focusing on promoting transparency and accountability among creators and platforms. International cooperation is also being sought to address the global nature of deepfake threats.</p>
-            </div>
-        </div>
-        </div>
-        <div class="text-align-left educational-quicklinks">
-            <h3>View more resources:</h3>
-            <a href="creation">Creation of Deepfakes</a>
-            <div class="divider"></div>
-            <a href="impact_on_society">Impact on Society</a><div class="divider"></div>
-            <!-- <a href="legal_and_ethics">Legal and Ethics</a>
-            <div class="divider"></div> -->
-            <a href="history_of_deepfakes">History of Deepfakes</a>
-            <div class="divider"></div>
-            <a href="future_trends">Future Trends</a>
-            <div class="divider"></div>
-            <a href="case_studies">Case Studies</a>
-            <div class="divider"></div>
-            <a href="identify_deepfakes">How to Identify Deepfakes</a>
-            <div class="divider"></div>
-            <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
-            <div class="divider"></div>
         </div>
     </section>
 
     <div id="footer-placeholder"></div>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     <script src="../static/js/handle-tab.js"></script>
+
+    <style>
+        
+    </style>
 </body>
 </html>

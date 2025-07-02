@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Show first tab by default
     tabContents.forEach((content, i) => {
-        content.style.display = (i === 0) ? 'flex' : 'none';
+        content.style.display = (i === 0) ? '' : 'none';
     });
 
     tabs.forEach((tab, idx) => {
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         tabContents.forEach((content, i) => {
-            content.style.display = (tab.getAttribute('data-tab') === content.id) ? 'flex' : 'none';
+            content.style.display = (tab.getAttribute('data-tab') === content.id) ? '' : 'none';
         });
         });
     });

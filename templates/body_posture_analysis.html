@@ -4,84 +4,237 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Body Posture Analysis</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
     
-    <section id="body-posture-analysis" class="content">
-        <h1>Body Posture Analysis</h1>
-        <p class="intro-text">Body posture analysis to detect deepfakes involves examining human posture, movement patterns, and skeletal structures to identify inconsistencies that may indicate synthetic content.</p>
-        
-        <div class="section" id="how-it-works">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/how-it-works-icon.png') }}" alt="How It Works">
-            </div>
-            <div class="text-container">
-                <h2>How It Works</h2>
-                <p>Body posture analysis detects deepfakes by tracking skeletal keypoints, detecting unnatural joint movements, and evaluating hand articulation. It checks spatial-temporal alignment, body symmetry, and occlusions. The AI model classify anomalies in motion patterns, ensuring accurate deepfake detection by identifying unnatural biomechanics and pose inconsistencies across video frames.</p>
-            </div>
+    <!-- Hero Banner Section -->
+    <section class="physiological-hero">
+        <div class="hero-background">
+            <div class="floating-particles"></div>
+            <div class="pulse-waves"></div>
         </div>
-        
-        <div class="divider"></div>
-        
-        <div class="section" id="advantages">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/advantages-icon.png') }}" alt="Advantages">
+        <div class="hero-content">
+            <div class="hero-icon">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                    <!-- Human figure for body posture detection -->
+                    <!-- Head -->
+                    <circle cx="12" cy="4" r="2" stroke="#667eea" stroke-width="2" fill="url(#headGradient)"/>
+                    
+                    <!-- Body -->
+                    <line x1="12" y1="6" x2="12" y2="16" stroke="#667eea" stroke-width="2"/>
+                    
+                    <!-- Arms with posture analysis points -->
+                    <line x1="12" y1="9" x2="8" y2="12" stroke="#764ba2" stroke-width="2"/>
+                    <line x1="12" y1="9" x2="16" y2="12" stroke="#764ba2" stroke-width="2"/>
+                    <circle cx="8" cy="12" r="1" fill="#4facfe">
+                        <animate attributeName="r" values="1;1.5;1" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="16" cy="12" r="1" fill="#4facfe">
+                        <animate attributeName="r" values="1;1.5;1" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+                    </circle>
+                    
+                    <!-- Legs with posture analysis points -->
+                    <line x1="12" y1="16" x2="9" y2="21" stroke="#764ba2" stroke-width="2"/>
+                    <line x1="12" y1="16" x2="15" y2="21" stroke="#764ba2" stroke-width="2"/>
+                    <circle cx="9" cy="21" r="1" fill="#00f2fe">
+                        <animate attributeName="r" values="1;1.5;1" dur="2s" repeatCount="indefinite" begin="1s"/>
+                    </circle>
+                    <circle cx="15" cy="21" r="1" fill="#00f2fe">
+                        <animate attributeName="r" values="1;1.5;1" dur="2s" repeatCount="indefinite" begin="1.5s"/>
+                    </circle>
+                    
+                    <!-- Posture analysis grid lines -->
+                    <line x1="2" y1="9" x2="22" y2="9" stroke="#667eea" stroke-width="0.5" opacity="0.4">
+                        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="2" y1="16" x2="22" y2="16" stroke="#667eea" stroke-width="0.5" opacity="0.4">
+                        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite" begin="1s"/>
+                    </line>
+                    
+                    <!-- Central axis line -->
+                    <line x1="12" y1="2" x2="12" y2="22" stroke="#f093fb" stroke-width="0.5" opacity="0.3">
+                        <animate attributeName="opacity" values="0.1;0.5;0.1" dur="4s" repeatCount="indefinite"/>
+                    </line>
+                    
+                    <defs>
+                        <linearGradient id="headGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.9" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="pulse-indicator"></div>
             </div>
-            <div class="text-container">
-                <h2>Advantages</h2>
-                <ul>
-                    <li>Detects subtle inconsistencies in body movement, joint articulation, and spatial alignment that deepfakes struggle to replicate accurately.
-                    </li>
-                    <li>Unlike facial recognition, it remains effective even when deepfake models manipulate facial features but fail to maintain natural body kinematics.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div class="section" id="challenges">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/challenges-icon.png') }}" alt="Challenges">
-            </div>
-            <div class="text-container">
-                <h2>Challenges</h2>
-                <ul>
-                    <li>Effectiveness can be influenced by video quality and lighting conditions.</li>
-                    <li>Human body movements naturally vary due to individual differences, occlusions, and camera angles, making it difficult to define a universal baseline for detecting anomalies.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div class="section" id="applications">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/applications-icon.png') }}" alt="Applications">
-            </div>
-            <div class="text-container">
-                <h2>Applications</h2>
-                <p>It helps verify the authenticity of video footage in media, cybersecurity, and forensic investigations to combat misinformation.</p>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="section" id="try-it-out">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/try-it-out-icon.png') }}" alt="Try It Out">
-            </div>
-            <div class="text-container">
-                <h2>Try It Out</h2>
-                <a href="{{ url_for('body_posture_try') }}" class="try-button">Try Body Posture Analysis</a>
+            <h1>Body Posture Analysis</h1>
+            <p class="hero-subtitle">Detecting deepfakes through body posture and physical consistency</p>
+            <div class="scroll-indicator">
+                <div class="scroll-arrow">↓</div>
             </div>
         </div>
     </section>
+
+    <!-- Introduction Section with Visual Elements -->
+    <div class="content">
+        <!-- <div class="intro-section">
+            <div class="intro-visual">
+                <div class="signal-visualization">
+                </div>
+            </div>
+            <div class="intro-content">
+                <h2>Understanding Biological Signatures</h2>
+                <p>Physiological signal analysis revolutionizes deepfake detection by analyzing biological markers like heart rhythms. 
+                    These subtle yet crucial signals are extracted from minor color changes in the facial skin that is invisible to the naked eye, 
+                    and is difficult for deepfake generators to replicate perfectly.</p>
+                <div class="key-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">84%</span>
+                        <span class="stat-label">Model Accuracy</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">> 3s</span>
+                        <span class="stat-label">Optimal Length</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">1080p+</span>
+                        <span class="stat-label">Optimal Quality</span>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+
+        <!-- How It Works Section -->
+        <div class="methodology-section">
+            <h2 class="section-title">How the Technology Works</h2>
+            <div class="methodology-grid">
+
+                <div class="method-card">
+                    <div class="method-icon">
+                        <!-- Pose Keypoint Icon -->
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="4" r="2" stroke="#667eea" stroke-width="2"/>
+                            <line x1="12" y1="6" x2="12" y2="16" stroke="#667eea" stroke-width="2"/>
+                            <line x1="12" y1="9" x2="8" y2="12" stroke="#764ba2" stroke-width="2"/>
+                            <line x1="12" y1="9" x2="16" y2="12" stroke="#764ba2" stroke-width="2"/>
+                            <line x1="12" y1="16" x2="9" y2="21" stroke="#764ba2" stroke-width="2"/>
+                            <line x1="12" y1="16" x2="15" y2="21" stroke="#764ba2" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Pose Estimation</h3>
+                    <p>We use MediaPipe Pose to extract full-body keypoints across time. These landmarks represent skeletal posture and joint visibility from the video frames.</p>
+                    <div class="method-progress">
+                        <div class="progress-bar" style="--progress: 96%"></div>
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-icon">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 12h6l3-9 3 9h6" stroke="#667eea" stroke-width="2" fill="none"/>
+                            <circle cx="12" cy="12" r="2" fill="#667eea"/>
+                        </svg>
+                    </div>
+                    <h3>Keypoint Analysis</h3>
+                    <p>We normalize and analyze spatial patterns of joint coordinates over time, computing statistical features like mean, std, and confidence range.</p>
+                    <div class="method-progress">
+                        <div class="progress-bar" style="--progress: 89%"></div>
+                    </div>
+                </div>
+
+                <div class="method-card">
+                    <div class="method-icon">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#667eea" stroke-width="2" fill="url(#starGradient)"/>
+                            <defs>
+                                <linearGradient id="starGradient">
+                                    <stop offset="0%" style="stop-color:#f093fb;stop-opacity:0.3" />
+                                    <stop offset="100%" style="stop-color:#f5576c;stop-opacity:0.8" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h3>AI Classification</h3>
+                    <p>Our neural network analyzes posture-based features to classify videos as real or deepfake with high confidence, based on physical plausibility of body movements.</p>
+                    <div class="method-progress">
+                        <div class="progress-bar" style="--progress: 91%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advantages vs Challenges Section -->
+        <div class="comparison-section">
+            <div class="advantages-panel">
+                <h2>Key Advantages</h2>
+                <div class="advantage-list">
+                    <div class="advantage-item">
+                        <div class="advantage-icon">🧟‍♂️</div>
+                        <div class="advantage-content">
+                            <h4>Natural Movement Patterns</h4>
+                            <p>Real human posture tends to follow consistent anatomical constraints, which deepfake systems often violate.</p>
+                        </div>
+                    </div>
+                    <div class="advantage-item">
+                        <div class="advantage-icon">🔮</div>
+                        <div class="advantage-content">
+                            <h4>Model Generalization</h4>
+                            <p>Posture-based features do not rely on specific visual textures or artifacts, making them resilient across generators.</p>
+                        </div>
+                    </div>
+                    <div class="advantage-item">
+                        <div class="advantage-icon">📊</div>
+                        <div class="advantage-content">
+                            <h4>Low-Bandwidth Signals</h4>
+                            <p>Statistical posture data can be processed efficiently, requiring less bandwidth than full-frame analysis.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="challenges-panel">
+                <h2>Technical Challenges</h2>
+                <div class="challenge-list">
+                    <div class="challenge-item">
+                        <div class="challenge-icon">🎥</div>
+                        <div class="challenge-content">
+                            <h4>Pose Estimation Accuracy</h4>
+                            <p>MediaPipe Pose can struggle with occlusions, extreme angles, or blurry footage.</p>
+                        </div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="challenge-icon">🚨</div>
+                        <div class="challenge-content">
+                            <h4>Short Clips</h4>
+                            <p>Short or static videos may not provide enough motion cues to distinguish deepfakes reliably.</p>
+                        </div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="challenge-icon">⚖️</div>
+                        <div class="challenge-content">
+                            <h4>Feature Noise</h4>
+                            <p>Outlier keypoints or frame noise can introduce errors into the statistical feature extraction.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Demo Section -->
+        <div class="demo-section">
+            <div class="demo-text">
+                <h2>Try Body Posture Deepfake Detection</h2>
+                <p>Ready to test posture-based detection? Upload or record a video, and our system will analyze joint positions and movement consistency to detect deepfakes.</p>
+                <a href="{{ url_for('body_posture_try') }}" class="cta-button">
+                    <span>Try Posture Analysis</span>
+                    <div class="button-arrow">→</div>
+                </a>
+            </div>
+        </div>
+    </div>
 
     <div id="footer-placeholder"></div>
 

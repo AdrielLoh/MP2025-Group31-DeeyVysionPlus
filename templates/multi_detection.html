@@ -3,75 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Try Multi-Detection</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let form = document.getElementById("uploadForm");
-            let submitButton = form.querySelector("button[type='submit']");
-            let spinner = document.getElementById("loadingSpinner");
-    
-            form.addEventListener("submit", function(event) {
-                // Prevent default form submission
-                event.preventDefault();
-    
-                // Ensure at least one checkbox is selected
-                let selectedMethods = document.querySelectorAll("input[name='methods']:checked");
-                if (selectedMethods.length === 0) {
-                    alert("Please select at least one detection method.");
-                    return;
-                }
-    
-                // Disable submit button and show spinner
-                submitButton.disabled = true;
-                submitButton.innerText = "Processing...";
-                spinner.style.display = "block";
-    
-                // Submit the form normally
-                form.setAttribute("action", "/multi_detection");
-                form.setAttribute("method", "POST");
-                form.submit();
-            });
-        });
-    </script>
-
+    <title>Multi Detection - DeepVysion+</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
         <div id="navbar-placeholder"></div>
     </header>
+    <div class="container">
+        <div class="header">    
+            <h1 class="title">Try Multi-Detection</h1>
+            <p class="subtitle">Analyze videos using multiple detection models, all in one place. <br>(Do take note that it will take a while to run)</p>
+        </div>
 
-    <section class="content">
-        <h1>Try Multi-Detection</h1>
-       
-    <div class="centered">
-        <form id="uploadForm" method="POST" enctype="multipart/form-data">
-            <div class="checkbox-group">
-                <p><label><input type="checkbox" name="methods" value="deep_learning"> Deep Learning</label></p>
-                <p><label><input type="checkbox" name="methods" value="physiological"> Physiological Signal Analysis</label></p>
-                <p><label><input type="checkbox" name="methods" value="body_posture"> Body Posture Analysis</label></p>
-                <p><label><input type="checkbox" name="methods" value="visual_artifacts"> Visual Artifacts Detection</label></p>
-            </div>
-            <div id="dropbox" class="dropbox">
-                <p>Drag & drop a video file here, or click to select one</p>
-                <input type="file" name="file" id="file" accept="video/*" required>
-                <video id="video-preview" controls style="display: none;"></video>
-            </div>
-            <button id="submitButton" type="submit">Submit</button>
-            <div id="loadingSpinner">
-                <div class="spinner"></div>
-                <p>Processing video... Please wait.</p>
-            </div>
-    </section>
-    <footer>
-        <div id="footer-placeholder"></div>
-    </footer>
+        <div class="form-card">
+            <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                <div class="methods-section-multi">
+                    <h2 class="section-title">Select Detection Methods</h2>
+                    <div class="methods-grid-multi">
+                        <div class="method-card-multi" data-method="deep_learning">
+                            <input type="checkbox" name="methods" value="deep_learning" class="method-checkbox">
+                            <div class="method-content">
+                                <div class="method-icon-multi">🧠</div>
+                                <div class="method-info">
+                                    <h3>Deep Learning</h3>
+                                    <p>Neural network-based pattern recognition</p>
+                                </div>
+                            </div>
+                        </div>
 
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
-       
+                        <div class="method-card-multi" data-method="physiological">
+                            <input type="checkbox" name="methods" value="physiological" class="method-checkbox">
+                            <div class="method-content">
+                                <div class="method-icon-multi">💓</div>
+                                <div class="method-info">
+                                    <h3>Physiological Analysis</h3>
+                                    <p>Uses rPPG to detect abnormal physiological signals</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="method-card-multi" data-method="body_posture">
+                            <input type="checkbox" name="methods" value="body_posture" class="method-checkbox">
+                            <div class="method-content">
+                                <div class="method-icon-multi">🚶</div>
+                                <div class="method-info">
+                                    <h3>Body Posture Analysis</h3>
+                                    <p>Posture analysis to identify inconsistent body motion</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="method-card-multi" data-method="visual_artifacts">
+                            <input type="checkbox" name="methods" value="visual_artifacts" class="method-checkbox">
+                            <div class="method-content">
+                                <div class="method-icon-multi">👁️</div>
+                                <div class="method-info">
+                                    <h3>Visual Artifacts</h3>
+                                    <p>Detects inconsistent facial features and artifacts</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upload-section">
+                    <h2 class="section-title">📁 Upload Video File</h2>
+                    <div class="dropbox" id="dropbox">
+                        <div class="upload-icon">📹</div>
+                        <div class="upload-text">Drag & drop your video file here</div>
+                        <div class="upload-subtext">or click to select from your device</div>
+                        <input type="file" name="file" id="file" accept="video/*" class="file-input" required>
+                        <video id="video-preview" class="video-preview" controls></video>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitButton">
+                    Start Analysis
+                </button>
+
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner"></div>
+                    <div class="processing-text">Processing your video with AI magic... ✨</div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("uploadForm");
+            const submitButton = document.getElementById("submitButton");
+            const spinner = document.getElementById("loadingSpinner");
+            const dropbox = document.getElementById("dropbox");
+            const fileInput = document.getElementById("file");
+            const videoPreview = document.getElementById("video-preview");
+            const methodCards = document.querySelectorAll(".method-card-multi");
+
+            // Method selection handling
+            methodCards.forEach(card => {
+                card.addEventListener("click", function() {
+                    const checkbox = this.querySelector(".method-checkbox");
+                    checkbox.checked = !checkbox.checked;
+                    
+                    if (checkbox.checked) {
+                        this.classList.add("selected");
+                    } else {
+                        this.classList.remove("selected");
+                    }
+                });
+            });
+
+            // File upload handling
+            dropbox.addEventListener("click", () => fileInput.click());
+
+            dropbox.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                dropbox.classList.add("dragover");
+            });
+
+            dropbox.addEventListener("dragleave", () => {
+                dropbox.classList.remove("dragover");
+            });
+
+            dropbox.addEventListener("drop", (e) => {
+                e.preventDefault();
+                dropbox.classList.remove("dragover");
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            fileInput.addEventListener("change", (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (file.type.startsWith("video/")) {
+                    const url = URL.createObjectURL(file);
+                    videoPreview.src = url;
+                    videoPreview.style.display = "block";
+                    
+                    dropbox.style.padding = "1rem";
+                    dropbox.querySelector(".upload-icon").style.display = "none";
+                    dropbox.querySelector(".upload-text").textContent = `Selected: ${file.name}`;
+                    dropbox.querySelector(".upload-subtext").textContent = "Click to change file";
+                }
+            }
+
+            // Form submission
+            form.addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                const selectedMethods = document.querySelectorAll("input[name='methods']:checked");
+                if (selectedMethods.length === 0) {
+                    alert("🚨 Please select at least one detection method to proceed!");
+                    return;
+                }
+
+                if (!fileInput.files.length) {
+                    alert("📁 Please upload a video file!");
+                    return;
+                }
+
+                // Start processing animation
+                submitButton.disabled = true;
+                submitButton.innerHTML = "🔄 Processing...";
+                spinner.style.display = "block";
+
+                // Simulate form submission (replace with actual submission logic)
+                setTimeout(() => {
+                    form.setAttribute("action", "/multi_detection");
+                    form.setAttribute("method", "POST");
+                    form.submit();
+                }, 1000);
+            });
+        });
+    </script>
+    <script src="../static/js/scripts.js"></script>
+    <script src="../static/js/navbar.js"></script>
 </body>
 </html>
-
-

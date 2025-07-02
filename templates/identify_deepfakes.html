@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>How to Identify Deepfakes</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
 </head>
 <body>
     <header>
@@ -13,114 +13,283 @@
     </header>
 
     <div class="banner" id="identify-banner">
-        <!-- <h1>Deepfake Creation</h1> -->
+        <div class="banner-content">
+            <h1>How to Identify Deepfakes</h1>
+            <p class="intro-text">Deepfakes are becoming increasingly sophisticated, making them difficult to detect with the naked eye. However, by understanding common signs and using the right tools, you can protect yourself from being fooled. Below are some key areas to focus on when trying to identify deepfakes.</p>
+        </div>
     </div>
     
-    <section id="how-to-identify-deepfakes" class="content text-align-left educational-section">
+    <section id="how-to-identify-deepfakes" class="content educational-section">
         <div class="educational">
-        <h1>How to Identify Deepfakes</h1>
-        <p class="intro-text">Deepfakes are becoming increasingly sophisticated, making them difficult to detect with the naked eye. However, by understanding common signs and using the right tools, you can protect yourself from being fooled. Below are some key areas to focus on when trying to identify deepfakes.</p>
-        
-        <div class="tabs-container">
-            <div class="tabs">
-                <button class="tab active" data-tab="visual-clues">Visual Clues</button>
-                <button class="tab" data-tab="audio-clues">Audio Clues</button>
-                <button class="tab" data-tab="technical-tools">Technical Tools</button>
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab tab-button active" data-tab="visual-clues">
+                        <span class="tab-icon">👁️</span>
+                        <span class="tab-text">Visual Clues</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="audio-clues">
+                        <span class="tab-icon">🎧</span>
+                        <span class="tab-text">Audio Clues</span>
+                    </button>
+                    <button class="tab tab-button" data-tab="technical-tools">
+                        <span class="tab-icon">🔧</span>
+                        <span class="tab-text">Technical Tools</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="detection-container">
+                <div class="detection-method-card tab-content" id="visual-clues" style="display: none;">
+                    <div class="method-header">
+                        <div class="method-icon-edu-container">
+                            <div class="method-icon-edu visual-icon">
+                                <img src="{{ url_for('static', filename='images/visual-icon.png') }}" alt="Visual Clues">
+                            </div>
+                        </div>
+                        <div class="method-meta">
+                            <h2>Visual Clues</h2>
+                            <p>Deepfakes often have subtle visual inconsistencies that can give them away. Here are some specific things to look out for:</p>
+                        </div>
+                    </div>
+                    
+                    <div class="identify-depefake-method-content">
+                        <div class="clues-grid">
+                            <div class="clue-card lighting">
+                                <div class="clue-header">
+                                    <div class="clue-icon">💡</div>
+                                    <strong>Lighting and Shadows</strong>
+                                </div>
+                                <p>Check if the lighting on the face is consistent with the background or other parts of the video. Mismatched lighting or unnatural shadows can indicate manipulation.</p>
+                            </div>
+
+                            <div class="clue-card movements">
+                                <div class="clue-header">
+                                    <div class="clue-icon">👀</div>
+                                    <strong>Facial Movements</strong>
+                                </div>
+                                <p>Pay attention to eye movements and blinks. Deepfakes may have unnatural eye movements, or the eyes may not blink at all or blink too frequently.</p>
+                            </div>
+
+                            <div class="clue-card lipsync">
+                                <div class="clue-header">
+                                    <div class="clue-icon">💋</div>
+                                    <strong>Lip Sync Issues</strong>
+                                </div>
+                                <p>In many deepfakes, the synchronization between speech and lip movement is not perfect. If the lips don't match the words being spoken, it's a red flag.</p>
+                            </div>
+
+                            <div class="clue-card texture">
+                                <div class="clue-header">
+                                    <div class="clue-icon">👦🏻</div>
+                                    <strong>Skin Texture and Detail</strong>
+                                </div>
+                                <p>Deepfakes may lack fine details like skin texture, pores, or individual hair strands, making the face appear overly smooth or artificial.</p>
+                            </div>
+
+                            <div class="clue-card background">
+                                <div class="clue-header">
+                                    <div class="clue-icon">🖼️</div>
+                                    <strong>Background Artifacts</strong>
+                                </div>
+                                <p>Sometimes, the background may show signs of distortion, blurring, or strange artifacts around the edges of the person, especially during fast movements.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detection-method-card tab-content" id="audio-clues" style="display: none;">
+                    <div class="method-header">
+                        <div class="method-icon-edu-container">
+                            <div class="method-icon-edu audio-icon">
+                                <img src="{{ url_for('static', filename='images/audio-icon.png') }}" alt="Audio Clues">
+                            </div>
+                        </div>
+                        <div class="method-meta">
+                            <h2>Audio Clues</h2>
+                            <p>Audio is another area where deepfakes can slip up. Even if the visuals are convincing, the audio might not be. Consider the following:</p>
+                        </div>
+                    </div>
+                    
+                    <div class="identify-depefake-method-content">
+                        <div class="audio-analysis">
+                            <h4>Audio Detection Techniques</h4>
+                            <div class="audio-techniques">
+                                <div class="technique-item-identify speech">
+                                    <div class="technique-header">
+                                        <div class="technique-icon">🗣️</div>
+                                        <div class="technique-info">
+                                            <strong>Speech Patterns</strong>
+                                        </div>
+                                    </div>
+                                    <p>Listen for unnatural speech patterns, such as odd pauses, robotic intonation, or mismatched emotional tone. These can indicate synthetic audio.</p>
+                                    <div class="waveform-visual">
+                                        <div class="waveform-bars">
+                                            <div class="bar" style="height: 20%"></div>
+                                            <div class="bar" style="height: 60%"></div>
+                                            <div class="bar" style="height: 40%"></div>
+                                            <div class="bar" style="height: 80%"></div>
+                                            <div class="bar" style="height: 30%"></div>
+                                            <div class="bar" style="height: 70%"></div>
+                                            <div class="bar" style="height: 50%"></div>
+                                        </div>
+                                        <span class="waveform-label">Unnatural patterns may indicate synthesis</span>
+                                    </div>
+                                </div>
+
+                                <div class="technique-item-identify background">
+                                    <div class="technique-header">
+                                        <div class="technique-icon">🎵</div>
+                                        <div class="technique-info">
+                                            <strong>Background Noise</strong>
+                                        </div>
+                                    </div>
+                                    <p>Real videos have consistent background noise. If the background sounds abruptly change, sound distorted, or don't match the setting, the video might be altered.</p>
+                                </div>
+
+                                <div class="technique-item-identify voice">
+                                    <div class="technique-header">
+                                        <div class="technique-icon">🎤</div>
+                                        <div class="technique-info">
+                                            <strong>Voice Mismatches</strong>
+                                        </div>
+                                    </div>
+                                    <p>Sometimes, the voice in a deepfake doesn't quite match the person speaking. The pitch or tone might be slightly off, or the voice might sound too monotone.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detection-method-card tab-content" id="technical-tools" style="display: none;">
+                    <div class="method-header">
+                        <div class="method-icon-edu-container">
+                            <div class="method-icon-edu tools-icon">
+                                <img src="{{ url_for('static', filename='images/tools-icon.png') }}" alt="Technical Tools">
+                            </div>
+                        </div>
+                        <div class="method-meta">
+                            <h2>Technical Tools</h2>
+                            <p>For a more thorough analysis, you can use specialized tools and software designed to detect deepfakes. Here are some of the most effective techniques:</p>
+                        </div>
+                    </div>
+                    
+                    <div class="identify-depefake-method-content">
+                        <div class="tools-showcase">
+                            <h4>Types of Online Detection Tools</h4>
+                            <div class="tools-grid">
+                                <div class="tool-card ai-detection">
+                                    <div class="tool-header">
+                                        <div class="tool-icon">🤖</div>
+                                        <div class="tool-info">
+                                            <strong>AI-Based Detection Software</strong>
+                                        </div>
+                                    </div>
+                                    <p>Tools like <b>Sensity</b>, <b>Resemble AI</b>, and <b>Deepware</b> use machine learning algorithms to detect artifacts and patterns left by deepfake creation processes. 
+                                        These tools have free tiers and can analyze videos for deepfakes, though results may not always be perfect.</p>
+                                    <div class="tool-features">
+                                        <div class="feature">Commercial-grade Analysis</div>
+                                        <div class="feature">Batch Processing</div>
+                                        <div class="feature">API Availability</div>
+                                    </div>
+                                </div>
+
+                                <div class="tool-card reverse-search">
+                                    <div class="tool-header">
+                                        <div class="tool-icon">🔍</div>
+                                        <div class="tool-info">
+                                            <strong>Reverse Image Search</strong>
+                                        </div>
+                                    </div>
+                                    <p>Use reverse image search engines like <b>Google Images</b> or <b>TinEye</b> to see if the suspicious video or image has been used 
+                                        elsewhere, detected before, or altered from its original form.</p>
+                                    <div class="tool-features">
+                                        <div class="feature">Always Free</div>
+                                        <div class="feature">Lots of Information</div>
+                                        <div class="feature">Easy to Use</div>
+                                    </div>
+                                </div>
+
+                                <div class="tool-card metadata">
+                                    <div class="tool-header">
+                                        <div class="tool-icon">📊</div>
+                                        <div class="tool-info">
+                                            <strong>Metadata Analysis</strong>
+                                        </div>
+                                    </div>
+                                    <p>Checking the metadata of a video or image can sometimes reveal if it has been edited. 
+                                        Tools like <b>ExifTool</b> can help you examine metadata for any signs of manipulation.</p>
+                                    <div class="tool-features">
+                                        <div class="feature">Technical Analysis</div>
+                                        <div class="feature">More Challenging</div>
+                                        <div class="feature">Source Verification</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detection-workflow">
+                            <h4>Recommended Detection Workflow</h4>
+                            <div class="workflow-steps">
+                                <div class="workflow-step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <strong>Initial Visual Inspection</strong>
+                                        <p>Look for obvious visual inconsistencies and artifacts</p>
+                                    </div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <strong>Audio Analysis</strong>
+                                        <p>Check for speech patterns and background noise inconsistencies</p>
+                                    </div>
+                                </div>
+                                <div class="workflow-step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <strong>Technical Verification</strong>
+                                        <p>Use AI detection tools and metadata analysis for confirmation</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="section tab-content" id="visual-clues" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/visual-icon.png') }}" alt="Visual Clues">
+        <div class="educational-quicklinks">
+            <h3>Explore More Resources:</h3>
+            <div class="quicklinks-grid">
+                <a href="creation" class="quicklink-card">
+                    <div class="quicklink-icon">🛠️</div>
+                    <span>Creation of Deepfakes</span>
+                </a>
+                <a href="impact_on_society" class="quicklink-card">
+                    <div class="quicklink-icon">🌍</div>
+                    <span>Impact on Society</span>
+                </a>
+                <a href="legal_and_ethics" class="quicklink-card">
+                    <div class="quicklink-icon">⚖️</div>
+                    <span>Legal and Ethics</span>
+                </a>
+                <a href="history_of_deepfakes" class="quicklink-card">
+                    <div class="quicklink-icon">📚</div>
+                    <span>History of Deepfakes</span>
+                </a>
+                <a href="future_trends" class="quicklink-card">
+                    <div class="quicklink-icon">🔮</div>
+                    <span>Future Trends</span>
+                </a>
+                <a href="case_studies" class="quicklink-card">
+                    <div class="quicklink-icon">📋</div>
+                    <span>Case Studies</span>
+                </a>
+                <a href="protect_yourself" class="quicklink-card">
+                    <div class="quicklink-icon">🛡️</div>
+                    <span>Protect Yourself Against Deepfakes</span>
+                </a>
             </div>
-            <div class="text-container">
-                <h2>Visual Clues</h2>
-                <p>Deepfakes often have subtle visual inconsistencies that can give them away. Here are some specific things to look out for:</p>
-                <br>
-                <div class="highlight-box">
-                    <strong>Lighting and Shadows:</strong> Check if the lighting on the face is consistent with the background or other parts of the video. Mismatched lighting or unnatural shadows can indicate manipulation.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Facial Movements:</strong> Pay attention to eye movements and blinks. Deepfakes may have unnatural eye movements, or the eyes may not blink at all or blink too frequently.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Lip Sync Issues:</strong> In many deepfakes, the synchronization between speech and lip movement is not perfect. If the lips don't match the words being spoken, it’s a red flag.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Skin Texture and Detail:</strong> Deepfakes may lack fine details like skin texture, pores, or individual hair strands, making the face appear overly smooth or artificial.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Background Artifacts:</strong> Sometimes, the background may show signs of distortion, blurring, or strange artifacts around the edges of the person, especially during fast movements.
-                </div>
-            </div>
-        </div>
-
-        <div class="section tab-content" id="audio-clues" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/audio-icon.png') }}" alt="Audio Clues">
-            </div>
-            <div class="text-container">
-                <h2>Audio Clues</h2>
-                <p>Audio is another area where deepfakes can slip up. Even if the visuals are convincing, the audio might not be. Consider the following:</p>
-                <br>
-                <div class="highlight-box">
-                    <strong>Speech Patterns:</strong> Listen for unnatural speech patterns, such as odd pauses, robotic intonation, or mismatched emotional tone. These can indicate synthetic audio.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Background Noise:</strong> Real videos have consistent background noise. If the background sounds abruptly change, sound distorted, or don’t match the setting, the video might be altered.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Voice Mismatches:</strong> Sometimes, the voice in a deepfake doesn’t quite match the person speaking. The pitch or tone might be slightly off, or the voice might sound too monotone.
-                </div>
-            </div>
-        </div>
-
-        <div class="section tab-content" id="technical-tools" style="display: none;">
-            <div class="icon-container">
-                <img src="{{ url_for('static', filename='images/tools-icon.png') }}" alt="Technical Tools">
-            </div>
-            <div class="text-container">
-                <h2>Technical Tools</h2>
-                <p>For a more thorough analysis, you can use specialized tools and software designed to detect deepfakes. Here are some of the most effective techniques:</p>
-                <br>
-                <div class="highlight-box">
-                    <strong>AI-Based Detection Software:</strong> Tools like Sensity and Deepware use machine learning algorithms to detect subtle artifacts left by deepfake creation processes. These tools can analyze videos for inconsistencies that humans might miss.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Reverse Image Search:</strong> Use reverse image search engines like Google Images or TinEye to see if the video or image has been used elsewhere or altered from its original form.
-                </div>
-                <br>
-                <div class="highlight-box">
-                    <strong>Metadata Analysis:</strong> Checking the metadata of a video or image can sometimes reveal if it has been edited. Tools like ExifTool can help you examine metadata for any signs of manipulation.
-                </div>
-            </div>
-        </div>
-        </div>
-        <div class="text-align-left educational-quicklinks">
-            <h3>View more resources:</h3>
-            <a href="creation">Creation of Deepfakes</a>
-            <div class="divider"></div>
-            <a href="impact_on_society">Impact on Society</a>
-            <div class="divider"></div>
-            <a href="legal_and_ethics">Legal and Ethics</a>
-            <div class="divider"></div>
-            <a href="history_of_deepfakes">History of Deepfakes</a>
-            <div class="divider"></div>
-            <a href="future_trends">Future Trends</a>
-            <div class="divider"></div>
-            <a href="case_studies">Case Studies</a>
-            <div class="divider"></div>
-            <!-- <a href="identify_deepfakes">How to Identify Deepfakes</a>
-            <div class="divider"></div> -->
-            <a href="protect_yourself">Protect Yourself Against Deepfakes</a>
-            <div class="divider"></div>
         </div>
     </section>
 
