@@ -18,6 +18,7 @@
                 // Disable the button and change text
                 submitButton.disabled = true;
                 submitButton.innerText = "Processing...";
+                submitButton.classList.add("processing");
 
                 // Show the spinner
                 spinner.style.display = "block";
@@ -30,6 +31,7 @@
             });
         });
     </script>
+    <script src="../static/js/handle-upload.js"></script>
 </head>
 <body>
     <header>
@@ -109,7 +111,7 @@
                         </div>
                         <div class="loading-text">
                             <h4>Processing video...</h4>
-                            <p>Analyzing physiological signals. Please wait.</p>
+                            <p>Analyzing physiological signals... Please <b>Do not</b> refresh or leave this page!</p>
                         </div>
                     </div>
                 </form>
@@ -163,7 +165,7 @@
                         </div>
                         <div class="loading-text">
                             <h4>Processing live video...</h4>
-                            <p>Analyzing real-time physiological signals.</p>
+                            <p>Analyzing real-time physiological signals... Please <b>Do not</b> refresh or leave this page!</p>
                         </div>
                     </div>
                 </div>

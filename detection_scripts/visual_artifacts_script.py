@@ -126,9 +126,9 @@ def extract_features(image, net, box, landmarks, fixed_length=4096):
         logging.error(f"Error extracting features: {e}")
         return None, None, None
 
-def plot_face_metrics(metrics, output_dir, track_id):
+def plot_face_metrics(metrics, output_dir, track_id, uid):
     os.makedirs(output_dir, exist_ok=True)
-    base = f"face_{track_id}_{uuid.uuid4().hex[:8]}"
+    base = f"face_{track_id}_{uid}"
     chart_paths = []
     # 1. Prediction Timeline
     plt.figure(figsize=(10, 4))
@@ -188,13 +188,14 @@ def plot_face_metrics(metrics, output_dir, track_id):
     chart_paths.append(bar_path)
     return chart_paths
 
-def run_visual_artifacts_detection(video_path, output_dir='static/results', min_frames=5):
+def run_visual_artifacts_detection(video_path, video_tag, output_dir='static/results', min_frames=5):
     os.makedirs(output_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     width, height = int(cap.get(3)), int(cap.get(4))
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    output_video_path = os.path.join(output_dir, 'visual_artifacts_overlay.mp4')
+    unique_tag = video_tag
+    output_video_path = os.path.join(output_dir, f'visual_artifacts_overlay_{unique_tag}.mp4')
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
     all_face_boxes = []
     frame_landmarks = []
@@ -269,7 +270,7 @@ def run_visual_artifacts_detection(video_path, output_dir='static/results', min_
             cv2.putText(frame, label_txt, (x, y - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
             cv2.putText(frame, f"ID:{track_id}", (x, y + h + 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
             frame_buffer[frame_idx] = frame
-        chart_paths = plot_face_metrics(metrics, output_dir, track_id)
+        chart_paths = plot_face_metrics(metrics, output_dir, track_id, video_tag)
         real_count = metrics['labels'].count(1)
         fake_count = metrics['labels'].count(0)
         avg_conf = round(100 * (sum(metrics['confidences']) / len(metrics['confidences'])), 1)
@@ -286,13 +287,19 @@ def run_visual_artifacts_detection(video_path, output_dir='static/results', min_
         out.write(frame)
     out.release()
     # ffmpeg fix for browser
-    fixed_path = output_video_path.replace('.mp4', '_fixed.mp4')
+    fixed_path = output_video_path.replace('.mp4', f'_fixed_{unique_tag}.mp4')
     subprocess.run([
         'ffmpeg', '-y', '-i', output_video_path,
         '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
         fixed_path
     ])
+
     if os.path.exists(output_video_path):
         os.remove(output_video_path)
     output_video_path = fixed_path
+
+    # Clean up uploads folder
+    if os.path.exists(video_path):
+        os.remove(video_path)
+    
     return face_results, output_video_path

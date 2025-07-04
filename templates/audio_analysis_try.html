@@ -6,6 +6,13 @@
     <title>Try Audio Analysis</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
+    <style>
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+    </style>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             let form = document.getElementById("upload-form");
@@ -58,8 +65,7 @@
                 </svg>
                 <div class="pulse-indicator"></div>
             </div>
-            <h1>Try Audio Analysis
-            </h1>
+            <h1>Try Audio Analysis</h1>
             <p class="hero-description">This physiological signal detection analyzes heart rate patterns and subtle facial color changes using Remote Photoplethysmography.
                  Results may vary based on video quality and lighting conditions, and should not be taken as the complete truth.</p>
         </div>
@@ -92,7 +98,7 @@
                             <p>or click to browse files</p>
                             <span class="file-types">MP3, WAV, FLAC, OGG, MP4, MOV supported</span>
                         </div>
-                        <input type="file" name="file" id="file" accept="audio/*" required>
+                        <input type="file" name="file" id="file" accept="audio/*,video/*" required>
                         <video id="audio-preview" controls style="display: none;"></video>
                     </div>
                     <button type="submit" id="submitButton" class="analyze-button">
@@ -112,11 +118,13 @@
                         </div>
                         <div class="loading-text">
                             <h4>Processing audio...</h4>
-                            <p>Analyzing audio features. Please wait.</p>
+                            <p>Analyzing audio features... Please <b>Do not</b> refresh or leave this page!</p>
                         </div>
                     </div>
                 </form>
             </div>
+
+            <!-- Live Microphone Recording Method -->
             <div class="detection-method">
                 <div class="method-header">
                     <div class="method-icon-try">
@@ -129,13 +137,75 @@
                         <p class="method-description">Use your microphone to record real-time audio, and analyze it instantly.</p>
                     </div>
                 </div>
-                <form action="{{ url_for('start_real_time_audio_analysis') }}" method="POST">
-                    <button id="real-time-button" class="analyze-button start-btn" type="submit">
-                        <span>Start Recording</span>
-                        <div class="record-indicator"></div>
-                    </button>
+                
+                <div class="live-audio-controls">
+                    <div class="microphone-selection">
+                        <label for="audioSource">Select Microphone:</label>
+                        <select id="audioSource"></select>
+                    </div>
+                    
+                    <div class="volume-meter-container">
+                        <div id="audio-preview-placeholder" class="audio-preview-placeholder">
+                            <div class="microphone-icon">🎤</div>
+                            <p>Audio levels will appear here</p>
+                        </div>
+                        <div id="volume-meter" class="volume-meter" style="display: none;">
+                            <div class="volume-bars">
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                                <div class="volume-bar"></div>
+                            </div>
+                        </div>
+                        <div class="volume-level-text">
+                            <span id="volume-level">Volume: 0%</span>
+                            <div id="recording-timer" class="recording-timer" style="display: none;">00:00</div>
+                        </div>
+                    </div>
+                    
+                    <div class="audio-buttons">
+                        <button id="startAudioBtn" class="audio-button start-btn">
+                            <span>Start Recording</span>
+                            <div class="record-indicator"></div>
+                        </button>
+                        <button id="stopAudioBtn" class="audio-button stop-btn" disabled>
+                            <span>Stop & Analyze</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="red">
+                                <rect x="6" y="6" width="12" height="12" stroke="red" stroke-width="2"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="audioSpinner" class="audio-loading">
+                        <div class="spinner-container">
+                            <div class="spinner"></div>
+                        </div>
+                        <div class="loading-text">
+                            <h4>Processing live audio...</h4>
+                            <p>Analyzing real-time audio signals... Please <b>Do not</b> refresh or leave this page!</p>
+                        </div>
+                    </div>
+                </div>
+                <form id="audioUploadForm" class="audio-upload-form" method="POST" enctype="multipart/form-data" action="/audio_analysis">
+                    <input type="file" name="file" id="audioFileInput" style="display: none;">
+                    <button type="submit" class="audio-upload-button">ANALYZE RECORDING</button>
                 </form>
-                <audio id="recorded-audio" controls style="display: none;"></audio>
             </div>
         </div>
     </section>
@@ -143,16 +213,7 @@
         <div id="footer-placeholder"></div>
     </footer>
 
-    <!-- Modal for real-time recording -->
-    <div id="recording-modal" class="modal">
-        <div class="modal-content">
-            <span id="modal-close-button" class="close">&times;</span>
-            <div id="countdown">3</div>
-            <div class="volume-meter" id="volume-meter"></div>
-            <button onclick="stopRecording()">Stop Recording</button>
-        </div>
-    </div>
-
+    <script src="../static/js/audio-recording.js"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 </html>

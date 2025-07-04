@@ -152,7 +152,7 @@ def predict_deepfake(features_csv):
 
     
 # === Full Video Processing Pipeline ===
-def detect_body_posture(video_path):
+def detect_body_posture(video_path, unique_tag):
     """Process the video, extract keypoints, preprocess them, extract features, and predict deepfake."""
     
     # Step 1: Extract Keypoints
@@ -173,6 +173,10 @@ def detect_body_posture(video_path):
     # Step 4: Run Prediction
     result, confidence = predict_deepfake(features_csv)
 
+    # Clean up uploads folder
+    if os.path.exists(video_path):
+        os.remove(video_path)
+        
     return {
         "prediction": result,
         "confidence": confidence,

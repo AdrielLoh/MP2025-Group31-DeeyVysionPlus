@@ -33,6 +33,7 @@ document.getElementById('startWebcamBtn').onclick = async function() {
     document.getElementById('webcam-preview').style = "";
     document.getElementById('stopWebcamBtn').disabled = false;
     document.getElementById('startWebcamBtn').disabled = true;
+    document.getElementsByClassName('preview-placeholder')[0].style.display = "none";
 
     recordedChunks = [];
     mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });

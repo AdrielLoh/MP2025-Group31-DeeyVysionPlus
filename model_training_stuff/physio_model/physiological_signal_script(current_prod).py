@@ -109,7 +109,7 @@ def butter_bandpass_filter(signal, fs, lowcut=0.7, highcut=4.0, order=3):
         return np.zeros_like(signal)
     return filtfilt(b, a, signal)
 
-def plot_rppg_analysis(rppg_sig, f, pxx, real_count, fake_count, save_dir, track_id, hr_history=None, band_power_features=None, fps=30):
+def plot_rppg_analysis(rppg_sig, f, pxx, real_count, fake_count, save_dir, track_id, uid, hr_history=None, band_power_features=None, fps=30):
     """
     Enhanced plotting function that generates 6 plots:
     1. rPPG Signal
@@ -120,7 +120,7 @@ def plot_rppg_analysis(rppg_sig, f, pxx, real_count, fake_count, save_dir, track
     6. Band-Power Ratios bar chart
     """
     os.makedirs(save_dir, exist_ok=True)
-    plot_id = f"face_{track_id}_{uuid.uuid4().hex[:8]}"
+    plot_id = f"face_{track_id}_{uid}"
     
     # 1. rPPG Signal Plot
     plt.figure(figsize=(10, 6))
@@ -560,10 +560,10 @@ def get_video_fps(cap):
         fps = 30
     return fps
 
-def run_detection(source, video_tag, output_path=f'static/results/output.mp4', is_webcam=False):
+def run_detection(video_path, video_tag, output_path=f'static/results/physio_output.mp4'):
     tracker = FaceTracker(iou_thresh=0.5, max_lost_frames=30)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    cap = cv2.VideoCapture(0 if is_webcam else source)
+    cap = cv2.VideoCapture(video_path)
     fps = get_video_fps(cap)
     width, height = int(cap.get(3)), int(cap.get(4))
     try:
@@ -622,7 +622,7 @@ def run_detection(source, video_tag, output_path=f'static/results/output.mp4', i
     cap.release()
     out.release()
     time.sleep(0.2)  # Short pause to ensure file is closed
-    fixed_output_path = output_path.replace('.mp4', f'_fixed{video_tag}.mp4')
+    fixed_output_path = output_path.replace('.mp4', f'_fixed_{video_tag}.mp4')
     subprocess.run([
         'ffmpeg', '-y', '-i', output_path,
         '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
@@ -654,6 +654,7 @@ def run_detection(source, video_tag, output_path=f'static/results/output.mp4', i
                 rppg_sig, f, pxx, n_real, n_fake, 
                 save_dir=os.path.dirname(output_path), 
                 track_id=track_id,
+                uid=video_tag,
                 hr_history=face_hr_history[track_id],
                 band_power_features=band_power_features,
                 fps=fps
@@ -682,5 +683,9 @@ def run_detection(source, video_tag, output_path=f'static/results/output.mp4', i
             'hr_dist_plot': hr_dist_plot,
             'band_power_plot': band_power_plot
         })
+
+        # Clean up uploads folder
+        if os.path.exists(video_path):
+            os.remove(video_path)
 
     return face_results, output_path

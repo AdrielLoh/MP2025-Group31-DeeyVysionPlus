@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const uploadForm = document.getElementById('upload-form');
 
     if (dropbox && fileInput && audioPreview && uploadForm) {
-        dropbox.addEventListener('click', () => fileInput.click());
+        // dropbox.addEventListener('click', () => fileInput.click());
 
         dropbox.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -191,145 +191,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 fileInput.focus();
             }
         });
-    }
-
-    // Real-Time Audio Recording
-    let mediaRecorder;
-    let audioChunks = [];
-
-    const realTimeButton = document.getElementById('real-time-button');
-    if (realTimeButton) {
-        realTimeButton.addEventListener('click', openRecordingModal);
-    }
-
-    function openRecordingModal() {
-        const modal = document.getElementById("recording-modal");
-        if (modal) {
-            modal.style.display = "block";
-            startRecording();
-        }
-    }
-
-    function closeRecordingModal() {
-        const modal = document.getElementById("recording-modal");
-        if (modal) {
-            modal.style.display = "none";
-        }
-    }
-
-    function startRecording() {
-        const countdown = document.getElementById("countdown");
-        const volumeMeter = document.getElementById("volume-meter");
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.start();
-
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioContext.createMediaStreamSource(stream);
-                const analyser = audioContext.createAnalyser();
-                source.connect(analyser);
-
-                const dataArray = new Uint8Array(analyser.fftSize);
-                analyser.getByteTimeDomainData(dataArray);
-
-                const updateVolumeMeter = () => {
-                    analyser.getByteTimeDomainData(dataArray);
-                    const normalizedValue = Math.max(...dataArray) / 128 - 1;
-                    const volumePercentage = Math.min(Math.max(normalizedValue, 0), 1) * 100;
-                    volumeMeter.style.width = `${volumePercentage}%`;
-
-                    if (volumePercentage > 66) {
-                        volumeMeter.style.backgroundColor = 'red';
-                    } else if (volumePercentage > 33) {
-                        volumeMeter.style.backgroundColor = 'yellow';
-                    } else {
-                        volumeMeter.style.backgroundColor = 'green';
-                    }
-
-                    requestAnimationFrame(updateVolumeMeter);
-                };
-
-                updateVolumeMeter();
-
-                let count = 3; // Countdown duration set to 3 seconds
-                const countdownInterval = setInterval(() => {
-                    countdown.textContent = count;
-                    if (count === 0) {
-                        clearInterval(countdownInterval);
-                        mediaRecorder.stop();
-                        closeRecordingModal();
-                    }
-                    count--;
-                }, 1000);
-
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audio = document.getElementById('recorded-audio');
-                    if (audio) {
-                        audio.src = audioUrl;
-                        audio.style.display = 'block';
-                        uploadAudio(audioBlob);
-                    }
-                };
-            });
-    }
-
-    function uploadAudio(audioBlob) {
-        const formData = new FormData();
-        formData.append('file', audioBlob, 'recorded_audio.wav');
-
-        fetch('/start_real_time_audio_analysis', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(html => {
-            document.body.innerHTML = html;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            const realTimeDetectionResult = document.getElementById('real-time-detection-result');
-            if (realTimeDetectionResult) {
-                realTimeDetectionResult.textContent = "Error in detection.";
-            }
-        });
-    }
-
-    const modalCloseButton = document.getElementById("modal-close-button");
-    if (modalCloseButton) {
-        modalCloseButton.addEventListener("click", closeRecordingModal);
-    }
-    
+    }    
 });
-
-// function deleteFilesAndGoBack() {
-//     fetch('/delete_files', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//     })
-//     .then(response => {
-//         if (!response.ok) {
-//             throw new Error('Network response was not ok');
-//         }
-//         window.history.back();
-//     })
-//     .catch(error => {
-//         console.error('Error:', error);
-//     });
-// }
 
 function deleteFilesAndGoBack() {
     window.history.back();

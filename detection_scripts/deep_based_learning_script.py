@@ -33,6 +33,7 @@ def detect_faces_dnn(frame):
             faces.append((startX, startY, endX - startX, endY - startY))
     return faces
 
+###### This live detection is already redundant for new website, but can leave it for future reference ######
 def live_detection(output_folder):
     cap = cv2.VideoCapture(0)  # 0 for default camera
     real_frame_count = 0
@@ -97,7 +98,7 @@ def live_detection(output_folder):
 
     return overall_result, real_frame_count, fake_frame_count
 
-def static_video_detection(video_path, output_folder):
+def static_video_detection(video_path, output_folder, unique_tag):
     """Performs deepfake detection on an uploaded video."""
     cap = cv2.VideoCapture(video_path)
     real_frame_count = 0
@@ -143,13 +144,17 @@ def static_video_detection(video_path, output_folder):
     overall_result = "Fake" if fake_frame_count > real_frame_count else "Real"
 
     # Generate and save graphs
-    plot_and_save_graphs(score_list, real_frame_count, fake_frame_count, output_folder)
+    rvf_plot, conf_plot = plot_and_save_graphs(score_list, real_frame_count, fake_frame_count, output_folder, unique_tag)
+    
+    # Clean up uploads folder
+    if os.path.exists(video_path):
+        os.remove(video_path)
 
-    return overall_result, real_frame_count, fake_frame_count
+    return overall_result, real_frame_count, fake_frame_count, rvf_plot, conf_plot
 
 
 # Function to plot and save individual graphs
-def plot_and_save_graphs(score_list, real_count, fake_count, output_folder):
+def plot_and_save_graphs(score_list, real_count, fake_count, output_folder, unique_tag):
 
     if not os.path.exists(output_folder):
         os.makedirs(output_folder) 
@@ -160,7 +165,8 @@ def plot_and_save_graphs(score_list, real_count, fake_count, output_folder):
     plt.xlabel('Frame Type')
     plt.ylabel('Count')
     plt.tight_layout()
-    plt.savefig(os.path.join(output_folder, 'frames_real_vs_fake.png'))
+    real_v_fake_plot_path = os.path.join(output_folder, f'deeplearning_real_vs_fake_{unique_tag}.png')
+    plt.savefig(real_v_fake_plot_path)
     plt.clf()
 
     # Plot "Confidence Score Over Time"
@@ -170,5 +176,7 @@ def plot_and_save_graphs(score_list, real_count, fake_count, output_folder):
     plt.xlabel('Frame Number')
     plt.ylabel('Confidence Score')
     plt.tight_layout()
-    plt.savefig(os.path.join(output_folder, 'confidence_score.png'))
+    conf_plot_path = os.path.join(output_folder, f'deeplearning_confidence_score_{unique_tag}.png')
+    plt.savefig(conf_plot_path)
     plt.clf()
+    return real_v_fake_plot_path, conf_plot_path

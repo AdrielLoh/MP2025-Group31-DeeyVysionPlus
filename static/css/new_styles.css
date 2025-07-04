@@ -5697,7 +5697,7 @@ Identify Deepfakes Page Specific Styles
 .step-content p {
     color: var(--text-secondary);
     line-height: 1.6;
-    font-size: 1.1rem;
+    font-size: 1.07rem;
 }
 
 .clue-card p {
@@ -5947,6 +5947,202 @@ Identify Deepfakes Page Specific Styles
 @keyframes waveform-pulse {
     0%, 100% { transform: scaleY(1); }
     50% { transform: scaleY(1.5); }
+}
+
+/* Volume Meter Styles */
+.volume-meter-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.volume-meter {
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.volume-bars {
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    height: 100%;
+    padding: 10px;
+    gap: 3px;
+}
+
+.volume-bar {
+    width: 8px;
+    background: linear-gradient(to top, #00ff88, #00cc6a, #ff6b6b);
+    border-radius: 4px;
+    transition: height 0.1s ease;
+    opacity: 0.3;
+}
+
+.volume-bar.active {
+    opacity: 1;
+}
+
+.volume-bar:nth-child(1), .volume-bar:nth-child(20) { height: 20%; }
+.volume-bar:nth-child(2), .volume-bar:nth-child(19) { height: 25%; }
+.volume-bar:nth-child(3), .volume-bar:nth-child(18) { height: 30%; }
+.volume-bar:nth-child(4), .volume-bar:nth-child(17) { height: 35%; }
+.volume-bar:nth-child(5), .volume-bar:nth-child(16) { height: 40%; }
+.volume-bar:nth-child(6), .volume-bar:nth-child(15) { height: 45%; }
+.volume-bar:nth-child(7), .volume-bar:nth-child(14) { height: 50%; }
+.volume-bar:nth-child(8), .volume-bar:nth-child(13) { height: 60%; }
+.volume-bar:nth-child(9), .volume-bar:nth-child(12) { height: 70%; }
+.volume-bar:nth-child(10), .volume-bar:nth-child(11) { height: 80%; }
+
+.volume-level-text {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.microphone-selection {
+    margin-bottom: 20px;
+}
+
+.microphone-selection label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.microphone-selection select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+}
+
+.microphone-selection select option {
+    background: #2a2a2a;
+    color: white;
+}
+
+.live-audio-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.audio-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.audio-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.audio-button.start-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.audio-button.start-btn:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a4190);
+    transform: translateY(-2px);
+}
+
+.audio-button.stop-btn {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+    color: white;
+}
+
+.audio-button.stop-btn:hover {
+    background: linear-gradient(135deg, #ff5252, #e53e3e);
+    transform: translateY(-2px);
+}
+
+.audio-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.record-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff4757;
+    animation: pulse 1s infinite;
+}
+
+.audio-loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.audio-upload-form {
+    display: none;
+    margin-top: 20px;
+}
+
+.audio-upload-button {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.audio-upload-button:hover {
+    background: linear-gradient(135deg, #3d8bfe, #00d4fe);
+    transform: translateY(-2px);
+}
+
+.audio-preview-placeholder {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.6);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.microphone-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.recording-timer {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ff4757;
+    margin-top: 10px;
 }
 
 /* Responsive Design */
@@ -8060,19 +8256,19 @@ Protect Yourself Page Specific Styles
 }
 
 /* Shared Icon Styles */
-.method-icon,
+.method-icon-protect,
 .layer-icon,
 .section-icon,
 .category-icon {
     font-size: 2rem;
     width: 50px;
     height: 50px;
-    background: var(--primary-gradient);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    background: var(--card-bg);
 }
 
 .authority-logo {
@@ -8174,7 +8370,7 @@ Protect Yourself Page Specific Styles
     display: block;
     margin-bottom: 0.8rem;
     color: var(--text-primary);
-    font-size: 1rem;
+    font-size: 1.2rem;
 }
 
 .source-list,
@@ -8528,7 +8724,7 @@ Protect Yourself Page Specific Styles
     background: rgba(255, 255, 255, 0.05);
     padding: 0.3rem 0.8rem;
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--text-secondary);
 }
 

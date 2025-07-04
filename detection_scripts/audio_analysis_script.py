@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import logging
 from moviepy.video.io.VideoFileClip import VideoFileClip
+import uuid
 
 SAMPLE_RATE = 16000
 DURATION = 5
@@ -73,7 +74,7 @@ def save_feature_plot(feature, title, file_path, y_axis='linear'):
     finally:
         plt.close()
 
-def predict_audio(file_path, output_folder):
+def predict_audio(file_path, output_folder, unique_tag):
     if file_path.endswith('.wav') or file_path.endswith('.mp3') or file_path.endswith('.flac') or file_path.endswith('.opus'):
         y, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True, duration=DURATION)
         y = normalize_volume(y)
@@ -81,7 +82,9 @@ def predict_audio(file_path, output_folder):
     elif file_path.endswith('.mp4') or file_path.endswith('.mov'):
         video_clip = VideoFileClip(file_path)
         audio_clip = video_clip.audio
-        saved_audio = "static/uploads/separated_audio.mp3"
+        unique_tag = uuid.uuid4().hex
+        saved_audio = f"static/uploads/separated_audio_{unique_tag}.mp3"
+        file_path = saved_audio
         audio_clip.write_audiofile(saved_audio)
         audio_clip.close()
         video_clip.close()
@@ -103,11 +106,11 @@ def predict_audio(file_path, output_folder):
 
     # Save visualizations
     plots = {
-        'mel_spectrogram.png': (mel_db, 'Mel Spectrogram', 'mel'),
-        'mfcc.png': (mfcc, 'MFCC', 'linear'),
-        'delta_mfcc.png': (delta, 'Delta MFCC', 'linear'),
-        'f0.png': (f0, 'Fundamental Frequency (F0)', None),
-        'energy.png': (energy, 'Energy', None)
+        f'mel_spectrogram_{unique_tag}.png': (mel_db, 'Mel Spectrogram', 'mel'),
+        f'mfcc_{unique_tag}.png': (mfcc, 'MFCC', 'linear'),
+        f'delta_mfcc_{unique_tag}.png': (delta, 'Delta MFCC', 'linear'),
+        f'f0_{unique_tag}.png': (f0, 'Fundamental Frequency (F0)', None),
+        f'energy_{unique_tag}.png': (energy, 'Energy', None)
     }
 
     relative_paths = {}
@@ -115,19 +118,9 @@ def predict_audio(file_path, output_folder):
         plot_path = os.path.join(output_folder, filename)
         save_feature_plot(data, title, plot_path, y_axis=y_axis if y_axis else 'linear')
         relative_paths[filename] = os.path.relpath(plot_path, 'static').replace("\\", "/")
-
-    return prediction_class, relative_paths['mel_spectrogram.png'], relative_paths['mfcc.png'], relative_paths['delta_mfcc.png'], relative_paths['f0.png'], pred_prob
-
-def predict_real_time_audio(output_folder):
-    import sounddevice as sd
-    from scipy.io.wavfile import write
-    audio_output_folder = 'static/uploads'
-
-    logging.debug("Recording audio for real-time analysis...")
-    recording = sd.rec(int(SAMPLE_RATE * DURATION), samplerate=SAMPLE_RATE, channels=1)
-    sd.wait()
-    logging.debug("Recording finished.")
-
-    audio_path = os.path.join(audio_output_folder, 'real_time_audio.wav')
-    write(audio_path, SAMPLE_RATE, recording)
-    return predict_audio(audio_path, output_folder)
+    
+    # Clean up uploads folder
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        
+    return prediction_class, relative_paths[f'mel_spectrogram_{unique_tag}.png'], relative_paths[f'mfcc_{unique_tag}.png'], relative_paths[f'delta_mfcc_{unique_tag}.png'], relative_paths[f'f0_{unique_tag}.png'], pred_prob, file_path

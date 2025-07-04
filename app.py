@@ -1,29 +1,20 @@
 from flask import Flask, render_template, request, jsonify, url_for
 import os
 import logging
-import json
 import subprocess
-import random
+import uuid
+from werkzeug.utils import secure_filename
+import json
 
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
 from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
 from detection_scripts.physiological_signal_script import run_detection
-from detection_scripts.audio_analysis_script import predict_audio, predict_real_time_audio
+from detection_scripts.audio_analysis_script import predict_audio
 from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
 from detection_scripts.body_posture_script import detect_body_posture, body_posture_live_detection
 
-def convert_webm_to_mp4(webm_path, mp4_path, target_fps=30):
-    cmd = [
-        'ffmpeg', '-y', '-i', webm_path,
-        '-r', str(target_fps),
-        '-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p',
-        mp4_path
-    ]
-    subprocess.run(cmd, check=True)
-
 app = Flask(__name__)
-import os
 
 # Dynamically get the absolute path to the 'static/uploads/' directory
 upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
@@ -33,6 +24,41 @@ app.config['UPLOAD_FOLDER'] = upload_folder
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
+def get_video_fps(video_path, default_fps=30):
+    """
+    Returns the framerate (as a float) of the given video file using ffprobe.
+    If detection fails, returns default_fps.
+    """
+    import subprocess, json
+    cmd = [
+        'ffprobe',
+        '-v', 'error',
+        '-select_streams', 'v:0',
+        '-print_format', 'json',
+        '-show_entries', 'stream=avg_frame_rate',
+        video_path
+    ]
+    try:
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        info = json.loads(result.stdout)
+        fps_str = info['streams'][0]['avg_frame_rate']
+        num, denom = map(int, fps_str.split('/'))
+        fps = num / denom if denom != 0 else 0
+        if fps == 0:
+            return default_fps
+        return fps
+    except Exception:
+        return default_fps
+
+def convert_webm_to_mp4(original_path, mp4_path):
+    fps = get_video_fps(original_path)
+    cmd = [
+        'ffmpeg', '-y', '-i', original_path,
+        '-r', str(fps),  # use detected FPS
+        '-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p',
+        mp4_path
+    ]
+    subprocess.run(cmd, check=True)
 
 @app.route('/')
 def index():
@@ -154,25 +180,30 @@ def physiological_signal_analysis():
 @app.route('/physiological_signal_try', methods=['GET', 'POST'])
 def physiological_signal_try():
     output_folder = 'static/results'
-    video_tag = random.randint(0, 10000)
     os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
         file = request.files['file']
         if file:
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            # Making the uploaded videos uniquely named
+            video_tag = uuid.uuid4().hex
+            name, ext = os.path.splitext(file.filename)
+            new_file_name = video_tag + ext
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
 
-            # If it's a webm, convert to mp4 for better compatibility
-            if filename.lower().endswith('.webm'):
+            # convert to mp4 for better compatibility
+            if not filename.lower().endswith('.mp4'):
                 mp4_path = os.path.splitext(filename)[0] + '.mp4'
                 convert_webm_to_mp4(filename, mp4_path)
                 video_path_for_processing = mp4_path
+                if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+                    os.remove(filename)
             else:
                 video_path_for_processing = filename
                 mp4_path = ""
 
             # Process the video (run_detection expects video path)
-            face_results, output_video = run_detection(video_path_for_processing, video_tag=video_tag, is_webcam=False)
+            face_results, output_video = run_detection(video_path_for_processing, video_tag=video_tag)
             if os.path.exists(filename):
                 os.remove(filename)
             if os.path.exists(mp4_path):
@@ -215,13 +246,28 @@ def deep_learning_static():
         return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files['file']
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+    # Making the uploaded videos uniquely named
+    video_tag = uuid.uuid4().hex
+    name, ext = os.path.splitext(file.filename)
+    new_file_name = video_tag + ext
+    filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
     file.save(filename)
 
-    output_folder = "static/results/"
-    result, real_count, fake_count = deep_learning_static_detection(filename, output_folder)
+    # convert to mp4 for better compatibility
+    if not filename.lower().endswith('.mp4'):
+        mp4_path = os.path.splitext(filename)[0] + '.mp4'
+        convert_webm_to_mp4(filename, mp4_path)
+        video_path_for_processing = mp4_path
+        if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+            os.remove(filename)
+    else:
+        video_path_for_processing = filename
+        mp4_path = ""
 
-    return render_template('result.html', analysis_type='deep_learning_static', result=result, real_count=real_count, fake_count=fake_count)
+    output_folder = "static/results/"
+    result, real_count, fake_count, rvf_plot, conf_plot = deep_learning_static_detection(video_path_for_processing, output_folder, video_tag)
+
+    return render_template('result.html', analysis_type='deep_learning_static', result=result, real_count=real_count, fake_count=fake_count, rvf_plot=rvf_plot, conf_plot=conf_plot)
 
 
 @app.route('/visual_artifacts_static', methods=['GET', 'POST'])
@@ -229,9 +275,25 @@ def visual_artifacts_static():
     if request.method == 'POST':
         file = request.files['file']
         if file:
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            # Making the uploaded videos uniquely named
+            video_tag = uuid.uuid4().hex
+            name, ext = os.path.splitext(file.filename)
+            new_file_name = video_tag + ext
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
-            face_results, output_video = visual_artifacts_static_detection(filename, output_dir='static/results')
+
+            # convert to mp4 for better compatibility
+            if not filename.lower().endswith('.mp4'):
+                mp4_path = os.path.splitext(filename)[0] + '.mp4'
+                convert_webm_to_mp4(filename, mp4_path)
+                video_path_for_processing = mp4_path
+                if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+                    os.remove(filename)
+            else:
+                video_path_for_processing = filename
+                mp4_path = ""
+
+            face_results, output_video = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir='static/results')
             if os.path.exists(filename):
                 os.remove(filename)
             return render_template(
@@ -248,53 +310,31 @@ def audio_analysis():
         file = request.files['file']
         output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
         os.makedirs(output_folder, exist_ok=True)
-        if file:
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        
+        if file and file.filename:
+            # Get the file extension
+            original_filename = secure_filename(file.filename)
+            file_extension = os.path.splitext(original_filename)[1]
+            
+            # Generate random filename with original extension
+            unique_tag = uuid.uuid4().hex
+            random_filename = f"{unique_tag}{file_extension}"
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], random_filename)
+            
             file.save(filename)
-            logging.debug(f"File saved: {filename}")
             
-            prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value = predict_audio(filename, output_folder)
+            prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value, uploaded_audio = predict_audio(filename, output_folder, unique_tag)
             result = "Spoof" if prediction_class == 1 else "Bonafide"
-            logging.debug(f"Prediction: {result}, Mel Spectrogram Path: {mel_spectrogram_path}")
             
             return render_template('result.html', analysis_type='audio', result=result, 
                                    mel_spectrogram_path=mel_spectrogram_path, 
                                    mfcc_path=mfcc_path,
                                    delta_path=delta_path,
                                    f0_path=f0_path,
-                                   prediction_value=round(prediction_value*100))
+                                   prediction_value=round(prediction_value*100),
+                                   uploaded_audio=uploaded_audio)
+    
     return render_template('audio_analysis_try.html')
-
-@app.route('/start_real_time_audio_analysis', methods=['POST'])
-def start_real_time_audio_analysis():
-    try:
-        output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
-        os.makedirs(output_folder, exist_ok=True)
-        
-        prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value = predict_real_time_audio(output_folder)
-        result = "Spoof" if prediction_class == 1 else "Bonafide"
-        logging.debug(f"Real-time Prediction: {result}, Mel Spectrogram Path: {mel_spectrogram_path}")
-        
-        if prediction_class is not None:
-            return render_template('result.html', analysis_type='audio', result=result, 
-                                   mel_spectrogram_path=mel_spectrogram_path, 
-                                   mfcc_path=mfcc_path,
-                                   delta_path=delta_path,
-                                   f0_path=f0_path,
-                                   prediction_value=prediction_value)
-        else:
-            return render_template('result.html', analysis_type='audio', result="Error in detection", mel_spectrogram_path=None, 
-                                   mfcc_path=None,
-                                   delta_path=None,
-                                   f0_path=None,
-                                   prediction_value=0)
-    except Exception as e:
-        logging.error(f"Error during real-time audio analysis: {e}")
-        return render_template('result.html', analysis_type='audio', result="Error in detection", mel_spectrogram_path=None, 
-                                   mfcc_path=None,
-                                   delta_path=None,
-                                   f0_path=None,
-                                   prediction_value=0)
     
 @app.route('/delete_files', methods=['POST'])
 def delete_files():
@@ -331,11 +371,15 @@ def body_posture_detect():
         file = request.files['file']
         
         if file:
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            # Making the uploaded videos uniquely named
+            video_tag = uuid.uuid4().hex
+            name, ext = os.path.splitext(file.filename)
+            new_file_name = video_tag + ext
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
 
             # Call video processing function
-            result = detect_body_posture(filename)
+            result = detect_body_posture(filename, video_tag)
 
             if "error" in result:
                 return render_template('result.html', analysis_type='body_posture', result=result["error"])
@@ -359,7 +403,11 @@ def multi_detection():
         return "No file uploaded", 400
 
     file = request.files["file"]
-    filename = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+    # Making the uploaded videos uniquely named
+    video_tag = uuid.uuid4().hex
+    name, ext = os.path.splitext(file.filename)
+    new_file_name = video_tag + ext
+    filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
     file.save(filename)
 
     
