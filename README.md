@@ -1,3 +1,7 @@
+### Python Setup
+1) Ensure python version 3.10
+2) Recommended to use a virtual environment in Python or Anaconda
+
 ### Python Packages Installation:
 1) `cd` to the root directory of this project
 2) run `pip install -r requirements.txt`
