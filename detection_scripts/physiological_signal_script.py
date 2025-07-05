@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import uuid
 import time
 import subprocess
+from scipy.spatial.distance import cdist
+from scipy.optimize import linear_sum_assignment
 
 # Model and face detection setup
 clf = joblib.load('models/physio_detection_xgboost_best.pkl')
@@ -40,64 +42,93 @@ def iou(boxA, boxB):
     boxBArea = boxB[2] * boxB[3]
     return interArea / float(boxAArea + boxBArea - interArea + 1e-5)
 
-class FaceTracker:
+def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=100):
     """
-    A more robust face tracking system with persistent ID management.
+    Improved IoU and centroid-based tracker to maintain IDs.
+    Args:
+        all_boxes: list of boxes per frame
+        max_lost: maximum frames a track can be lost before removal
+        iou_threshold: minimum IoU for considering a match
+        max_distance: maximum centroid distance for considering a match
+    Returns: {face_id: [(frame_idx, box), ...]}
     """
-    def __init__(self, iou_thresh=0.5, max_lost_frames=30):
-        self.next_track_id = 0
-        self.iou_thresh = iou_thresh
-        self.max_lost_frames = max_lost_frames
-        self.tracks = []
-    
-    def update(self, curr_boxes, frame_idx):
-        """Update tracks with current frame's detections."""
-        assigned = [False] * len(curr_boxes)
-        updated_tracks = []
-        
-        # Match current boxes with existing tracks
-        for track in self.tracks:
-            last_box = track['last_box']
-            best_iou = 0
-            best_idx = -1
-            
-            # Find best matching box
-            for i, box in enumerate(curr_boxes):
-                if not assigned[i]:
-                    current_iou = iou(last_box, box)
-                    if current_iou > best_iou and current_iou > self.iou_thresh:
-                        best_iou = current_iou
-                        best_idx = i
-            
-            if best_idx >= 0:
-                # Match found
-                track['boxes'].append((frame_idx, curr_boxes[best_idx]))
-                track['last_box'] = curr_boxes[best_idx]
-                track['last_frame'] = frame_idx
-                track['lost_frames'] = 0
-                assigned[best_idx] = True
-                updated_tracks.append(track)
-            else:
-                # Track lost
-                track['lost_frames'] = track.get('lost_frames', 0) + 1
-                if track['lost_frames'] < self.max_lost_frames:
-                    updated_tracks.append(track)
-        
-        # Create new tracks for unassigned boxes
-        for i, box in enumerate(curr_boxes):
-            if not assigned[i]:
-                new_track = {
-                    'id': self.next_track_id,
-                    'boxes': [(frame_idx, box)],
-                    'last_box': box,
-                    'last_frame': frame_idx,
-                    'lost_frames': 0
-                }
-                self.next_track_id += 1
-                updated_tracks.append(new_track)
-        
-        self.tracks = updated_tracks
-        return self.tracks
+    tracks = {}
+    active_tracks = {}  # face_id: [last_frame, last_box, lost_count]
+    face_id_counter = 0
+    for frame_idx, boxes in enumerate(all_boxes):
+        # Handle empty frame
+        if not boxes:
+            # Increment lost count for all active tracks
+            for tid in list(active_tracks.keys()):
+                active_tracks[tid][2] += 1
+                if active_tracks[tid][2] > max_lost:
+                    del active_tracks[tid]
+            continue
+        # Handle first frame or no active tracks
+        if not active_tracks:
+            for b in boxes:
+                tracks[face_id_counter] = [(frame_idx, b)]
+                active_tracks[face_id_counter] = [frame_idx, b, 0]
+                face_id_counter += 1
+            continue
+        # Get current track info
+        track_ids = list(active_tracks.keys())
+        track_boxes = np.array([active_tracks[tid][1] for tid in track_ids])
+        # Compute cost matrix using both IoU and centroid distance
+        n_tracks = len(track_ids)
+        n_boxes = len(boxes)
+        cost_matrix = np.ones((n_tracks, n_boxes)) * 1000  # High cost for no match
+        # Calculate centroids
+        box_centroids = np.array([[x + w/2, y + h/2] for (x, y, w, h) in boxes])
+        track_centroids = np.array([[b[0] + b[2]/2, b[1] + b[3]/2] for b in track_boxes])
+        # Compute distances
+        distances = cdist(track_centroids, box_centroids)
+        # Compute IoUs and combined costs
+        for i, track_box in enumerate(track_boxes):
+            for j, box in enumerate(boxes):
+                iou_score = iou(track_box, box)
+                distance = distances[i, j]
+                # Only consider assignment if IoU is above threshold OR distance is very small
+                if iou_score > iou_threshold or distance < max_distance:
+                    # Combined cost: weighted sum of (1-IoU) and normalized distance
+                    # Lower cost is better
+                    iou_cost = 1 - iou_score
+                    dist_cost = distance / max_distance
+                    cost_matrix[i, j] = 0.6 * iou_cost + 0.4 * dist_cost
+        # Solve assignment problem using Hungarian algorithm
+        if n_tracks > 0 and n_boxes > 0:
+            row_indices, col_indices = linear_sum_assignment(cost_matrix)
+            matched_boxes = set()
+            # Process assignments
+            for row, col in zip(row_indices, col_indices):
+                # Only accept assignment if cost is reasonable
+                if cost_matrix[row, col] < 0.9:  # Threshold for valid match
+                    tid = track_ids[row]
+                    box = boxes[col]
+                    # Update track
+                    tracks.setdefault(tid, []).append((frame_idx, box))
+                    active_tracks[tid] = [frame_idx, box, 0]  # Reset lost count
+                    matched_boxes.add(col)
+                else:
+                    # Poor match - increment lost count
+                    tid = track_ids[row]
+                    active_tracks[tid][2] += 1
+            # Handle unmatched tracks
+            for i, tid in enumerate(track_ids):
+                if i not in row_indices or cost_matrix[i, col_indices[list(row_indices).index(i)]] >= 0.9:
+                    if active_tracks[tid][0] != frame_idx:  # Not updated this frame
+                        active_tracks[tid][2] += 1
+            # Create new tracks for unmatched boxes
+            for j, box in enumerate(boxes):
+                if j not in matched_boxes:
+                    tracks[face_id_counter] = [(frame_idx, box)]
+                    active_tracks[face_id_counter] = [frame_idx, box, 0]
+                    face_id_counter += 1
+        # Clean up lost tracks
+        for tid in list(active_tracks.keys()):
+            if active_tracks[tid][2] > max_lost:
+                del active_tracks[tid]
+    return tracks
 
 def butter_bandpass_filter(signal, fs, lowcut=0.7, highcut=4.0, order=3):
     nyq = 0.5 * fs
@@ -372,7 +403,6 @@ def get_video_fps(cap):
     return fps
 
 def run_detection(video_path, video_tag, output_path=f'static/results/physio_output.mp4'):
-    tracker = FaceTracker(iou_thresh=0.5, max_lost_frames=30)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     fps = get_video_fps(cap)
@@ -386,51 +416,50 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
     except Exception:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-    frame_idx = 0
-    tracks = []
-    face_rgb_history = {}
-    face_pred_history = {}
-    face_prob_history = {}
-    face_hr_history = {}
+    all_boxes = []
+    frames = []
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
         boxes = detect_faces_dnn(frame)
-        tracks = tracker.update(boxes, frame_idx)
-        for track in tracks:
-            if track['last_frame'] != frame_idx:
-                continue
-            track_id = track['id']
-            clamped = clamp_box(track['last_box'], frame.shape)
-            if clamped is None:
-                continue
-            x, y, w, h = clamped
-            roi = frame[y:y+h, x:x+w]
-            if roi.size == 0:
-                continue
-            b, g, r = cv2.split(cv2.resize(roi, (64, 64)))
-            rgb_mean = [np.mean(r), np.mean(g), np.mean(b)]
-            if track_id not in face_rgb_history:
-                face_rgb_history[track_id] = []
-                face_pred_history[track_id] = []
-                face_prob_history[track_id] = []
-                face_hr_history[track_id] = []
-            face_rgb_history[track_id].append(rgb_mean)
-            rgb_window = np.array(face_rgb_history[track_id][-150:])
-            if rgb_window.shape[0] < 10:
-                continue
-            features, hr_bpm, _, _, _, _ = compute_rppg_features_multi(rgb_window, fs=fps)
-            features_scaled = scaler.transform([features])
-            prob = clf.predict_proba(features_scaled)[0][1]
-            prediction = 'FAKE' if prob > 0.4046 else 'REAL'
-            face_pred_history[track_id].append(prediction)
-            face_prob_history[track_id].append(prob)
-            face_hr_history[track_id].append(hr_bpm)
-            frame = draw_output(frame, (x, y, w, h), prediction, prob, hr_bpm, frame_idx // int(fps), track_id)
-        out.write(frame)
-        frame_idx += 1
+        all_boxes.append(boxes)
+        frames.append(frame)
     cap.release()
+    # Track faces after collecting all boxes
+    tracks = robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=100)
+    # Prepare tracking histories
+    face_rgb_history = {tid: [] for tid in tracks}
+    face_pred_history = {tid: [] for tid in tracks}
+    face_prob_history = {tid: [] for tid in tracks}
+    face_hr_history = {tid: [] for tid in tracks}
+    for frame_idx, frame in enumerate(frames):
+        for track_id, detections in tracks.items():
+            # Find if this face was detected in this frame
+            for (fidx, box) in detections:
+                if fidx == frame_idx:
+                    clamped = clamp_box(box, frame.shape)
+                    if clamped is None:
+                        continue
+                    x, y, w, h = clamped
+                    roi = frame[y:y+h, x:x+w]
+                    if roi.size == 0:
+                        continue
+                    b, g, r = cv2.split(cv2.resize(roi, (64, 64)))
+                    rgb_mean = [np.mean(r), np.mean(g), np.mean(b)]
+                    face_rgb_history[track_id].append(rgb_mean)
+                    rgb_window = np.array(face_rgb_history[track_id][-150:])
+                    if rgb_window.shape[0] < 10:
+                        continue
+                    features, hr_bpm, _, _, _, _ = compute_rppg_features_multi(rgb_window, fs=fps)
+                    features_scaled = scaler.transform([features])
+                    prob = clf.predict_proba(features_scaled)[0][1]
+                    prediction = 'FAKE' if prob > 0.4046 else 'REAL'
+                    face_pred_history[track_id].append(prediction)
+                    face_prob_history[track_id].append(prob)
+                    face_hr_history[track_id].append(hr_bpm)
+                    frame = draw_output(frame, (x, y, w, h), prediction, prob, hr_bpm, frame_idx // int(fps), track_id)
+        out.write(frame)
     out.release()
     time.sleep(0.2)  # Short pause to ensure file is closed
     fixed_output_path = output_path.replace('.mp4', f'_fixed_{video_tag}.mp4')
@@ -474,12 +503,10 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
         else:
             signal_plot, spectrum_plot, pred_count_plot = None, None, None
             hr_trace_plot, hr_dist_plot, band_power_plot = None, None, None
-
         avg_hr = np.mean([x for x in face_hr_history[track_id] if np.isfinite(x)]) if face_hr_history[track_id] else 0
         if not np.isfinite(avg_hr):
             avg_hr = 0
         avg_hr = int(round(avg_hr))
-
         face_results.append({
             'track_id': track_id,
             'result': result,
@@ -494,9 +521,7 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
             'hr_dist_plot': hr_dist_plot,
             'band_power_plot': band_power_plot
         })
-
         # Clean up uploads folder
         if os.path.exists(video_path):
             os.remove(video_path)
-
     return face_results, output_path
