@@ -14,8 +14,9 @@ import uuid
 import scipy.stats
 import random
 import mediapipe as mp
-from sklearn.decomposition import FastICA
+from sklearn.decomposition import PCA
 import argparse
+import gc
 
 # ==================== CONFIGURATION =========================
 
@@ -25,11 +26,17 @@ FACE_MODEL = 'models/res_ssd_300Dim.caffeModel'
 
 # 5 ROIs with MediaPipe 468 landmarks indices (adjustable)
 ROI_INDICES = {
-    'left_cheek':  [234, 93, 132, 58, 172, 136, 150, 149],
-    'right_cheek': [454, 323, 361, 288, 397, 365, 379, 378],
-    'forehead':    [10, 338, 297, 332, 284, 251, 21, 54],
-    'chin':        [152, 148, 176, 149, 150, 136, 172, 58],
-    'nose':        [2, 98, 327, 195, 3, 51, 48, 115]
+    'left_cheek': [207, 216, 206, 203, 129, 209, 126, 47, 121,
+                   120, 119, 118, 117, 111, 116, 123, 147, 187],
+    'right_cheek': [350, 277, 355, 429, 279, 331, 423, 426, 436, 427,
+                    411, 376, 352, 345, 340, 346, 347, 348, 349],
+    'forehead':    [10, 338, 297, 332, 284, 251, 301, 300, 293, 
+                    334, 296, 336, 9, 107, 66, 105, 63, 70, 71, 21, 
+                    54, 103, 67, 109],
+    'chin':        [43, 202, 210, 169, 150, 149, 176, 148, 152, 377, 400, 378, 379,
+                    394, 430, 422, 273, 335, 406, 313, 18, 83, 182, 106],
+    'nose':        [168, 122, 174, 198, 49, 48, 115, 220, 44, 1, 274, 440,
+                    344, 279, 429, 399, 351]
 }
 
 WINDOW_SIZE = 150  # Frames per window (e.g. 5s @ 30fps)
@@ -46,8 +53,12 @@ logger = logging.getLogger("physio_preproc")
 # ================== FACE DETECTION & TRACKING ===============
 
 def load_face_net(proto, model):
-    net = cv2.dnn.readNetFromCaffe(proto, model)
-    return net
+    try:
+        net = cv2.dnn.readNetFromCaffe(proto, model)
+        return net
+    except Exception as e:
+        logger.warning(f"Loading Caffe Model Failed: {e}")
+        return None
 
 def detect_faces(frame, net, conf=0.5):
     h, w = frame.shape[:2]
@@ -326,23 +337,19 @@ def rppg_pos(rgb):
     
     return rppg.astype(np.float32)
 
-def rppg_ica(rgb):
-    """ICA-based rPPG signal extraction"""
+def rppg_pca(rgb):
     S = np.array(rgb)
-    if S.ndim != 2 or S.shape[1] < 3 or S.shape[0] < 30:
+    if S.ndim != 2 or S.shape[1] < 3 or S.shape[0] < 10:
         return rppg_chrom(rgb)  # Fallback to CHROM
     
-    # Apply ICA
-    ica = FastICA(n_components=3, random_state=42, max_iter=200)
+    pca = PCA(n_components=3)
     X = S - S.mean(0)
-    
     try:
-        S_ = ica.fit_transform(X)
-        # Select component with highest variance (likely contains pulse)
+        S_ = pca.fit_transform(X)
         idx = np.argmax(S_.var(axis=0))
         return S_[:, idx].astype(np.float32)
     except:
-        return rppg_chrom(rgb)  # Fallback to CHROM
+        return rppg_chrom(rgb)
 
 def apply_signal_preprocessing(signal, fs=30, apply_filtering=True):
     """
@@ -463,7 +470,7 @@ def augment_signal(sig, aug=None, strength=0.1, mask=None):
     
     return sig.astype(np.float32)
 
-def extract_window_signals(frames, boxes, start, end, fps=30, augment=False):
+def extract_window_signals(frames, boxes, start, end, fps=30, augment=True):
     """
     Extract rPPG signals from video window using MediaPipe landmarks.
     Fixed to properly handle failed landmark detection.
@@ -496,7 +503,7 @@ def extract_window_signals(frames, boxes, start, end, fps=30, augment=False):
         # Extract rPPG signals using different methods
         chrom = rppg_chrom(sig)
         pos = rppg_pos(sig)
-        ica = rppg_ica(sig)
+        ica = rppg_pca(sig)
 
         chrom = apply_signal_preprocessing(chrom, fps)
         pos = apply_signal_preprocessing(pos, fps)
@@ -504,7 +511,7 @@ def extract_window_signals(frames, boxes, start, end, fps=30, augment=False):
 
         # Apply augmentation if requested
         if augment:
-            if random.random() < 0.6:
+            if random.random() < 0.6: # CHANGE TO BE LOWER FOR FAKE, HIGHER FOR REAL
                 augs = ['noise', 'amplitude', 'frequency', 'phase']
                 aug = random.choice(augs)
                 chrom = augment_signal(chrom, aug, strength=0.12, mask=np.array(window_mask))
@@ -681,7 +688,7 @@ def quick_qc(frames, boxes, start, end):
     """Quick quality check: require at least 2 valid boxes"""
     return sum(1 for b in boxes[start:end] if b is not None) >= 2
 
-def process_video(video_path, augment=False):
+def process_video(video_path, augment=True):
     """
     Process a single video file and extract rPPG windows.
     Now uses real MediaPipe landmark detection.
@@ -756,6 +763,11 @@ def process_video(video_path, augment=False):
     finally:
         # Clean up MediaPipe resources
         cleanup_facemesh()
+        try:
+            del frames, face_net, boxes_seq
+        except Exception:
+            pass
+        gc.collect()
 
 # ============== BATCH STORAGE (HDF5) =======================
 
@@ -805,36 +817,64 @@ def get_video_files(video_dir, exts=('.mp4', '.avi', '.mov', '.mkv', '.flv', '.w
     return [os.path.join(video_dir, f) for f in os.listdir(video_dir) 
             if f.lower().endswith(exts)]
 
+def get_next_batch_idx(output_dir, label):
+    # Find all batch files matching pattern
+    batch_files = [f for f in os.listdir(output_dir) if f.startswith(f"{label}_batch") and f.endswith("_raw.h5")]
+    max_idx = -1
+    for fname in batch_files:
+        m = re.match(rf"{label}_batch(\d+)_raw\.h5", fname)
+        if m:
+            idx = int(m.group(1))
+            if idx > max_idx:
+                max_idx = idx
+    return max_idx + 1  # next unused batch number
+
 def main():
     parser = argparse.ArgumentParser(description='Physio rPPG Deepfake Preprocessing')
-    parser.add_argument('--input', type=str, required=True, help='Input video folder')
-    parser.add_argument('--output', type=str, required=True, help='Output batch folder')
+    # ----- CHANGE INPUT OUTPUT IN SCRIPT ACCORDINGLY -----
+    parser.add_argument('--input', type=str, help='Input video folder', default="G:/deepfake_training_datasets/Physio_Model/VALIDATION/real")
+    parser.add_argument('--output', type=str, help='Output batch folder', default="D:/model_training/cache/batches/physio-deep-v1/real")
+    # ----- CHANGE LABEL IN CLI USING --label fake OR --label real
     parser.add_argument('--label', type=str, required=True, help='Label for this set (real/fake)')
+    # ----- DO NOT NEED TO CHANGE
     parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
-    parser.add_argument('--max_workers', type=int, default=10)
-    parser.add_argument('--augment', action='store_true')
+    parser.add_argument('--max_workers', type=int, default=8)
     args = parser.parse_args()
 
     os.makedirs(args.output, exist_ok=True)
     videos = get_video_files(args.input)
     logger.info(f"Found {len(videos)} videos in {args.input}")
-    
+
     # Skip already-processed videos
     processed = set()
     log_file = os.path.join(args.output, f'{args.label}_processed.txt')
+    failure_log = os.path.join(args.output, f'{args.label}_failed.txt')
     if os.path.exists(log_file):
         with open(log_file, 'r') as f:
             processed = set(line.strip() for line in f)
-    videos = [v for v in videos if os.path.basename(v) not in processed]
+
+    # Skip videos listed in failed.txt
+    failed = set()
+    if os.path.exists(failure_log):
+        with open(failure_log, 'r') as f:
+            failed = set(line.strip() for line in f)
+
+    videos = [
+        v for v in videos
+        if os.path.basename(v) not in processed
+        and os.path.basename(v) not in failed
+    ]
+
 
     logger.info(f"Processing {len(videos)} new videos (label: {args.label})")
 
-    batch_data = {}
-    batch_idx = 0
+    # --- Find the next batch index ---
+    batch_idx = get_next_batch_idx(args.output, args.label)
     n_in_batch = 0
+    batch_data = {}
 
     with ProcessPoolExecutor(max_workers=args.max_workers) as exe:
-        future_to_vid = {exe.submit(process_video, v, args.augment): v for v in videos}
+        future_to_vid = {exe.submit(process_video, v): v for v in videos}
         
         for fut in tqdm(as_completed(future_to_vid), total=len(future_to_vid), desc='Videos'):
             vid = future_to_vid[fut]
@@ -844,17 +884,20 @@ def main():
                 logger.warning(f"Error processing {vid}: {e}")
                 windows = None
             
-            if windows:
+            if windows and len(windows) > 0:
                 batch_data[vid] = windows
                 n_in_batch += 1
                 logger.info(f"{os.path.basename(vid)}: {len(windows)} windows")
-                
+
                 # Mark as processed
                 with open(log_file, 'a') as f:
                     f.write(os.path.basename(vid) + '\n')
             else:
                 logger.warning(f"No valid windows from {vid}")
-            
+                # Log failures for pruning
+                with open(failure_log, 'a') as f:
+                    f.write(os.path.basename(vid) + '\n')
+
             # Save batch when it reaches the specified size
             if n_in_batch >= args.batch_size:
                 out_path = os.path.join(args.output, f'{args.label}_batch{batch_idx}_raw.h5')
