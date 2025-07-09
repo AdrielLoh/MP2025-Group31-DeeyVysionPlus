@@ -5,14 +5,15 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models, callbacks, optimizers, mixed_precision
 from sklearn.model_selection import StratifiedKFold, GroupKFold
+from sklearn.model_selection import StratifiedGroupKFold
 import optuna
 from tqdm import tqdm
 import logging
 import gc
 import argparse
-from pathlib import Path
 from sklearn.metrics import roc_auc_score, accuracy_score
 import json
+import pandas as pd
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -77,11 +78,11 @@ def setup_mixed_precision_amd():
 def get_config():
     """Get configuration optimized for AMD RX 6600"""
     parser = argparse.ArgumentParser(description='Train physiological deepfake detection model')
-    parser.add_argument('--data_dir', type=str, default='preprocessed_data_fixed', 
+    parser.add_argument('--data_dir', type=str, default='D:/model_training/cache/batches/physio-deep-v1/for-training', 
                        help='Directory containing preprocessed HDF5 files')
-    parser.add_argument('--model_dir', type=str, default='outputs/models',
+    parser.add_argument('--model_dir', type=str, default='D:/model_training/physiological-model/deep-learning-1',
                        help='Directory to save trained models')
-    parser.add_argument('--log_dir', type=str, default='outputs/logs',
+    parser.add_argument('--log_dir', type=str, default='D:/model_training/physiological-model/deep-learning-1/logs',
                        help='Directory to save logs')
     parser.add_argument('--epochs', type=int, default=50,
                        help='Number of training epochs')
@@ -107,33 +108,25 @@ def get_config():
     return args
 
 # --- Updated Data Loader for New Feature Structure ---
-
 def extract_label_from_filename(filename):
     """Extract label from filename with fallback to HDF5 attributes"""
     filename_path = filename
     filename = os.path.basename(filename).lower()
     
-    # Primary method: check filename patterns
-    if 'fake' in filename or 'deepfake' in filename or 'synthetic' in filename:
-        return 1
-    elif 'real' in filename or 'authentic' in filename or 'genuine' in filename:
-        return 0
-    else:
-        # Fallback to HDF5 attributes
-        try:
-            with h5py.File(filename_path, 'r') as f:
-                if 'dataset_label' in f.attrs:
-                    label_str = f.attrs['dataset_label']
-                    if isinstance(label_str, (bytes, np.bytes_)):
-                        label_str = label_str.decode('utf-8')
-                    return 1 if 'fake' in str(label_str).lower() else 0
-                elif 'is_fake' in f.attrs:
-                    return int(f.attrs['is_fake'])
-        except Exception as e:
-            logger.warning(f"Could not read label from {filename_path}: {e}")
-        
-        logger.warning(f"Could not determine label for {filename}, assuming real (0)")
-        return 0
+    try:
+        with h5py.File(filename_path, 'r') as f:
+            if 'dataset_label' in f.attrs:
+                label_str = f.attrs['dataset_label']
+                if isinstance(label_str, (bytes, np.bytes_)):
+                    label_str = label_str.decode('utf-8')
+                return 1 if 'fake' in str(label_str).lower() else 0
+            elif 'is_fake' in f.attrs:
+                return int(f.attrs['is_fake'])
+    except Exception as e:
+        logger.warning(f"Could not read label from {filename_path}: {e}")
+    
+    logger.warning(f"Could not determine label for {filename}, assuming real (0)")
+    return 0
 
 def extract_video_id(filename):
     """Extract video ID for group-based splitting"""
@@ -173,7 +166,7 @@ def validate_hdf5_file(filepath):
                     win_group = vid_group[win_name]
                     
                     # Check required datasets
-                    required_datasets = ['face_mask', 'window_mask']
+                    required_datasets = ['window_mask']
                     for dataset in required_datasets:
                         if dataset not in win_group:
                             return False
@@ -307,84 +300,68 @@ def count_samples_and_get_shapes(file_paths):
     logger.info(f"Found {total_samples} samples, {n_roi_features} ROI features total")
     return total_samples, n_roi_features, np.array(labels)
 
-def create_data_generator_new_format(file_paths, batch_size, n_roi_features, window_size=150, shuffle=True, infinite=True):
-    """Create efficient data generator for new format"""
-    def generator():
-        file_indices = list(range(len(file_paths)))
-        
-        while True:
-            if shuffle:
-                np.random.shuffle(file_indices)
-            
-            batch_roi = []
-            batch_mask = []
-            batch_labels = []
-            
-            for file_idx in file_indices:
-                filepath = file_paths[file_idx]
-                file_label = extract_label_from_filename(filepath)
-                
-                try:
-                    with h5py.File(filepath, 'r') as f:
-                        for vid_name in f.keys():
-                            vid_group = f[vid_name]
-                            for win_name in vid_group.keys():
-                                win_group = vid_group[win_name]
-                                
-                                try:
-                                    X_roi_combined, window_mask = load_window_new_format(win_group, window_size)
-                                    
-                                    batch_roi.append(X_roi_combined)
-                                    batch_mask.append(window_mask)
-                                    batch_labels.append(file_label)
-                                    
-                                    if len(batch_roi) == batch_size:
-                                        yield (np.stack(batch_roi),
-                                               np.stack(batch_mask),
-                                               np.array(batch_labels))
-                                        
-                                        batch_roi = []
-                                        batch_mask = []
-                                        batch_labels = []
-                                        
-                                except Exception as e:
-                                    logger.warning(f"Skipping window {vid_name}/{win_name}: {e}")
-                                    continue
-                                    
-                except Exception as e:
-                    logger.warning(f"Skipping file {filepath}: {e}")
-                    continue
-            
-            # Yield remaining batch if not empty
-            if batch_roi and len(batch_roi) > 0:
-                yield (np.stack(batch_roi),
-                       np.stack(batch_mask),
-                       np.array(batch_labels))
-            
-            if not infinite:
-                break
-    
-    return generator
+def build_window_metadata(hdf5_files):
+    """
+    Build a DataFrame with one row per window in all HDF5 files,
+    including file path, group (video), window name, label, and video_id.
+    """
+    rows = []
+    for h5_path in hdf5_files:
+        label = extract_label_from_filename(h5_path)
+        try:
+            with h5py.File(h5_path, 'r') as f:
+                for group_name in f.keys():
+                    g = f[group_name]
+                    video_id = g.attrs.get('original_filename', group_name)
+                    if isinstance(video_id, bytes):
+                        video_id = video_id.decode()
+                    for win_name in g.keys():
+                        if not win_name.startswith('window_'):
+                            continue
+                        rows.append({
+                            'file_path': h5_path,
+                            'group_name': group_name,
+                            'window_name': win_name,
+                            'label': label,
+                            'video_id': video_id,
+                        })
+        except Exception as e:
+            print(f"Error reading {h5_path}: {e}")
+    return pd.DataFrame(rows)
 
-def make_dataset_new_format(file_paths, batch_size, n_roi_features, window_size=150, shuffle=True):
-    """Create TensorFlow dataset for new format"""
-    generator_fn = create_data_generator_new_format(file_paths, batch_size, n_roi_features, window_size, shuffle, infinite=False)
-    
-    output_signature = (
-        tf.TensorSpec(shape=(None, window_size, n_roi_features), dtype=tf.float32),  # ROI features only
-        tf.TensorSpec(shape=(None, window_size), dtype=tf.float32),  # Window mask
-        tf.TensorSpec(shape=(None,), dtype=tf.int32)  # Labels
-    )
-    
-    ds = tf.data.Dataset.from_generator(generator_fn, output_signature=output_signature)
-    
-    # Optimized for AMD RX 6600
+def stratified_group_window_split(df, n_splits=5, random_state=42):
+    sgkf = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    splits = list(sgkf.split(df, df['label'], groups=df['video_id']))
+    return splits  # Each tuple is (train_indices, val_indices)
+
+def window_level_data_generator(df, batch_size, window_size=150, n_roi_features=15, shuffle=True, infinite=True):
+    indices = df.index.to_numpy()
+    # SHUFFLE the DataFrame rows, not just indices!
     if shuffle:
-        buffer_size = min(max(batch_size * 8, 64), 512)  # Smaller buffer for memory
-        ds = ds.shuffle(buffer_size, reshuffle_each_iteration=True)
-    
-    ds = ds.prefetch(tf.data.AUTOTUNE)
-    return ds
+        df = df.sample(frac=1).reset_index(drop=True)
+    indices = df.index.to_numpy()
+    batch_roi = []
+    batch_mask = []
+    batch_labels = []
+    for idx in indices:
+        row = df.loc[idx]
+        with h5py.File(row['file_path'], 'r') as f:
+            win_group = f[row['group_name']][row['window_name']]
+            X_roi_combined, window_mask = load_window_new_format(win_group, window_size)
+            batch_roi.append(X_roi_combined)
+            batch_mask.append(window_mask)
+            batch_labels.append(row['label'])
+        if len(batch_roi) == batch_size:
+                yield (
+                    (np.stack(batch_roi), np.stack(batch_mask)),
+                    np.array(batch_labels).astype('float32').reshape(-1, 1)
+                )
+                batch_roi, batch_mask, batch_labels = [], [], []
+    if batch_roi:
+        yield (
+            (np.stack(batch_roi), np.stack(batch_mask)),
+            np.array(batch_labels).astype('float32').reshape(-1, 1)
+        )
 
 # --- Updated Model Architecture ---
 
@@ -409,6 +386,9 @@ def build_tcn_transformer(cfg, use_mixed_precision=False):
         x = layers.BatchNormalization()(x)
         x = layers.Conv1D(tcn_channels, 3, padding="causal", dilation_rate=d)(x)
         x = layers.BatchNormalization()(x)
+        # Projection for residual if needed
+        if int(res.shape[-1]) != tcn_channels:
+            res = layers.Conv1D(tcn_channels, 1, padding="same")(res)
         x = layers.Add()([res, x])
         x = layers.Activation("relu")(x)
 
@@ -416,11 +396,14 @@ def build_tcn_transformer(cfg, use_mixed_precision=False):
     x = layers.MaxPooling1D(2)(x)  # shape: (window_size//2, tcn_channels)
     x = layers.Conv1D(ff_dim, 1, activation="relu")(x)  # shape: (window_size//2, ff_dim)
 
-    # Positional embeddings
-    seq_len = tf.shape(x)[1]
-    positions = tf.range(seq_len)
-    pos_emb = layers.Embedding(input_dim=window_size, output_dim=ff_dim)(positions)
-    x = x + pos_emb
+    # After MaxPooling1D and Conv1D
+    seq_len = x.shape[1]
+    pos_indices = tf.range(seq_len)
+    # Create embedding weights as a tensor
+    pos_emb_layer = layers.Embedding(input_dim=seq_len, output_dim=ff_dim)
+    pos_emb = pos_emb_layer(pos_indices)
+    pos_emb = tf.expand_dims(pos_emb, 0)  # (1, seq_len, ff_dim)
+    x = layers.Add()([x, pos_emb])
 
     # Single Transformer block
     attn_out = layers.MultiHeadAttention(
@@ -433,18 +416,27 @@ def build_tcn_transformer(cfg, use_mixed_precision=False):
     ffn = layers.Dense(ff_dim)(ffn)
     x = layers.LayerNormalization(epsilon=1e-6)(x + ffn)
 
-    # Masked pooling (to handle window_mask, as in your old model)
     def masked_gap(args):
         f, m = args
-        m = tf.cast(tf.expand_dims(m, -1), f.dtype)
-        return tf.reduce_sum(f * m, 1) / tf.clip_by_value(tf.reduce_sum(m, 1, keepdims=True), 1e-3, tf.float32.max)
-    pooled = layers.Lambda(masked_gap, name='masked_pooling')([x, mask[:, :tf.shape(x)[1]]])
+        # f: (batch, seq_len, features)
+        # m: (batch, seq_len)
+        seq_len = tf.shape(f)[1]
+        m = m[:, :seq_len]
+        m = tf.cast(tf.expand_dims(m, -1), f.dtype)  # (batch, seq_len, 1)
+        # Sum over time axis (axis=1)
+        num = tf.reduce_sum(f * m, axis=1)      # (batch, features)
+        denom = tf.reduce_sum(m, axis=1)        # (batch, 1)
+        pooled = num / tf.clip_by_value(denom, 1e-3, tf.float32.max)  # (batch, features)
+        return pooled
+
+    pooled = layers.Lambda(masked_gap, name='masked_pooling')([x, mask])
+    print("pooled.shape:", pooled.shape)
 
     # Classification head
-    dense = layers.Dense(ff_dim, name='dense_1')(pooled)
+    dense = layers.Dense(ff_dim)(pooled)
     dense = layers.ReLU()(dense)
     dense = layers.Dropout(attn_dropout)(dense)
-    dense = layers.Dense(ff_dim // 2, name='dense_2')(dense)
+    dense = layers.Dense(ff_dim // 2)(dense)
     dense = layers.ReLU()(dense)
     dense = layers.Dropout(attn_dropout)(dense)
     if use_mixed_precision:
@@ -456,53 +448,22 @@ def build_tcn_transformer(cfg, use_mixed_precision=False):
 
 
 # --- Training utilities ---
-
-def compute_class_weights_efficient(file_paths):
-    """Efficiently compute class weights without loading all data"""
-    n_real = 0
-    n_fake = 0
-    
-    for filepath in file_paths:
-        label = extract_label_from_filename(filepath)
-        
-        try:
-            with h5py.File(filepath, 'r') as f:
-                file_window_count = sum(len(vid_group.keys()) for vid_group in f.values())
-                
-                if label == 0:
-                    n_real += file_window_count
-                else:
-                    n_fake += file_window_count
-        except Exception as e:
-            logger.warning(f"Error counting windows in {filepath}: {e}")
-            continue
-    
-    total = n_real + n_fake
-    if total == 0:
-        return {0: 1.0, 1: 1.0}
-    
-    w_real = total / (2.0 * n_real) if n_real > 0 else 1.0
-    w_fake = total / (2.0 * n_fake) if n_fake > 0 else 1.0
-    
-    logger.info(f"Class weights: Real={w_real:.3f} (n={n_real}), Fake={w_fake:.3f} (n={n_fake})")
-    return {0: w_real, 1: w_fake}
-
 def evaluate_model_efficiently(model, val_dataset):
     """Efficiently evaluate model and collect predictions"""
     y_true = []
     y_pred = []
-    
+
     for batch in val_dataset:
-        Xr, Xm, yb = batch
+        (Xr, Xm), yb = batch  # <-- FIXED
         preds = model([Xr, Xm], training=False)
         y_true.extend(yb.numpy())
         y_pred.extend(preds.numpy().squeeze())
-    
+
     return np.array(y_true), np.array(y_pred)
 
 # --- Optuna objective ---
 
-def objective(trial, train_files, val_files, n_roi_features, window_size, use_mixed_precision):
+def objective(trial, train_ds, val_ds, n_roi_features, window_size, use_mixed_precision):
     """Optuna objective optimized for AMD"""
     try:
         cfg = {
@@ -515,10 +476,6 @@ def objective(trial, train_files, val_files, n_roi_features, window_size, use_mi
             'n_roi_features': n_roi_features,
             'window_size': window_size
         }
-        
-        # Create datasets
-        train_ds = make_dataset_new_format(train_files, cfg['batch'], n_roi_features, window_size, shuffle=True)
-        val_ds = make_dataset_new_format(val_files, cfg['batch'], n_roi_features, window_size, shuffle=False)
         
         # Build model
         model = build_tcn_transformer(cfg, use_mixed_precision)
@@ -536,7 +493,7 @@ def objective(trial, train_files, val_files, n_roi_features, window_size, use_mi
         
         # Train with early stopping
         es = callbacks.EarlyStopping(patience=3, restore_best_weights=True, monitor='val_auroc', mode='max')
-        
+
         history = model.fit(
             train_ds,
             validation_data=val_ds,
@@ -568,6 +525,9 @@ def objective(trial, train_files, val_files, n_roi_features, window_size, use_mi
 def main():
     # Setup
     config = get_config()
+    with open(f"{config.log_dir}/global_config.json", 'w') as f:
+        json.dump(vars(config), f, indent=2)
+
     amd_setup_success = setup_amd_gpu()
     use_mixed_precision = setup_mixed_precision_amd() and amd_setup_success
     
@@ -602,38 +562,68 @@ def main():
     logger.info(f"Using {len(valid_files)} valid files")
     
     # Get dataset information (NEW FORMAT)
-    total_samples, n_roi_features, file_labels = count_samples_and_get_shapes(valid_files)
+    total_samples, n_roi_features, _ = count_samples_and_get_shapes(valid_files)
+
     logger.info(f"Dataset: {total_samples} samples, {n_roi_features} ROI features")
     
-    # Extract video IDs for group-based splitting
-    video_ids = [extract_video_id(f) for f in valid_files]
-    
-    # Use GroupKFold to prevent data leakage
-    if len(set(video_ids)) >= config.folds:
-        kfold = GroupKFold(n_splits=config.folds)
-        splits = list(kfold.split(valid_files, file_labels, video_ids))
-    else:
-        logger.warning("Not enough unique videos for GroupKFold, using StratifiedKFold")
-        kfold = StratifiedKFold(n_splits=config.folds, shuffle=True, random_state=42)
-        splits = list(kfold.split(valid_files, file_labels))
+    # --- Build window-level DataFrame ---
+    df = build_window_metadata(valid_files)
+    # print(df[['file_path', 'label']].head(30))  # See if both 0 and 1 exist
+    splits = stratified_group_window_split(df, n_splits=config.folds)
     
     # Training loop
     fold_results = []
     
     for fold, (train_idx, val_idx) in enumerate(splits):
-        logger.info(f"\n===== Fold {fold+1}/{config.folds} =====")
-        
-        train_files = [valid_files[i] for i in train_idx]
-        val_files = [valid_files[i] for i in val_idx]
-        
-        logger.info(f"Train: {len(train_files)} files | Val: {len(val_files)} files")
+        print(f"===== Fold {fold+1}/{config.folds} =====")
+        train_df = df.iloc[train_idx]
+        val_df   = df.iloc[val_idx]
+
+        print("--- LABEL COUNTS ---", flush=True)
+        print(f"Train windows: {len(train_df)}, Validation windows: {len(val_df)}")
+        # print("Train class balance:", train_df['label'].value_counts(normalize=True))
+        # print("Val class balance:", val_df['label'].value_counts(normalize=True))
+        print("Train label counts:", train_df['label'].value_counts())
+        print("Val label counts:", val_df['label'].value_counts())
+
+        output_signature = (
+            (
+                tf.TensorSpec(shape=(None, config.window_size, n_roi_features), dtype=tf.float32),
+                tf.TensorSpec(shape=(None, config.window_size), dtype=tf.float32),
+            ),
+            tf.TensorSpec(shape=(None, 1), dtype=tf.float32)
+        )
+
+        train_ds = tf.data.Dataset.from_generator(
+            lambda: window_level_data_generator(
+                train_df,
+                batch_size=config.batch_size,
+                window_size=config.window_size,
+                n_roi_features=n_roi_features,
+                shuffle=True,
+                infinite=True
+            ),
+            output_signature=output_signature
+        ).prefetch(8)
+
+        val_ds = tf.data.Dataset.from_generator(
+            lambda: window_level_data_generator(
+                val_df,
+                batch_size=config.batch_size,
+                window_size=config.window_size,
+                n_roi_features=n_roi_features,
+                shuffle=False,
+                infinite=False
+            ),
+            output_signature=output_signature
+        ).prefetch(8)
         
         # Hyperparameter optimization
         if not config.skip_optuna:
             logger.info("Starting hyperparameter optimization...")
             
             def fold_objective(trial):
-                return objective(trial, train_files, val_files, n_roi_features, config.window_size, use_mixed_precision)
+                return objective(trial, train_ds, val_ds, n_roi_features, config.window_size, use_mixed_precision)
             
             study = optuna.create_study(direction='minimize')
             study.optimize(fold_objective, n_trials=config.optuna_trials, timeout=config.optuna_timeout)
@@ -644,30 +634,43 @@ def main():
                 'window_size': config.window_size
             }
             logger.info(f"Best config for fold {fold+1}: {best_cfg}")
+            with open(f"{config.log_dir}/fold{fold+1}_best_config.json", 'w') as f:
+                json.dump(best_cfg, f, indent=2)
+
         else:
             # Use default configuration optimized for AMD
             best_cfg = {
-                'blocks': 4,
-                'filters': 48,
-                'dense_dim': 96,
-                'lr': 8e-4,
+                'blocks': 6,
+                'filters': 64,
+                'dense_dim': 128,
+                'lr': 0.001, #0.0003065
                 'batch': config.batch_size,
-                'dropout': 0.2,
+                'dropout': 0.223,
                 'n_roi_features': n_roi_features,
                 'window_size': config.window_size
             }
             logger.info(f"Using default config for fold {fold+1}: {best_cfg}")
         
-        # Create datasets
-        train_ds = make_dataset_new_format(train_files, best_cfg['batch'], n_roi_features, config.window_size, shuffle=True)
-        val_ds = make_dataset_new_format(val_files, best_cfg['batch'], n_roi_features, config.window_size, shuffle=False)
-        
         # Compute class weights
-        class_weight = compute_class_weights_efficient(train_files)
+        counts = train_df['label'].value_counts()
+        n_real = counts.get(0, 0)
+        n_fake = counts.get(1, 0)
+        total = n_real + n_fake
+        if total == 0 or n_real == 0 or n_fake == 0:
+            class_weight = {0: 1.0, 1: 1.0}
+        else:
+            class_weight = {0: total / (2 * n_real), 1: total / (2 * n_fake)}
+
         
         # Build and compile model
+        print("=== BUILDING MODEL ===", flush=True)
         model = build_tcn_transformer(best_cfg, use_mixed_precision)
-        
+        print("=== MODEL BUILT ===", flush=True)
+
+        with open("model_summary.txt", "w") as f:
+            model.summary(print_fn=lambda x: f.write(x + "\n"))
+        print("=== MODEL SUMMARY WRITTEN ===", flush=True)
+
         optimizer = optimizers.Adam(best_cfg['lr'], clipnorm=1.0)  # Gradient clipping
         if use_mixed_precision:
             optimizer = mixed_precision.LossScaleOptimizer(optimizer)
@@ -678,10 +681,6 @@ def main():
             metrics=[tf.keras.metrics.AUC(name='auroc'),
                      tf.keras.metrics.BinaryAccuracy()]
         )
-        
-        # Print model summary for first fold
-        if fold == 0:
-            model.summary()
         
         # Callbacks
         callbacks_list = [
@@ -701,7 +700,12 @@ def main():
             ),
             callbacks.CSVLogger(f"{config.log_dir}/train_log_fold{fold+1}.csv")
         ]
-        
+
+        print("--- FIRST 10 LABELS FOR EACH BATCH ---", flush=True)
+        for i, batch in enumerate(train_ds.take(10)):
+            (X_roi, X_mask), y = batch
+            print(f"Batch {i} labels:", y)
+
         # Train model
         logger.info("Starting training...")
         history = model.fit(
@@ -740,8 +744,8 @@ def main():
             'best_threshold': float(best_threshold),
             'best_accuracy': float(best_acc),
             'config': best_cfg,
-            'n_train': len(train_files),
-            'n_val': len(val_files)
+            'n_train': len(train_df),
+            'n_val': len(val_df)
         }
         fold_results.append(results)
         
@@ -756,11 +760,8 @@ def main():
         logger.info(f"  AUROC: {auroc:.4f}")
         logger.info(f"  Accuracy (0.5): {acc:.4f}")
         logger.info(f"  Best Accuracy: {best_acc:.4f} (threshold: {best_threshold:.3f})")
-        
-        # Save fold configuration
-        with open(f"{config.log_dir}/fold{fold+1}_config.json", 'w') as f:
-            json.dump(results, f, indent=2)
-        
+        model.save(f"{config.model_dir}/fold{fold+1}_savedmodel", save_format="tf")
+
         # Clean up for next fold
         del model
         del train_ds
@@ -799,7 +800,7 @@ def main():
     
     with open(f"{config.log_dir}/overall_results.json", 'w') as f:
         json.dump(overall_results, f, indent=2)
-    
+
     logger.info("Training completed successfully!")
     logger.info(f"Results saved to: {config.log_dir}")
 

@@ -1,13 +1,15 @@
 import h5py
+import numpy as np
 
-batch_file = "D:/model_training/cache/batches/physio-deep-v1/fake/fake_batch80_raw.h5"
+batch_file = "D:/model_training/cache/batches/physio-deep-v1/for-training/real_batch1_raw.h5"
 
 with h5py.File(batch_file, "r") as f:
-    for group in f:
-        g = f[group]
-        # Get the original filename (saved as attribute)
-        original_filename = g.attrs.get("original_filename", group)
-        print(original_filename)
+    if 'dataset_label' in f.attrs:
+        label_str = f.attrs['dataset_label']
+        if isinstance(label_str, (bytes, np.bytes_)):
+            label_str = label_str.decode('utf-8')
+    
+    print(label_str)
 
 #==========================================================================================
 

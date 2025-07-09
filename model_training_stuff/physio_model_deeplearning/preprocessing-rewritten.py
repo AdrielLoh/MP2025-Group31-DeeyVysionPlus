@@ -689,10 +689,9 @@ def quick_qc(frames, boxes, start, end):
     return sum(1 for b in boxes[start:end] if b is not None) >= 2
 
 def process_video(video_path, augment=True):
-    """
-    Process a single video file and extract rPPG windows.
-    Now uses real MediaPipe landmark detection.
-    """
+    cap = None
+    frames = []
+    face_net = None
     try:
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
@@ -700,74 +699,64 @@ def process_video(video_path, augment=True):
             logger.warning(f"Invalid FPS detected: {fps}, defaulting to 30")
             fps = 30.0
 
-        frames = []
         face_net = load_face_net(FACE_PROTO, FACE_MODEL)
 
-        # Read ALL frames (including None for corrupted frames)
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
-            # Always append, even if frame is None
             frames.append(frame)
+        # Defensive: release as soon as possible
         cap.release()
+        cap = None
 
         # Interpolate/fill corrupted frames
         frames = interpolate_corrupted_frames(frames)
 
-        # Detect faces on all frames (now all valid)
         boxes_seq = [detect_faces(frame, face_net) for frame in frames]
 
         if len(frames) < WINDOW_SIZE:
             return None
-        
-        # Track faces across frames
+
         tracks = robust_track_faces(boxes_seq)
-        
+
         windows_all = []
         for tid, track in tracks.items():
-            # Create per-frame box mapping
             per_frame_boxes = [None] * len(frames)
             for fidx, box in track:
                 per_frame_boxes[fidx] = box
-            
-            # Extract windows for this face track
             for start, end in segment_windows(len(frames)):
                 if not quick_qc(frames, per_frame_boxes, start, end):
                     continue
-                
-                # Extract rPPG signals using MediaPipe
                 multi_roi, window_mask = extract_window_signals(
                     frames, per_frame_boxes, start, end, fps=fps, augment=augment
                 )
-                
                 if window_mask.sum() < MIN_REAL_FRAMES:
                     continue
-                
-                # Extract ML features
                 feats = extract_ml_feats(multi_roi, window_mask, fs=fps)
                 feats = pad_ml_features(feats)
-                
                 windows_all.append({
                     'multi_roi': multi_roi,
                     'window_mask': window_mask,
                     'ml_features': feats
                 })
-        
+
         return windows_all
-    
+
     except Exception as e:
         logger.error(f"Error processing video {video_path}: {e}")
         return None
-    
+
     finally:
-        # Clean up MediaPipe resources
+        if cap is not None:
+            cap.release()
         cleanup_facemesh()
         try:
-            del frames, face_net, boxes_seq
+            del frames, face_net
         except Exception:
             pass
         gc.collect()
+
 
 # ============== BATCH STORAGE (HDF5) =======================
 
@@ -812,10 +801,13 @@ def save_batch_to_hdf5(batch_data, out_path, label):
 
 # =================== MAIN MULTIPROC/PROCESSING ===================
 
-def get_video_files(video_dir, exts=('.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv')):
-    """Get all video files from directory"""
-    return [os.path.join(video_dir, f) for f in os.listdir(video_dir) 
-            if f.lower().endswith(exts)]
+def get_video_files(input_arg, exts=('.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv')):
+    if input_arg.endswith('.txt'):
+        with open(input_arg, 'r') as f:
+            return [line.strip() for line in f if line.strip()]
+    else:
+        return [os.path.join(input_arg, f) for f in os.listdir(input_arg)
+                if f.lower().endswith(exts)]
 
 def get_next_batch_idx(output_dir, label):
     # Find all batch files matching pattern
@@ -831,10 +823,9 @@ def get_next_batch_idx(output_dir, label):
 
 def main():
     parser = argparse.ArgumentParser(description='Physio rPPG Deepfake Preprocessing')
-    # ----- CHANGE INPUT OUTPUT IN SCRIPT ACCORDINGLY -----
-    parser.add_argument('--input', type=str, help='Input video folder', default="G:/deepfake_training_datasets/Physio_Model/VALIDATION/real")
-    parser.add_argument('--output', type=str, help='Output batch folder', default="D:/model_training/cache/batches/physio-deep-v1/real")
-    # ----- CHANGE LABEL IN CLI USING --label fake OR --label real
+    # ----- CHANGE ARGS IN LAUNCHER SCRIPT ACCORDINGLY -----
+    parser.add_argument('--input', type=str, help='Input video folder')
+    parser.add_argument('--output', type=str, help='Output batch folder')
     parser.add_argument('--label', type=str, required=True, help='Label for this set (real/fake)')
     # ----- DO NOT NEED TO CHANGE
     parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
