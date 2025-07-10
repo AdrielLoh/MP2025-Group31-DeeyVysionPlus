@@ -97,7 +97,7 @@ def process_video(video_path, label, frame_step=1, do_augment=True):
                 os.makedirs(img_dir, exist_ok=True)
                 img_filename = f"{label}_{uuid.uuid4().hex}.jpg"
                 cv2.imwrite(os.path.join(img_dir, img_filename), face_crop)
-                if do_augment:
+                if do_augment and random.random() < 0.2:
                     # --- 1. Horizontal Flip ---
                     flip_img = cv2.flip(face_crop, 1)
                     mp_flip = mp.Image(image_format=mp.ImageFormat.SRGB,
@@ -246,13 +246,13 @@ def process_video(video_path, label, frame_step=1, do_augment=True):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--count", type=int, default=None,
-                        help="Total samples to process (split equally). If not set, process all.")
+    parser.add_argument("--video_count", type=int, default=None,
+                        help="Total number of videos to process (split equally). If not set, process all videos.")
     parser.add_argument("--threads", type=int, default=16, help="Number of parallel threads.")
     parser.add_argument("--resume", action="store_true", help="Resume from previous run (skip processed videos).")
     parser.add_argument("--frame_step", type=int, default=1, help="Process every Nth frame (default=1).")
     args = parser.parse_args()
-    total_count = args.count
+    total_count = args.video_count
     num_threads = args.threads
     resume = args.resume
     frame_step = args.frame_step
@@ -278,19 +278,20 @@ if __name__ == "__main__":
     fake_videos = sorted([os.path.join(FAKE_VID_DIR, f) 
                           for f in os.listdir(FAKE_VID_DIR) 
                           if f.lower().endswith((".mp4", ".avi", ".mov"))])
+    if args.video_count:
+        n_real = min(args.video_count // 2, len(real_videos))
+        n_fake = min(args.video_count // 2, len(fake_videos))
+        real_videos = real_videos[:n_real]
+        fake_videos = fake_videos[:n_fake]
+        logging.info(f"Processing {n_real} real videos and {n_fake} fake videos.")
     if resume:
         real_videos = [v for v in real_videos if v not in processed_videos]
         fake_videos = [v for v in fake_videos if v not in processed_videos]
 
-    target_per_class = None
-    if total_count:
-        target_per_class = total_count // 2
-        logging.info(f"Target samples per class: {target_per_class}")
-
     batch_size = 1000
     batch_features = []
     batch_labels = []
-    batch_index = 0
+    real_batch_index = 0
     count_real = 0
     count_fake = 0
 
@@ -300,62 +301,67 @@ if __name__ == "__main__":
         # Process real videos
         with concurrent.futures.ProcessPoolExecutor(max_workers=num_threads) as executor:
             futures_real = {executor.submit(process_video, vid, "real", frame_step): vid 
-                            for vid in real_videos 
-                            if not (target_per_class and count_real >= target_per_class)}
+                            for vid in real_videos}
             with tqdm(total=len(futures_real), desc="Processing real videos") as pbar:
                 for future in concurrent.futures.as_completed(futures_real):
                     result = future.result()
                     pbar.update(1)
                     if result is None:
-                        continue  # Skip videos with no detected faces
+                        continue
                     vid_path, feats, labs = result
-                    count_real += len(labs)
                     batch_features.extend(feats)
                     batch_labels.extend(labs)
                     log_f.write(f"{vid_path}\n"); log_f.flush()
                     if len(batch_features) >= batch_size:
-                        npz_path = os.path.join(OUTPUT_DIR, f"data_batch_{batch_index}.npz")
+                        npz_path = os.path.join(OUTPUT_DIR, f"real_data_batch_{real_batch_index}.npz")
                         np.savez_compressed(npz_path,
                                             features=np.array(batch_features, dtype=np.float32),
                                             labels=np.array(batch_labels, dtype=np.int32))
                         logging.info(f"Saved {len(batch_features)} samples to {npz_path}")
                         batch_features.clear(); batch_labels.clear()
-                        batch_index += 1
+                        real_batch_index += 1
 
-        if target_per_class and count_real < target_per_class:
-            logging.warning(f"Real videos yielded {count_real} samples, adjusting target to {count_real}.")
-            target_per_class = count_real
+        # Save remaining real samples if any
+        if batch_features:
+            npz_path = os.path.join(OUTPUT_DIR, f"real_data_batch_{real_batch_index}.npz")
+            np.savez_compressed(npz_path,
+                                features=np.array(batch_features, dtype=np.float32),
+                                labels=np.array(batch_labels, dtype=np.int32))
+            logging.info(f"Saved {len(batch_features)} samples to {npz_path}")
+            batch_features.clear(); batch_labels.clear()
+
+        fake_batch_index = 0
 
         # Process fake videos
         with concurrent.futures.ProcessPoolExecutor(max_workers=num_threads) as executor:
             futures_fake = {executor.submit(process_video, vid, "fake", frame_step): vid 
-                            for vid in fake_videos 
-                            if not (target_per_class and count_fake >= target_per_class)}
+                            for vid in fake_videos}
             with tqdm(total=len(futures_fake), desc="Processing fake videos") as pbar:
                 for future in concurrent.futures.as_completed(futures_fake):
                     result = future.result()
                     pbar.update(1)
                     if result is None:
-                        continue  # Skip videos with no detected faces
+                        continue
                     vid_path, feats, labs = result
-                    count_fake += len(labs)
                     batch_features.extend(feats)
                     batch_labels.extend(labs)
                     log_f.write(f"{vid_path}\n"); log_f.flush()
                     if len(batch_features) >= batch_size:
-                        npz_path = os.path.join(OUTPUT_DIR, f"data_batch_{batch_index}.npz")
+                        npz_path = os.path.join(OUTPUT_DIR, f"fake_data_batch_{fake_batch_index}.npz")
                         np.savez_compressed(npz_path,
                                             features=np.array(batch_features, dtype=np.float32),
                                             labels=np.array(batch_labels, dtype=np.int32))
                         logging.info(f"Saved {len(batch_features)} samples to {npz_path}")
                         batch_features.clear(); batch_labels.clear()
-                        batch_index += 1
-        # Save remaining data if any
+                        fake_batch_index += 1
+
+        # Save remaining fake samples if any
         if batch_features:
-            npz_path = os.path.join(OUTPUT_DIR, f"data_batch_{batch_index}.npz")
+            npz_path = os.path.join(OUTPUT_DIR, f"fake_data_batch_{fake_batch_index}.npz")
             np.savez_compressed(npz_path,
-                                 features=np.array(batch_features, dtype=np.float32),
-                                 labels=np.array(batch_labels, dtype=np.int32))
+                                features=np.array(batch_features, dtype=np.float32),
+                                labels=np.array(batch_labels, dtype=np.int32))
             logging.info(f"Saved {len(batch_features)} samples to {npz_path}")
             batch_features.clear(); batch_labels.clear()
-        logging.info(f"Preprocessing completed. Total samples: real={count_real}, fake={count_fake}")
+
+        logging.info(f"Preprocessing completed.")
