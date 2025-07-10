@@ -22,7 +22,7 @@ IMAGE_OUTPUT_DIR = os.path.join(OUTPUT_DIR, "images")
 REAL_IMG_DIR = os.path.join(IMAGE_OUTPUT_DIR, "real")
 FAKE_IMG_DIR = os.path.join(IMAGE_OUTPUT_DIR, "fake")
 # Paths to face detector model (Caffe SSD)
-CAFFE_PROTO_PATH = "models/weights-protxt.txt"  # path for caffe model weight
+CAFFE_PROTO_PATH = "models/weights-prototxt.txt"  # path for caffe model weight
 CAFFE_MODEL_PATH = "models/res_ssd_300Dim.caffeModel"  # path to caffe model 
 # Path to MediaPipe face landmarker model
 FACE_LANDMARKER_PATH = "models/face_landmarker.task"
