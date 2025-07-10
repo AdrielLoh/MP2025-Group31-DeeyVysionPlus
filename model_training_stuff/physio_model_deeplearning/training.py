@@ -14,6 +14,7 @@ import argparse
 from sklearn.metrics import roc_auc_score, accuracy_score
 import json
 import pandas as pd
+import random
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -22,6 +23,13 @@ logger = logging.getLogger(__name__)
 # --- Environment Setup for AMD DirectML ---
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+
+def set_seed(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+    # Optional: For reproducibility in Python hash randomization
+    os.environ["PYTHONHASHSEED"] = str(seed)
 
 def setup_amd_gpu():
     """Setup DirectML for AMD RX 6600 with memory optimization"""
@@ -98,6 +106,7 @@ def get_config():
                        help='Skip hyperparameter optimization')
     parser.add_argument('--batch_size', type=int, default=8,  # Smaller for AMD
                        help='Batch size (optimized for 8GB VRAM)')
+    parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     
     args = parser.parse_args()
     
@@ -336,9 +345,10 @@ def stratified_group_window_split(df, n_splits=5, random_state=42):
 
 def window_level_data_generator(df, batch_size, window_size=150, n_roi_features=15, shuffle=True, infinite=True):
     indices = df.index.to_numpy()
+    config=get_config()
     # SHUFFLE the DataFrame rows, not just indices!
     if shuffle:
-        df = df.sample(frac=1).reset_index(drop=True)
+        df = df.sample(frac=1, random_state=config.seed).reset_index(drop=True)
     indices = df.index.to_numpy()
     batch_roi = []
     batch_mask = []
@@ -525,6 +535,7 @@ def objective(trial, train_ds, val_ds, n_roi_features, window_size, use_mixed_pr
 def main():
     # Setup
     config = get_config()
+    set_seed(config.seed)
     with open(f"{config.log_dir}/global_config.json", 'w') as f:
         json.dump(vars(config), f, indent=2)
 
@@ -569,7 +580,7 @@ def main():
     # --- Build window-level DataFrame ---
     df = build_window_metadata(valid_files)
     # print(df[['file_path', 'label']].head(30))  # See if both 0 and 1 exist
-    splits = stratified_group_window_split(df, n_splits=config.folds)
+    splits = stratified_group_window_split(df, n_splits=config.folds, random_state=config.seed)
     
     # Training loop
     fold_results = []
@@ -625,7 +636,7 @@ def main():
             def fold_objective(trial):
                 return objective(trial, train_ds, val_ds, n_roi_features, config.window_size, use_mixed_precision)
             
-            study = optuna.create_study(direction='minimize')
+            study = optuna.create_study(direction='minimize', sampler=optuna.samplers.TPESampler(seed=config.seed))
             study.optimize(fold_objective, n_trials=config.optuna_trials, timeout=config.optuna_timeout)
             
             best_cfg = {
@@ -643,7 +654,7 @@ def main():
                 'blocks': 6,
                 'filters': 64,
                 'dense_dim': 128,
-                'lr': 0.001, #0.0003065
+                'lr': 0.0003065,
                 'batch': config.batch_size,
                 'dropout': 0.223,
                 'n_roi_features': n_roi_features,

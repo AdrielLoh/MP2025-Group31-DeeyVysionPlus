@@ -5,6 +5,9 @@ import subprocess
 import uuid
 from werkzeug.utils import secure_filename
 import json
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import traceback
+import multiprocessing
 
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
@@ -13,6 +16,7 @@ from detection_scripts.physiological_signal_script import run_detection
 from detection_scripts.audio_analysis_script import predict_audio
 from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
 from detection_scripts.body_posture_script import detect_body_posture, body_posture_live_detection
+from detection_scripts.physiological_signal_ml import run_detection as run_physio_ml
 
 app = Flask(__name__)
 
@@ -29,7 +33,6 @@ def get_video_fps(video_path, default_fps=30):
     Returns the framerate (as a float) of the given video file using ffprobe.
     If detection fails, returns default_fps.
     """
-    import subprocess, json
     cmd = [
         'ffprobe',
         '-v', 'error',
@@ -183,6 +186,7 @@ def physiological_signal_try():
     os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
         file = request.files['file']
+        detection_method = request.form.get('detection_method', 'deep')
         if file:
             # Making the uploaded videos uniquely named
             video_tag = uuid.uuid4().hex
@@ -202,8 +206,14 @@ def physiological_signal_try():
                 video_path_for_processing = filename
                 mp4_path = ""
 
-            # Process the video (run_detection expects video path)
-            face_results, output_video = run_detection(video_path_for_processing, video_tag=video_tag)
+            # === Call the respective detection function ===
+            if detection_method == "machine":
+                # Import if not already at top: from physiological_signal_ml import run_detection as run_physio_ml
+                face_results, output_video = run_physio_ml(video_path_for_processing, video_tag=video_tag)
+            else:
+                # Default: deep learning
+                face_results, output_video = run_detection(video_path_for_processing, video_tag=video_tag)
+
             if os.path.exists(filename):
                 os.remove(filename)
             if os.path.exists(mp4_path):
@@ -213,7 +223,8 @@ def physiological_signal_try():
                 'result.html',
                 analysis_type='physiological',
                 face_results=face_results,
-                output_video=output_video
+                output_video=output_video,
+                physio_method=detection_method
             )
     return render_template('physiological_signal_try.html')
 
@@ -396,62 +407,77 @@ def body_posture_detect():
 def multi_detect():
     return render_template('multi_detection.html')
 
-
 @app.route('/multi_detection', methods=['POST'])
 def multi_detection():
     if "file" not in request.files:
         return "No file uploaded", 400
 
     file = request.files["file"]
-    # Making the uploaded videos uniquely named
     video_tag = uuid.uuid4().hex
     name, ext = os.path.splitext(file.filename)
     new_file_name = video_tag + ext
     filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
     file.save(filename)
 
-    
-    methods = request.form.getlist("methods")  # Use getlist()
-    print("Raw methods data:", methods)  # Debugging
-
+    methods = request.form.getlist("methods")
     if not methods:
         return "No detection method selected", 400
 
     output_folder = "static/results/"
-    raw_results = {}
 
-    for method in methods:
-        print(f"Processing: {method}...")  # Debugging output
+    def run_detection_wrapper(method, filename, output_folder, method_tag):
+        try:
+            # Directly call detection functions, as before
+            if method == "deep_learning":
+                result = deep_learning_static_detection(filename, output_folder, unique_tag=method_tag, method="multi")
+            elif method == "physiological":
+                result = run_physio_ml(filename, video_tag=method_tag, method="multi")
+            elif method == "body_posture":
+                result = detect_body_posture(filename, unique_tag=method_tag)
+            elif method == "visual_artifacts":
+                result = visual_artifacts_static_detection(filename, video_tag=method_tag, output_dir=output_folder, method="multi")
+            else:
+                result = "Unknown"
+            return (method, result)
+        except Exception as e:
+            # For debugging, print the traceback
+            print(f"[ERROR] {method} crashed:\n{traceback.format_exc()}")
+            return (method, f"error: {e}")
 
-        if method == "deep_learning":
-            raw_results["deep_learning"] = deep_learning_static_detection(filename, output_folder)
+    # Use a ProcessPoolExecutor to parallelize detection methods
+    results = {}
+    with ProcessPoolExecutor(max_workers=len(methods)) as executor:
+        # Map each method to a future
+        method_tag_map = {m: f"{video_tag}_{m}" for m in methods}
+        future_to_method = {
+            executor.submit(run_detection_wrapper, method, filename, output_folder, method_tag_map[method]): method
+            for method in methods
+        }
+        for future in as_completed(future_to_method):
+            method = future_to_method[future]
+            try:
+                method_result, result = future.result(timeout=300)  # 5 minutes max per method
+            except Exception as exc:
+                method_result, result = method, f"error: {exc}"
+            results[method_result] = result
 
-        elif method == "physiological":
-            raw_results["physiological"] = run_detection(filename, is_webcam=False)
+    if os.path.exists(filename):
+        os.remove(filename)
 
-        elif method == "body_posture":
-            raw_results["body_posture"] = detect_body_posture(filename)
-
-        elif method == "visual_artifacts":
-            raw_results["visual_artifacts"] = visual_artifacts_static_detection(filename, output_folder)
-
-    print("Final Results:", raw_results)  # Debugging output
-
-    # Extract only "Real" or "Fake" values before passing to template
+    # Process results just as before
     processed_results = {}
-    for method, result in raw_results.items():
-        if isinstance(result, str):  # If already "Real" or "Fake"
+    for method, result in results.items():
+        if isinstance(result, str):
             processed_results[method] = result
-        elif isinstance(result, tuple):  # If tuple, take first value
+        elif isinstance(result, tuple):
             processed_results[method] = result[0]
-        elif isinstance(result, dict) and "prediction" in result:  # If dictionary, extract prediction key
+        elif isinstance(result, dict) and "prediction" in result:
             processed_results[method] = result["prediction"]
         else:
-            processed_results[method] = "Unknown"  # Fallback case
-
-    print("Processed Results:", processed_results)  # Debugging output
+            processed_results[method] = "Unknown"
 
     return render_template("result.html", analysis_type='multi_detection', results=processed_results)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

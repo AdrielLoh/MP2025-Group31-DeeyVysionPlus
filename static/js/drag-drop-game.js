@@ -110,6 +110,14 @@ document.addEventListener('DOMContentLoaded', () => {
         gameSection.style.display = 'block';
         resultsSection.style.display = 'none';
         startButton.disabled = true;
+
+        // Add this scroll functionality
+        setTimeout(() => {
+            gameSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100); // Small delay to ensure the section is displayed first
         
         // Countdown before game starts
         let countdown = 5;

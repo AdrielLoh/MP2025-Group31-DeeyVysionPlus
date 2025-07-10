@@ -188,7 +188,7 @@ def plot_face_metrics(metrics, output_dir, track_id, uid):
     chart_paths.append(bar_path)
     return chart_paths
 
-def run_visual_artifacts_detection(video_path, video_tag, output_dir='static/results', min_frames=5):
+def run_visual_artifacts_detection(video_path, video_tag, output_dir='static/results', min_frames=5, method="single"):
     os.makedirs(output_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
@@ -299,7 +299,8 @@ def run_visual_artifacts_detection(video_path, video_tag, output_dir='static/res
     output_video_path = fixed_path
 
     # Clean up uploads folder
-    if os.path.exists(video_path):
-        os.remove(video_path)
+    if method != "multi":
+        if os.path.exists(video_path):
+            os.remove(video_path)
     
     return face_results, output_video_path

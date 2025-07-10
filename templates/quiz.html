@@ -6,6 +6,7 @@
     <title>DeepVysion+ Knowledge Quiz</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/quiz.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 </head>
 <body>
@@ -120,7 +121,7 @@
                         <p class="result-message" id="result-message"></p>
                         <div class="results-actions">
                             <button class="retry-btn" onclick="startQuiz()">Try Again</button>
-                            <a href="/education" class="explore-btn">Explore Resources</a>
+                            <a href="/challenge" class="explore-btn">Explore Challenges</a>
                         </div>
                     </div>
                 </div>

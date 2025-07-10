@@ -1,9 +1,21 @@
-
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models
+import joblib
+import keras
 
-weights_path = "model_training_stuff/physio_model_deeplearning/fold2_weights.pkl"
+weights_path = "models/physio_tcn_transformer_weights_v2.pkl"
+
+@keras.saving.register_keras_serializable()
+def masked_gap(args):
+    f, m = args
+    seq_len = tf.shape(f)[1]
+    m = m[:, :seq_len]
+    m = tf.cast(tf.expand_dims(m, -1), f.dtype)
+    num = tf.reduce_sum(f * m, axis=1)
+    denom = tf.reduce_sum(m, axis=1)
+    pooled = num / tf.clip_by_value(denom, 1e-3, tf.float32.max)
+    return pooled
 
 def build_tcn_transformer(cfg, use_mixed_precision=False):
     window_size = cfg.get('window_size', 150)
@@ -56,21 +68,7 @@ def build_tcn_transformer(cfg, use_mixed_precision=False):
     ffn = layers.Dense(ff_dim)(ffn)
     x = layers.LayerNormalization(epsilon=1e-6)(x + ffn)
 
-    def masked_gap(args):
-        f, m = args
-        # f: (batch, seq_len, features)
-        # m: (batch, seq_len)
-        seq_len = tf.shape(f)[1]
-        m = m[:, :seq_len]
-        m = tf.cast(tf.expand_dims(m, -1), f.dtype)  # (batch, seq_len, 1)
-        # Sum over time axis (axis=1)
-        num = tf.reduce_sum(f * m, axis=1)      # (batch, features)
-        denom = tf.reduce_sum(m, axis=1)        # (batch, 1)
-        pooled = num / tf.clip_by_value(denom, 1e-3, tf.float32.max)  # (batch, features)
-        return pooled
-
     pooled = layers.Lambda(masked_gap, name='masked_pooling')([x, mask])
-    print("pooled.shape:", pooled.shape)
 
     # Classification head
     dense = layers.Dense(ff_dim)(pooled)
@@ -101,12 +99,14 @@ try:
     model = build_tcn_transformer(model_config)
     
     # Load weights
-    model.load_weights(weights_path)
+    weights = joblib.load(weights_path)
+    model.set_weights(weights)
     print("Weights loaded successfully.")
 
     # Save model to disk
-    model.save("models/physio_tcn_transformer_2.keras", save_format="keras")
+    model.save("models/physio_tcn_transformer_2.keras")
     print("New model saved")
     
 except Exception as e:
+    print(f"Error: {e}")
     print("Failed to save new model")
