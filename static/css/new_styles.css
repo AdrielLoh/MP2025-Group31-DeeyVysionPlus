@@ -2335,11 +2335,6 @@ Detection Information Pages Specific Styles
     text-align: center;
 }
 
-.stat-label {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
 /* Methodology Section */
 .methodology-section {
     margin: 5rem 0;
@@ -3448,7 +3443,7 @@ Try Page Specific Styles
     padding: 1rem 2rem;
     border: none;
     border-radius: 12px;
-    font-weight: 600;
+    font-weight: 800;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
@@ -3457,12 +3452,12 @@ Try Page Specific Styles
 
 .start-btn {
     background: var(--success-gradient);
-    color: white;
+    color: var(--dark-bg);
 }
 
 .stop-btn {
     background: var(--warning-gradient);
-    color: white;
+    color: var(--dark-bg);
 }
 
 .webcam-button::before {
@@ -6829,11 +6824,6 @@ Impact on Society Page Specific Styles
     color: var(--text-primary);
 }
 
-.stat-label {
-    font-size: 1rem;
-    color: var(--text-secondary);
-}
-
 .opportunity-sectors {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -8518,13 +8508,6 @@ Protect Yourself Page Specific Styles
     text-align: right;
 }
 
-.progress-text {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    min-width: 40px;
-}
-
 .audit-category strong {
     color: var(--text-primary);
     font-size: 1rem;
@@ -9015,5 +8998,62 @@ Protect Yourself Page Specific Styles
     .tool-features {
         flex-direction: column;
         gap: 0.5rem;
+    }
+}
+
+.model-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    margin-bottom: 2.5rem;
+    animation: fadeInUp 0.7s;
+}
+.model-tabs {
+    display: flex;
+    gap: 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    padding: 0.3rem 0.5rem;
+}
+.model-tab {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 1.08rem;
+    border-radius: 14px;
+    padding: 0.9rem 2.2rem;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    position: relative;
+    overflow: hidden;
+}
+.model-tab.active,
+.model-tab:focus {
+    background: var(--primary-gradient);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(102,126,234,0.18);
+    z-index: 2;
+}
+.model-tab:not(.active):hover {
+    background: rgba(102,126,234,0.10);
+    color: var(--text-primary);
+}
+.model-tab-icon {
+    font-size: 1.25rem;
+}
+@media (max-width: 600px) {
+    .model-tab {
+        padding: 0.7rem 1.2rem;
+        font-size: 0.96rem;
+    }
+    .model-tab-icon {
+        font-size: 1.1rem;
     }
 }

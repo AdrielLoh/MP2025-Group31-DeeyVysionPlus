@@ -98,7 +98,7 @@ def live_detection(output_folder):
 
     return overall_result, real_frame_count, fake_frame_count
 
-def static_video_detection(video_path, output_folder, unique_tag):
+def static_video_detection(video_path, output_folder, unique_tag, method="single"):
     """Performs deepfake detection on an uploaded video."""
     cap = cv2.VideoCapture(video_path)
     real_frame_count = 0
@@ -147,8 +147,9 @@ def static_video_detection(video_path, output_folder, unique_tag):
     rvf_plot, conf_plot = plot_and_save_graphs(score_list, real_frame_count, fake_frame_count, output_folder, unique_tag)
     
     # Clean up uploads folder
-    if os.path.exists(video_path):
-        os.remove(video_path)
+    if method != "multi":
+        if os.path.exists(video_path):
+            os.remove(video_path)
 
     return overall_result, real_frame_count, fake_frame_count, rvf_plot, conf_plot
 

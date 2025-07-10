@@ -30,6 +30,17 @@
                 return;
             });
         });
+        document.addEventListener("DOMContentLoaded", function() {
+            const tabs = document.querySelectorAll('.model-tab');
+            const input = document.getElementById('detectionMethodInput');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    input.value = tab.getAttribute('data-method');
+                });
+            });
+        });
     </script>
     <script src="../static/js/handle-upload.js"></script>
 </head>
@@ -64,6 +75,23 @@
     </section>
 
     <section class="try-container">
+        <h2 style="text-align: center;">Choose your model:</h2>
+        <!-- Model Selection Tabs -->
+        <div class="model-toggle-container">
+            <div class="model-tabs" id="modelTabs">
+                <button type="button" class="model-tab active" data-method="deep">
+                    <span class="model-tab-icon">🤖</span>
+                    <span class="tab-text">Deep Learning (BETA)</span>
+                </button>
+                <button type="button" class="model-tab" data-method="machine">
+                    <span class="model-tab-icon">⚡</span>
+                    <span class="tab-text">Machine Learning</span>
+                </button>
+            </div>
+            <!-- Hidden input to submit which method is selected -->
+            <input type="hidden" name="detection_method" id="detectionMethodInput" value="deep" form="upload-form">
+        </div>
+
         <div class="detection-methods">
             <!-- File Upload Method -->
             <div class="detection-method upload-method">

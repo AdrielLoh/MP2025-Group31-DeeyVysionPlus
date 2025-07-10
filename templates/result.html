@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detection Results</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/new_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
 </head>
 <body>
     <header>
@@ -152,7 +153,7 @@
                             <div class="result-header">
                                 <div class="result-status">
                                     <h2 class="status-text" style="color: {% if face.result == 'Real' %}#10b981{% elif face.result == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
-                                        {% if face.result == 'Real' %}Authentic{% elif face.result == 'Fake' %}Likely Deepfake{% else %}Inconclusive{% endif %}
+                                        {% if face.result == 'Real' %}Authentic{% elif face.result == 'Fake' %}Likely Deepfake{% elif face.result == 'Invalid' %}Video too short{% else %}Inconclusive{% endif %}
                                     </h2>
                                     <div class="metrics-grid">
                                         <div class="metric-item">
@@ -164,21 +165,19 @@
                                             <span class="metric-value">{{ face.fake_count }}</span>
                                         </div>
                                         <div class="metric-item">
-                                            <span class="metric-label">Heart Rate:</span>
-                                            <span class="metric-value">{{ face.hr }} BPM</span>
-                                        </div>
-                                        <div class="metric-item">
                                             <span class="metric-label">Chance of Deepfake:</span>
                                             <span class="metric-value">{{ face.confidence }}%</span>
                                         </div>
                                     </div>
                                 </div>
-                                {% if loop.first %}
                                 <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
                                     <span>←</span> Return to Analysis
                                 </button>
-                                {% endif %}
                             </div>
+
+                            {% if face.result == "Invalid" %}
+                            <h3>The video needs to be at least 3 seconds for effective physiological features</h3>
+                            {% endif %}
 
                             <div class="analysis-carousel">
                                 <div class="carousel-header">
@@ -188,6 +187,32 @@
                                         <button class="carousel-btn next" data-carousel="carousel-{{ face.track_id }}">›</button>
                                     </div>
                                 </div>
+                                {% if physio_method == 'deep' and face.result != 'Invalid' %}
+                                <div class="carousel-container" id="carousel-{{ face.track_id }}">
+                                    <div class="carousel-track">
+                                        <div class="carousel-slide active">
+                                            <img src="{{ face.roi_signal_plots.left_cheek }}" alt="left_cheek" class="analysis-chart">
+                                            <p class="chart-description">Raw rPPG Signals from the left cheek</p>
+                                        </div>
+                                        <div class="carousel-slide">
+                                            <img src="{{ face.roi_signal_plots.right_cheek }}" alt="right_cheek" class="analysis-chart">
+                                            <p class="chart-description">Raw rPPG Signals from the right cheek</p>
+                                        </div>
+                                        <div class="carousel-slide">
+                                            <img src="{{ face.roi_signal_plots.forehead }}" alt="forehead" class="analysis-chart">
+                                            <p class="chart-description">Raw rPPG Signals from the forehead</p>
+                                        </div>
+                                        <div class="carousel-slide">
+                                            <img src="{{ face.roi_signal_plots.chin }}" alt="chin" class="analysis-chart">
+                                            <p class="chart-description">Raw rPPG Signals from the chin</p>
+                                        </div>
+                                        <div class="carousel-slide">
+                                            <img src="{{ face.roi_signal_plots.nose }}" alt="nose" class="analysis-chart">
+                                            <p class="chart-description">Raw rPPG Signals from the nose</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% elif physio_method =='machine' and face.result != 'Invalid' %}
                                 <div class="carousel-container" id="carousel-{{ face.track_id }}">
                                     <div class="carousel-track">
                                         <div class="carousel-slide active">
@@ -216,8 +241,10 @@
                                         </div>
                                     </div>
                                 </div>
+                                {% endif %}
                             </div>
-
+                            
+                            {% if face.result != 'Invalid' %}
                             <div class="video-analysis">
                                 <h3>Analyzed Video</h3>
                                 <video class="analysis-video" controls autoplay loop muted>
@@ -225,6 +252,7 @@
                                     Your browser does not support the video tag.
                                 </video>
                             </div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -321,11 +349,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                    {% if loop.first %}
                                     <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
                                         <span>←</span> Return to Analysis
                                     </button>
-                                    {% endif %}
                                 </div>
 
                                 <div class="analysis-carousel">
@@ -461,17 +487,14 @@
                                 </h2>
                                 <p class="method-description">{{ method_names.get(method, method.replace("_", " ").title()) }} detection algorithm result</p>
                             </div>
-                            {% if loop.first %}
                             <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
                                 <span>←</span> Return to Analysis
                             </button>
-                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
             {% endif %}
-
         </div>
     </main>
 
@@ -480,802 +503,6 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
-    <!-- <script src="../static/js/handle-tab.js"></script> -->
-    <!-- <script src="../static/js/img-carousel.js"></script> -->
      <script src="../static/js/result-html.js"></script>
-
-    <style>
-        /* ==================================
-            RESULTS PAGE GLASSMORPHISM STYLES
-        =================================== */
-
-        /* Main container */
-        .results-main {
-            min-height: 100vh;
-            background: var(--dark-bg);
-            background-image: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
-        }
-
-        /* Hero Section */
-        .results-hero {
-            min-height: 60vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            position: relative;
-            margin-top: 80px;
-            padding: 3rem 2rem;
-            background: linear-gradient(135deg, 
-                rgba(102, 126, 234, 0.1) 0%, 
-                rgba(118, 75, 162, 0.1) 50%,
-                rgba(79, 172, 254, 0.1) 100%);
-        }
-
-        .hero-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .pulse-waves {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 300px;
-            border: 2px solid rgba(102, 126, 234, 0.1);
-            border-radius: 50%;
-            animation: pulse-expand 3s ease-in-out infinite;
-        }
-
-        .pulse-waves::before,
-        .pulse-waves::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 2px solid rgba(102, 126, 234, 0.05);
-            border-radius: 50%;
-        }
-
-        .pulse-waves::before {
-            width: 150%;
-            height: 150%;
-            animation: pulse-expand 3s ease-in-out infinite 1s;
-        }
-
-        .pulse-waves::after {
-            width: 200%;
-            height: 200%;
-            animation: pulse-expand 3s ease-in-out infinite 2s;
-        }
-
-        .floating-particles::before,
-        .floating-particles::after {
-            content: '';
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #667eea;
-            border-radius: 50%;
-            animation: float-particles 15s linear infinite;
-        }
-
-        .floating-particles::before {
-            top: 20%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .floating-particles::after {
-            top: 60%;
-            right: 20%;
-            animation-delay: -7s;
-        }
-
-        .hero-content {
-            max-width: 800px;
-            z-index: 2;
-            position: relative;
-        }
-
-        .results-icon {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 2rem;
-        }
-
-        .detection-pulse {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100px;
-            height: 100px;
-            border: 2px solid rgba(102, 126, 234, 0.3);
-            border-radius: 50%;
-            animation: pulse-ring 2s ease-out infinite;
-        }
-
-        .icon-emoji {
-            font-size: 4rem;
-            display: block;
-            position: relative;
-            z-index: 2;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .results-title {
-            font-size: 3rem;
-            font-weight: 700;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-            animation: fadeInUp 1s ease-out 0.3s both;
-        }
-
-        .results-subtitle {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            animation: fadeInUp 1s ease-out 0.5s both;
-        }
-
-        /* Main Results Container */
-        .results-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            animation: fadeInUp 1s ease-out 0.7s both;
-        }
-
-        /* Result Cards */
-        .result-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 3rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-card);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .result-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .result-card:hover::before {
-            left: 100%;
-        }
-
-        .result-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-glow);
-            border-color: rgba(102, 126, 234, 0.3);
-        }
-
-        /* Result Card Variants */
-        .audio-result {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(75, 181, 67, 0.05) 100%);
-        }
-
-        .physiological-result {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
-        }
-
-        .deep-learning-result {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(240, 147, 251, 0.05) 100%);
-        }
-
-        .visual-result {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(79, 172, 254, 0.05) 100%);
-        }
-
-        .posture-result {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(250, 112, 154, 0.05) 100%);
-        }
-
-        .multi-result {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.03) 100%);
-        }
-
-        .error-result {
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(245, 158, 11, 0.05) 100%);
-        }
-
-        /* Result Header */
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .result-status {
-            flex: 1;
-        }
-
-        .status-text {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 20px currentColor;
-            animation: glow-pulse 2s ease-in-out infinite;
-        }
-
-        .confidence-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.8rem;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 0.8rem 1.5rem;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .confidence-label {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .confidence-value {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        /* Metrics Grid */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .metric-item {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1rem;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .metric-item:hover {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: rgba(102, 126, 234, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .metric-label {
-            display: block;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .metric-value {
-            display: block;
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        /* Action Button */
-        .action-button {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 1rem 2rem;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .action-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .action-button:hover::before {
-            left: 100%;
-        }
-
-        .action-button:hover {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: rgba(102, 126, 234, 0.3);
-            transform: translateX(-5px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        }
-
-        /* Tab Navigation */
-        .tab-navigation,
-        .face-tabs .tab-navigation,
-        .detection-tabs .tab-navigation {
-            display: flex;
-            gap: 0.5rem;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 0.5rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .tab-btn {
-            padding: 1rem 1.5rem;
-            background: transparent;
-            border: none;
-            border-radius: 16px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            font-size: 1.1rem;
-        }
-
-        .tab-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .tab-btn:hover::before {
-            left: 100%;
-        }
-
-        .tab-btn:hover {
-            color: var(--text-primary);
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .tab-btn.active {
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Tab Panels */
-        .tab-panel {
-            display: none;
-        }
-
-        .tab-panel.active {
-            display: block;
-            animation: fadeInUp 0.5s ease-out;
-        }
-
-        /* Analysis Tabs */
-        .analysis-tabs {
-            margin-top: 2rem;
-        }
-
-        .analysis-content {
-            text-align: center;
-        }
-
-        .analysis-content h3 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .analysis-description {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 2rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        /* Chart Container */
-        .chart-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .analysis-chart {
-            width: 100%;
-            height: auto;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .analysis-chart:hover {
-            transform: scale(1.02);
-        }
-
-        /* Analysis Carousel */
-        .analysis-carousel {
-            margin: 2rem 0;
-        }
-
-        .carousel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .carousel-header h3 {
-            font-size: 1.6rem;
-            font-weight: 600;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .carousel-controls {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .carousel-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 50%;
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .carousel-btn:hover {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: rgba(102, 126, 234, 0.5);
-            transform: scale(1.1);
-        }
-
-        .carousel-container {
-            position: relative;
-            overflow: hidden;
-            border-radius: 16px;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .carousel-track {
-            display: flex;
-            transition: transform 0.3s ease;
-        }
-
-        .carousel-slide {
-            min-width: 100%;
-            text-align: center;
-            padding: 1.5rem;
-        }
-
-        .carousel-slide.active {
-            display: block;
-        }
-
-        .chart-description {
-            margin-top: 1rem;
-            font-size: 1rem;
-            color: var(--text-secondary);
-            font-style: italic;
-        }
-
-        /* Chart Grid */
-        .chart-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .chart-item {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 16px;
-            padding: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .chart-item:hover {
-            background: rgba(102, 126, 234, 0.05);
-            border-color: rgba(102, 126, 234, 0.3);
-            transform: translateY(-3px);
-        }
-
-        .chart-item h3 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            text-align: center;
-            color: var(--text-primary);
-        }
-
-        /* Video Analysis */
-        .video-analysis {
-            margin: 2rem 0;
-            text-align: center;
-        }
-
-        .video-analysis h3 {
-            font-size: 1.6rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .analysis-video {
-            width: 100%;
-            max-width: 800px;
-            height: auto;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        /* Multi-Detection Specific */
-        .method-label {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .method-description {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            margin-top: 0.5rem;
-        }
-
-        /* Error States */
-        .error-message {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-top: 1rem;
-        }
-
-        /* Animations */
-        @keyframes pulse-expand {
-            0%, 100% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 0.3;
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.2);
-                opacity: 0.1;
-            }
-        }
-
-        @keyframes float-particles {
-            0%, 100% {
-                transform: translate(0, 0) rotate(0deg);
-                opacity: 1;
-            }
-            25% {
-                transform: translate(100px, -100px) rotate(90deg);
-                opacity: 0.8;
-            }
-            50% {
-                transform: translate(200px, -50px) rotate(180deg);
-                opacity: 0.5;
-            }
-            75% {
-                transform: translate(150px, 100px) rotate(270deg);
-                opacity: 0.8;
-            }
-        }
-
-        @keyframes pulse-ring {
-            0% {
-                transform: translate(-50%, -50%) scale(0.8);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(2);
-                opacity: 0;
-            }
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        @keyframes glow-pulse {
-            0%, 100% {
-                text-shadow: 0 0 20px currentColor;
-            }
-            50% {
-                text-shadow: 0 0 30px currentColor, 0 0 40px currentColor;
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .chart-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .metrics-grid {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            }
-        }
-
-        @media (max-width: 768px) {
-            .results-hero {
-                min-height: 50vh;
-                padding: 2rem 1rem;
-            }
-
-            .results-title {
-                font-size: 2.2rem;
-            }
-
-            .results-subtitle {
-                font-size: 1rem;
-            }
-
-            .results-container {
-                padding: 1rem;
-            }
-
-            .result-card {
-                padding: 2rem;
-            }
-
-            .result-header {
-                flex-direction: column;
-                gap: 1.5rem;
-                text-align: center;
-            }
-
-            .status-text {
-                font-size: 2rem;
-            }
-
-            .tab-navigation,
-            .face-tabs .tab-navigation,
-            .detection-tabs .tab-navigation {
-                padding: 0.3rem;
-                gap: 0.3rem;
-            }
-
-            .tab-btn {
-                padding: 0.8rem 1rem;
-                font-size: 0.9rem;
-            }
-
-            .carousel-header {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-
-            .metrics-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 480px) {
-            .results-title {
-                font-size: 1.8rem;
-            }
-
-            .result-card {
-                padding: 1.5rem;
-            }
-
-            .status-text {
-                font-size: 1.6rem;
-            }
-
-            .tab-navigation,
-            .face-tabs .tab-navigation,
-            .detection-tabs .tab-navigation {
-                flex-direction: column;
-            }
-
-            .tab-btn {
-                width: 100%;
-                text-align: center;
-            }
-
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .confidence-badge {
-                flex-direction: column;
-                gap: 0.5rem;
-                text-align: center;
-            }
-
-            .chart-grid {
-                gap: 1rem;
-            }
-
-            .chart-item {
-                padding: 1.5rem;
-            }
-        }
-    </style>
 </body>
 </html>

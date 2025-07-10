@@ -62,6 +62,10 @@ class ResultsPageManager {
             // Add navigation event listeners
             this.addCarouselNavigation(carouselId);
 
+            // Add auto-advance for single-slide carousels
+            if (slides.length > 1) {
+                this.addAutoAdvance(carouselId);
+            }
         });
     }
 
@@ -207,6 +211,38 @@ class ResultsPageManager {
     }
 
     /**
+     * Add auto-advance functionality (optional)
+     */
+    addAutoAdvance(carouselId, interval = 100000) {
+        const carousel = this.carousels.get(carouselId);
+        if (!carousel || carousel.totalSlides <= 1) return;
+
+        // Clear any existing interval
+        if (carousel.autoInterval) {
+            clearInterval(carousel.autoInterval);
+        }
+
+        // Set up auto-advance (paused on hover)
+        let isPaused = false;
+
+        carousel.autoInterval = setInterval(() => {
+            if (!isPaused) {
+                this.nextSlide(carouselId);
+            }
+        }, interval);
+
+        // Pause on hover
+        carousel.container.addEventListener('mouseenter', () => {
+            isPaused = true;
+        });
+
+        carousel.container.addEventListener('mouseleave', () => {
+            isPaused = false;
+        });
+
+        // Store interval reference
+        carousel.autoInterval = carousel.autoInterval;
+    }
 
     /**
      * Initialize tab functionality
@@ -483,6 +519,7 @@ document.addEventListener('visibilitychange', () => {
         if (resultsPageManager) {
             resultsPageManager.carousels.forEach((carousel, carouselId) => {
                 if (carousel.wasPaused && carousel.totalSlides > 1) {
+                    resultsPageManager.addAutoAdvance(carouselId);
                     carousel.wasPaused = false;
                 }
             });

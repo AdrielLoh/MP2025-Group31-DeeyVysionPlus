@@ -1,0 +1,147 @@
+Model: "TCN_Transformer"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ roi_in (InputLayer)            [(None, 150, 15)]    0           []                               
+                                                                                                  
+ conv1d (Conv1D)                (None, 150, 64)      2944        ['roi_in[0][0]']                 
+                                                                                                  
+ batch_normalization (BatchNorm  (None, 150, 64)     256         ['conv1d[0][0]']                 
+ alization)                                                                                       
+                                                                                                  
+ conv1d_1 (Conv1D)              (None, 150, 64)      12352       ['batch_normalization[0][0]']    
+                                                                                                  
+ conv1d_2 (Conv1D)              (None, 150, 64)      1024        ['roi_in[0][0]']                 
+                                                                                                  
+ batch_normalization_1 (BatchNo  (None, 150, 64)     256         ['conv1d_1[0][0]']               
+ rmalization)                                                                                     
+                                                                                                  
+ add (Add)                      (None, 150, 64)      0           ['conv1d_2[0][0]',               
+                                                                  'batch_normalization_1[0][0]']  
+                                                                                                  
+ activation (Activation)        (None, 150, 64)      0           ['add[0][0]']                    
+                                                                                                  
+ conv1d_3 (Conv1D)              (None, 150, 64)      12352       ['activation[0][0]']             
+                                                                                                  
+ batch_normalization_2 (BatchNo  (None, 150, 64)     256         ['conv1d_3[0][0]']               
+ rmalization)                                                                                     
+                                                                                                  
+ conv1d_4 (Conv1D)              (None, 150, 64)      12352       ['batch_normalization_2[0][0]']  
+                                                                                                  
+ batch_normalization_3 (BatchNo  (None, 150, 64)     256         ['conv1d_4[0][0]']               
+ rmalization)                                                                                     
+                                                                                                  
+ add_1 (Add)                    (None, 150, 64)      0           ['activation[0][0]',             
+                                                                  'batch_normalization_3[0][0]']  
+                                                                                                  
+ activation_1 (Activation)      (None, 150, 64)      0           ['add_1[0][0]']                  
+                                                                                                  
+ conv1d_5 (Conv1D)              (None, 150, 64)      12352       ['activation_1[0][0]']           
+                                                                                                  
+ batch_normalization_4 (BatchNo  (None, 150, 64)     256         ['conv1d_5[0][0]']               
+ rmalization)                                                                                     
+                                                                                                  
+ conv1d_6 (Conv1D)              (None, 150, 64)      12352       ['batch_normalization_4[0][0]']  
+                                                                                                  
+ batch_normalization_5 (BatchNo  (None, 150, 64)     256         ['conv1d_6[0][0]']               
+ rmalization)                                                                                     
+                                                                                                  
+ add_2 (Add)                    (None, 150, 64)      0           ['activation_1[0][0]',           
+                                                                  'batch_normalization_5[0][0]']  
+                                                                                                  
+ activation_2 (Activation)      (None, 150, 64)      0           ['add_2[0][0]']                  
+                                                                                                  
+ conv1d_7 (Conv1D)              (None, 150, 64)      12352       ['activation_2[0][0]']           
+                                                                                                  
+ batch_normalization_6 (BatchNo  (None, 150, 64)     256         ['conv1d_7[0][0]']               
+ rmalization)                                                                                     
+                                                                                                  
+ conv1d_8 (Conv1D)              (None, 150, 64)      12352       ['batch_normalization_6[0][0]']  
+                                                                                                  
+ batch_normalization_7 (BatchNo  (None, 150, 64)     256         ['conv1d_8[0][0]']               
+ rmalization)                                                                                     
+                                                                                                  
+ add_3 (Add)                    (None, 150, 64)      0           ['activation_2[0][0]',           
+                                                                  'batch_normalization_7[0][0]']  
+                                                                                                  
+ activation_3 (Activation)      (None, 150, 64)      0           ['add_3[0][0]']                  
+                                                                                                  
+ conv1d_9 (Conv1D)              (None, 150, 64)      12352       ['activation_3[0][0]']           
+                                                                                                  
+ batch_normalization_8 (BatchNo  (None, 150, 64)     256         ['conv1d_9[0][0]']               
+ rmalization)                                                                                     
+                                                                                                  
+ conv1d_10 (Conv1D)             (None, 150, 64)      12352       ['batch_normalization_8[0][0]']  
+                                                                                                  
+ batch_normalization_9 (BatchNo  (None, 150, 64)     256         ['conv1d_10[0][0]']              
+ rmalization)                                                                                     
+                                                                                                  
+ add_4 (Add)                    (None, 150, 64)      0           ['activation_3[0][0]',           
+                                                                  'batch_normalization_9[0][0]']  
+                                                                                                  
+ activation_4 (Activation)      (None, 150, 64)      0           ['add_4[0][0]']                  
+                                                                                                  
+ conv1d_11 (Conv1D)             (None, 150, 64)      12352       ['activation_4[0][0]']           
+                                                                                                  
+ batch_normalization_10 (BatchN  (None, 150, 64)     256         ['conv1d_11[0][0]']              
+ ormalization)                                                                                    
+                                                                                                  
+ conv1d_12 (Conv1D)             (None, 150, 64)      12352       ['batch_normalization_10[0][0]'] 
+                                                                                                  
+ batch_normalization_11 (BatchN  (None, 150, 64)     256         ['conv1d_12[0][0]']              
+ ormalization)                                                                                    
+                                                                                                  
+ add_5 (Add)                    (None, 150, 64)      0           ['activation_4[0][0]',           
+                                                                  'batch_normalization_11[0][0]'] 
+                                                                                                  
+ activation_5 (Activation)      (None, 150, 64)      0           ['add_5[0][0]']                  
+                                                                                                  
+ max_pooling1d (MaxPooling1D)   (None, 75, 64)       0           ['activation_5[0][0]']           
+                                                                                                  
+ conv1d_13 (Conv1D)             (None, 75, 128)      8320        ['max_pooling1d[0][0]']          
+                                                                                                  
+ add_6 (Add)                    (None, 75, 128)      0           ['conv1d_13[0][0]']              
+                                                                                                  
+ multi_head_attention (MultiHea  (None, 75, 128)     66048       ['add_6[0][0]',                  
+ dAttention)                                                      'add_6[0][0]']                  
+                                                                                                  
+ tf.__operators__.add (TFOpLamb  (None, 75, 128)     0           ['add_6[0][0]',                  
+ da)                                                              'multi_head_attention[0][0]']   
+                                                                                                  
+ layer_normalization (LayerNorm  (None, 75, 128)     256         ['tf.__operators__.add[0][0]']   
+ alization)                                                                                       
+                                                                                                  
+ dense (Dense)                  (None, 75, 128)      16512       ['layer_normalization[0][0]']    
+                                                                                                  
+ dense_1 (Dense)                (None, 75, 128)      16512       ['dense[0][0]']                  
+                                                                                                  
+ tf.__operators__.add_1 (TFOpLa  (None, 75, 128)     0           ['layer_normalization[0][0]',    
+ mbda)                                                            'dense_1[0][0]']                
+                                                                                                  
+ layer_normalization_1 (LayerNo  (None, 75, 128)     256         ['tf.__operators__.add_1[0][0]'] 
+ rmalization)                                                                                     
+                                                                                                  
+ mask_in (InputLayer)           [(None, 150)]        0           []                               
+                                                                                                  
+ masked_pooling (Lambda)        (None, 128)          0           ['layer_normalization_1[0][0]',  
+                                                                  'mask_in[0][0]']                
+                                                                                                  
+ dense_2 (Dense)                (None, 128)          16512       ['masked_pooling[0][0]']         
+                                                                                                  
+ re_lu (ReLU)                   (None, 128)          0           ['dense_2[0][0]']                
+                                                                                                  
+ dropout (Dropout)              (None, 128)          0           ['re_lu[0][0]']                  
+                                                                                                  
+ dense_3 (Dense)                (None, 64)           8256        ['dropout[0][0]']                
+                                                                                                  
+ re_lu_1 (ReLU)                 (None, 64)           0           ['dense_3[0][0]']                
+                                                                                                  
+ dropout_1 (Dropout)            (None, 64)           0           ['re_lu_1[0][0]']                
+                                                                                                  
+ output (Dense)                 (None, 1)            65          ['dropout_1[0][0]']              
+                                                                                                  
+==================================================================================================
+Total params: 275,649
+Trainable params: 274,113
+Non-trainable params: 1,536
+__________________________________________________________________________________________________
