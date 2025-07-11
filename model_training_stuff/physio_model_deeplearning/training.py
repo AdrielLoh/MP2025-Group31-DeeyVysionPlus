@@ -4,7 +4,6 @@ import h5py
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models, callbacks, optimizers, mixed_precision
-from sklearn.model_selection import StratifiedKFold, GroupKFold
 from sklearn.model_selection import StratifiedGroupKFold
 import optuna
 from tqdm import tqdm
@@ -88,9 +87,9 @@ def get_config():
     parser = argparse.ArgumentParser(description='Train physiological deepfake detection model')
     parser.add_argument('--data_dir', type=str, default='D:/model_training/cache/batches/physio-deep-v1/for-training', 
                        help='Directory containing preprocessed HDF5 files')
-    parser.add_argument('--model_dir', type=str, default='D:/model_training/physiological-model/deep-learning-1',
+    parser.add_argument('--model_dir', type=str, default='D:/model_training/physiological-model/deep-learning-1-1',
                        help='Directory to save trained models')
-    parser.add_argument('--log_dir', type=str, default='D:/model_training/physiological-model/deep-learning-1/logs',
+    parser.add_argument('--log_dir', type=str, default='D:/model_training/physiological-model/deep-learning-1-1/logs',
                        help='Directory to save logs')
     parser.add_argument('--epochs', type=int, default=50,
                        help='Number of training epochs')
@@ -481,7 +480,7 @@ def objective(trial, train_ds, val_ds, n_roi_features, window_size, use_mixed_pr
             'filters': trial.suggest_categorical('filters', [32, 48, 64]),  # Smaller for AMD
             'dense_dim': trial.suggest_categorical('dense_dim', [64, 96, 128]),
             'lr': trial.suggest_float('lr', 5e-5, 2e-3, log=True),
-            'batch': trial.suggest_categorical('batch', [4, 6, 8]),  # Small batches for 8GB VRAM
+            'batch': trial.suggest_categorical('batch', [4, 6, 8, 16]),  # Small batches for 8GB VRAM
             'dropout': trial.suggest_float('dropout', 0.1, 0.3),
             'n_roi_features': n_roi_features,
             'window_size': window_size
@@ -655,6 +654,7 @@ def main():
                 'filters': 64,
                 'dense_dim': 128,
                 'lr': 0.0003065,
+                'lr': 0.0001,
                 'batch': config.batch_size,
                 'dropout': 0.223,
                 'n_roi_features': n_roi_features,

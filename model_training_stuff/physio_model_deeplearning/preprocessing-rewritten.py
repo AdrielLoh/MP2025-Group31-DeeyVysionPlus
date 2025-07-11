@@ -511,7 +511,7 @@ def extract_window_signals(frames, boxes, start, end, fps=30, augment=True):
 
         # Apply augmentation if requested
         if augment:
-            if random.random() < 0.6: # CHANGE TO BE LOWER FOR FAKE, HIGHER FOR REAL
+            if random.random() < 0.35: # CHANGE TO BE LOWER FOR FAKE, HIGHER FOR REAL
                 augs = ['noise', 'amplitude', 'frequency', 'phase']
                 aug = random.choice(augs)
                 chrom = augment_signal(chrom, aug, strength=0.12, mask=np.array(window_mask))
