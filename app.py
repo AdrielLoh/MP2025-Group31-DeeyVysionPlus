@@ -16,7 +16,7 @@ from detection_scripts.deep_based_learning_script import static_video_detection 
 from detection_scripts.physiological_signal_script import run_detection
 from detection_scripts.audio_analysis_script import predict_audio
 from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
-from detection_scripts.body_posture_script import detect_body_posture, body_posture_live_detection
+from detection_scripts.legacy.body_posture_script import detect_body_posture, body_posture_live_detection
 from detection_scripts.physiological_signal_ml import run_detection as run_physio_ml
 
 app = Flask(__name__)
