@@ -3,7 +3,7 @@ import glob
 import h5py
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import layers, models, callbacks, optimizers, mixed_precision
+from tensorflow.keras import layers, models, callbacks, optimizers, mixed_precision, regularizers
 from sklearn.model_selection import StratifiedGroupKFold
 import optuna
 from tqdm import tqdm
@@ -391,19 +391,19 @@ def build_tcn_transformer(cfg, use_mixed_precision=False):
     x = roi_in
     for d in tcn_blocks:
         res = x
-        x = layers.Conv1D(tcn_channels, 3, padding="causal", dilation_rate=d, activation="relu")(x)
+        x = layers.Conv1D(tcn_channels, 3, padding="causal", dilation_rate=d, activation="relu", kernel_regularizer=regularizers.l2(1e-4))(x)
         x = layers.BatchNormalization()(x)
-        x = layers.Conv1D(tcn_channels, 3, padding="causal", dilation_rate=d)(x)
+        x = layers.Conv1D(tcn_channels, 3, padding="causal", dilation_rate=d, kernel_regularizer=regularizers.l2(1e-4))(x)
         x = layers.BatchNormalization()(x)
         # Projection for residual if needed
         if int(res.shape[-1]) != tcn_channels:
-            res = layers.Conv1D(tcn_channels, 1, padding="same")(res)
+            res = layers.Conv1D(tcn_channels, 1, padding="same", kernel_regularizer=regularizers.l2(1e-4))(res)
         x = layers.Add()([res, x])
         x = layers.Activation("relu")(x)
 
     # Downsample and project
     x = layers.MaxPooling1D(2)(x)  # shape: (window_size//2, tcn_channels)
-    x = layers.Conv1D(ff_dim, 1, activation="relu")(x)  # shape: (window_size//2, ff_dim)
+    x = layers.Conv1D(ff_dim, 1, activation="relu", kernel_regularizer=regularizers.l2(1e-4))(x)  # shape: (window_size//2, ff_dim)
 
     # After MaxPooling1D and Conv1D
     seq_len = x.shape[1]
@@ -421,8 +421,8 @@ def build_tcn_transformer(cfg, use_mixed_precision=False):
         dropout=attn_dropout
     )(x, x)
     x = layers.LayerNormalization(epsilon=1e-6)(x + attn_out)
-    ffn = layers.Dense(ff_dim, activation="relu")(x)
-    ffn = layers.Dense(ff_dim)(ffn)
+    ffn = layers.Dense(ff_dim, activation="relu", kernel_regularizer=regularizers.l2(1e-4))(x)
+    ffn = layers.Dense(ff_dim, kernel_regularizer=regularizers.l2(1e-4))(ffn)
     x = layers.LayerNormalization(epsilon=1e-6)(x + ffn)
 
     def masked_gap(args):
@@ -439,19 +439,19 @@ def build_tcn_transformer(cfg, use_mixed_precision=False):
         return pooled
 
     pooled = layers.Lambda(masked_gap, name='masked_pooling')([x, mask])
-    print("pooled.shape:", pooled.shape)
+    # print("pooled.shape:", pooled.shape)
 
     # Classification head
-    dense = layers.Dense(ff_dim)(pooled)
+    dense = layers.Dense(ff_dim, kernel_regularizer=regularizers.l2(1e-4))(pooled)
     dense = layers.ReLU()(dense)
     dense = layers.Dropout(attn_dropout)(dense)
-    dense = layers.Dense(ff_dim // 2)(dense)
+    dense = layers.Dense(ff_dim // 2, kernel_regularizer=regularizers.l2(1e-4))(dense)
     dense = layers.ReLU()(dense)
     dense = layers.Dropout(attn_dropout)(dense)
     if use_mixed_precision:
-        out = layers.Dense(1, activation='sigmoid', dtype='float32', name='output')(dense)
+        out = layers.Dense(1, activation='sigmoid', dtype='float32', name='output', kernel_regularizer=regularizers.l2(1e-4))(dense)
     else:
-        out = layers.Dense(1, activation='sigmoid', name='output')(dense)
+        out = layers.Dense(1, activation='sigmoid', name='output', kernel_regularizer=regularizers.l2(1e-4))(dense)
     model = models.Model([roi_in, mask], out, name='TCN_Transformer')
     return model
 
@@ -466,7 +466,7 @@ def evaluate_model_efficiently(model, val_dataset):
         (Xr, Xm), yb = batch  # <-- FIXED
         preds = model([Xr, Xm], training=False)
         y_true.extend(yb.numpy())
-        y_pred.extend(preds.numpy().squeeze())
+        y_pred.extend(np.ravel(preds.numpy()))
 
     return np.array(y_true), np.array(y_pred)
 
@@ -653,10 +653,9 @@ def main():
                 'blocks': 6,
                 'filters': 64,
                 'dense_dim': 128,
-                'lr': 0.0003065,
                 'lr': 0.0001,
                 'batch': config.batch_size,
-                'dropout': 0.223,
+                'dropout': 0.3,
                 'n_roi_features': n_roi_features,
                 'window_size': config.window_size
             }
@@ -695,7 +694,7 @@ def main():
         
         # Callbacks
         callbacks_list = [
-            callbacks.EarlyStopping(monitor="val_auroc", patience=8, mode="max", restore_best_weights=True),
+            callbacks.EarlyStopping(monitor="val_auroc", patience=5, mode="max", restore_best_weights=True),
             callbacks.ModelCheckpoint(
                 f"{config.model_dir}/fold{fold+1}_best.h5", 
                 save_best_only=True, 
