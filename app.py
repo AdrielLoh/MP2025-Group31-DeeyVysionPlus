@@ -8,6 +8,7 @@ import json
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import traceback
 import multiprocessing
+from waitress import serve
 
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
@@ -478,6 +479,9 @@ def multi_detection():
 
     return render_template("result.html", analysis_type='multi_detection', results=processed_results)
 
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    # --- Comment line below to go to development, uncomment to go to production ---
+    serve(app, host="0.0.0.0", port=5000)
+
+    # --- Comment line below to go to production, uncomment to go to development ---
+    # app.run(debug=True)

@@ -650,9 +650,9 @@ def main():
         else:
             # Use default configuration optimized for AMD
             best_cfg = {
-                'blocks': 6,
-                'filters': 64,
-                'dense_dim': 128,
+                'blocks': 4,
+                'filters': 48,
+                'dense_dim': 96,
                 'lr': 0.0001,
                 'batch': config.batch_size,
                 'dropout': 0.3,
@@ -704,7 +704,7 @@ def main():
             callbacks.ReduceLROnPlateau(
                 monitor="val_loss", 
                 factor=0.6, 
-                patience=4, 
+                patience=3, 
                 min_lr=1e-7, 
                 verbose=1
             ),
@@ -828,7 +828,7 @@ def create_inference_model(model_path, config_path=None):
                 'blocks': 4,
                 'filters': 48,
                 'dense_dim': 96,
-                'dropout': 0.2,
+                'dropout': 0.3,
                 'n_roi_features': 15,
                 'window_size': 150
             }

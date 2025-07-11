@@ -18,7 +18,7 @@ def masked_gap(args):
     pooled = num / tf.clip_by_value(denom, 1e-3, tf.float32.max)
     return pooled
 
-model_path = 'models/physio_tcn_transformer_2.keras'
+model_path = 'models/audio_model_v9p2ft2.keras'
 
 model = load_model(model_path, compile=False) # Replace the path with whatever model you want to verify
 model.summary()
