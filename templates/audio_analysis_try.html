@@ -125,7 +125,7 @@
             </div>
 
             <!-- Live Microphone Recording Method -->
-            <div class="detection-method">
+            <div class="detection-method" id="microphoneDetection">
                 <div class="method-header">
                     <div class="method-icon-try">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
@@ -215,5 +215,15 @@
 
     <script src="../static/js/audio-recording.js"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script>
+        function isMobileDevice() {
+            return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|BlackBerry|webOS/i.test(navigator.userAgent);
+        }
+
+        if (isMobileDevice()) {
+            document.getElementById("microphoneDetection").style.display="none";
+            document.getElementById("audioUploadForm").style.display="none";
+        }
+    </script>
 </body>
 </html>

@@ -130,7 +130,7 @@
             </div>
 
             <!-- Webcam Detection Method -->
-            <div class="detection-method webcam-method">
+            <div class="detection-method webcam-method" id="webcamSection">
                 <div class="method-header">
                     <div class="method-icon-try">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
@@ -195,5 +195,15 @@
         <div id="footer-placeholder"></div>
     </footer>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script>
+        function isMobileDevice() {
+            return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|BlackBerry|webOS/i.test(navigator.userAgent);
+        }
+
+        if (isMobileDevice()) {
+            document.getElementById("webcamSection").style.display="none";
+            document.getElementById("webcamUploadForm").style.display="none";
+        }
+    </script>
 </body>
 </html>

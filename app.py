@@ -24,10 +24,20 @@ app = Flask(__name__)
 # Dynamically get the absolute path to the 'static/uploads/' directory
 upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
 app.config['UPLOAD_FOLDER'] = upload_folder
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 
 # Create the directory if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
+ALLOWED_EXTENSIONS = {'.mp4', '.mov', '.avi', '.webm', '.wav', '.flac', '.mp3', '.ogg'}
+ALLOWED_MIME_TYPES = {'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'audio/mpeg', 
+                      'audio/ogg', 'audio/wav', 'audio/vnd.wav',
+                      'audio/flac', 'audio/x-flac'}
+
+def allowed_file(filename, mimetype):
+    ext = os.path.splitext(filename)[1].lower()
+    return ext in ALLOWED_EXTENSIONS and mimetype in ALLOWED_MIME_TYPES
 
 def get_video_fps(video_path, default_fps=30):
     """
@@ -189,9 +199,11 @@ def physiological_signal_try():
         file = request.files['file']
         detection_method = request.form.get('detection_method', 'deep')
         if file:
-            # Making the uploaded videos uniquely named
-            video_tag = uuid.uuid4().hex
-            name, ext = os.path.splitext(file.filename)
+            if not allowed_file(file.filename, file.content_type):
+                return "Invalid file type"
+            filename = secure_filename(file.filename)
+            video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
+            name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
@@ -258,9 +270,12 @@ def deep_learning_static():
         return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files['file']
+    if not allowed_file(file.filename, file.content_type):
+        return "Invalid file type"
+    filename = secure_filename(file.filename)
     # Making the uploaded videos uniquely named
     video_tag = uuid.uuid4().hex
-    name, ext = os.path.splitext(file.filename)
+    name, ext = os.path.splitext(filename)
     new_file_name = video_tag + ext
     filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
     file.save(filename)
@@ -287,9 +302,12 @@ def visual_artifacts_static():
     if request.method == 'POST':
         file = request.files['file']
         if file:
+            if not allowed_file(file.filename, file.content_type):
+                return "Invalid file type"
+            filename = secure_filename(file.filename)
             # Making the uploaded videos uniquely named
             video_tag = uuid.uuid4().hex
-            name, ext = os.path.splitext(file.filename)
+            name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
@@ -324,6 +342,8 @@ def audio_analysis():
         os.makedirs(output_folder, exist_ok=True)
         
         if file and file.filename:
+            if not allowed_file(file.filename, file.content_type):
+                return "Invalid file type"
             # Get the file extension
             original_filename = secure_filename(file.filename)
             file_extension = os.path.splitext(original_filename)[1]
@@ -383,9 +403,12 @@ def body_posture_detect():
         file = request.files['file']
         
         if file:
+            if not allowed_file(file.filename, file.content_type):
+                return "Invalid file type"
+            filename = secure_filename(file.filename)
             # Making the uploaded videos uniquely named
             video_tag = uuid.uuid4().hex
-            name, ext = os.path.splitext(file.filename)
+            name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
@@ -414,8 +437,11 @@ def multi_detection():
         return "No file uploaded", 400
 
     file = request.files["file"]
+    if not allowed_file(file.filename, file.content_type):
+        return "Invalid file type"
+    filename = secure_filename(file.filename)
     video_tag = uuid.uuid4().hex
-    name, ext = os.path.splitext(file.filename)
+    name, ext = os.path.splitext(filename)
     new_file_name = video_tag + ext
     filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
     file.save(filename)

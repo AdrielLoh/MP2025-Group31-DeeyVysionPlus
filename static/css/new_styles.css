@@ -40,6 +40,7 @@ nav {
     z-index: 1000;
     background: var(--nav-bg);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--glass-border);
     transition: all 0.3s ease;
     padding: 0;
@@ -188,8 +189,9 @@ nav .nav-container {
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--nav-bg);
+    background: var(--dark-bg);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--glass-border);
     padding: 1rem 2rem;
     transform: translateY(-20px);
@@ -866,11 +868,11 @@ footer::after {
 }
 
 .arrow.left {
-    left: -25px;
+    left: -40px;
 }
 
 .arrow.right {
-    right: -25px;
+    right: -40px;
 }
 
 
@@ -906,10 +908,6 @@ footer::after {
     .carousel-container {
         margin: 0 1rem;
     }
-
-    .arrow {
-        display: none;
-    }
     .infogram-container {
         display: none;
     }
@@ -917,7 +915,8 @@ footer::after {
 
 @media (max-width: 480px) {
     .carousel-slide {
-        height: 400px;
+        height: auto;
+        padding: 0;
     }
 
     .carousel-content {
@@ -933,6 +932,12 @@ footer::after {
     }
     .infogram-container {
         display: none;
+    }
+    .purpose-section {
+        padding: 0;
+    }
+    .explore-section {
+        padding: 0 2rem;
     }
 }
 
@@ -1778,10 +1783,6 @@ footer::after {
 
 /* Responsive design for education page */
 @media (max-width: 768px) {
-    .content {
-        padding: 2rem 1rem;
-        margin-top: 100px;
-    }
 
     .title {
         font-size: 2.5rem;
@@ -3650,6 +3651,9 @@ Try Page Specific Styles
         width: 100%;
         justify-content: center;
     }
+    .try-container {
+        padding: 3rem 1rem;
+    }
 }
 
 /* ================================
@@ -3808,10 +3812,6 @@ Try Page Specific Styles
 @media (max-width: 768px) {
     .banner .intro-text {
         font-size: 1.1rem;
-    }
-
-    .content {
-        padding: 2rem 1rem;
     }
 
     .tabs {
@@ -6149,8 +6149,6 @@ Identify Deepfakes Page Specific Styles
     }
 
     .method-icon {
-        width: 140px;
-        height: 140px;
         margin: 0 auto;
     }
 

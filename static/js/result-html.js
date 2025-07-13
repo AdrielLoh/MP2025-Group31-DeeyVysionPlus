@@ -24,13 +24,19 @@ class ResultsPageManager {
     }
 
     reinitialize() {
+        // Don't clear existing carousels - just add new ones
+        // this.carousels.clear();
+        // this.currentSlides.clear();
+        
         // Reinitialize everything after DOM is fully loaded
         setTimeout(() => {
-            this.initCarousels();
+            console.log('Reinitializing results page...');
+            this.initCarousels(); // This will now skip already initialized carousels
             this.initTabs();
             this.addKeyboardNavigation();
             this.addTouchSupport();
-        }, 100);
+            console.log('Reinitialization complete');
+        }, 200);
     }
 
     /**
@@ -43,8 +49,21 @@ class ResultsPageManager {
             const carouselId = container.id;
             if (!carouselId) return;
 
+            // Skip if this carousel is already initialized
+            if (this.carousels.has(carouselId)) {
+                console.log(`Carousel ${carouselId} already initialized, skipping...`);
+                return;
+            }
+
             const slides = container.querySelectorAll('.carousel-slide');
             if (slides.length === 0) return;
+
+            // Debug: Log carousel initialization
+            console.log(`Initializing carousel ${carouselId} with ${slides.length} slides`);
+            slides.forEach((slide, index) => {
+                const img = slide.querySelector('img');
+                console.log(`Slide ${index}: ${img ? img.src : 'no image'}`);
+            });
 
             // Initialize carousel state
             this.carousels.set(carouselId, {
@@ -90,18 +109,29 @@ class ResultsPageManager {
         const prevButton = prevBtn || altPrevBtn;
         const nextButton = nextBtn || altNextBtn;
 
-        if (prevButton) {
-            prevButton.addEventListener('click', (e) => {
+        // Remove existing event listeners to prevent duplicates
+        if (prevButton && !prevButton.hasAttribute('data-carousel-listener')) {
+            const prevHandler = (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.previousSlide(carouselId);
-            });
+            };
+            prevButton.addEventListener('click', prevHandler);
+            prevButton.setAttribute('data-carousel-listener', 'true');
+            // Store handler for potential cleanup
+            prevButton._carouselHandler = prevHandler;
         }
 
-        if (nextButton) {
-            nextButton.addEventListener('click', (e) => {
+        if (nextButton && !nextButton.hasAttribute('data-carousel-listener')) {
+            const nextHandler = (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.nextSlide(carouselId);
-            });
+            };
+            nextButton.addEventListener('click', nextHandler);
+            nextButton.setAttribute('data-carousel-listener', 'true');
+            // Store handler for potential cleanup
+            nextButton._carouselHandler = nextHandler;
         }
 
         // Update button states
@@ -113,17 +143,26 @@ class ResultsPageManager {
      */
     showSlide(carouselId, index) {
         const carousel = this.carousels.get(carouselId);
-        if (!carousel) return;
+        if (!carousel) {
+            console.log(`Carousel ${carouselId} not found`);
+            return;
+        }
 
         const { slides, totalSlides } = carousel;
         
         // Ensure index is within bounds
         index = Math.max(0, Math.min(index, totalSlides - 1));
         
+        console.log(`Showing slide ${index} of ${totalSlides} in carousel ${carouselId}`);
+        
         // Hide all slides
-        slides.forEach(slide => {
+        slides.forEach((slide, slideIndex) => {
             slide.classList.remove('active');
-            slide.style.display = 'none';
+            // Use CSS classes instead of direct style manipulation
+            slide.style.removeProperty('display');
+            if (slideIndex !== index) {
+                slide.style.display = 'none';
+            }
         });
 
         // Show current slide
@@ -133,6 +172,8 @@ class ResultsPageManager {
             
             // Add entrance animation
             slides[index].style.animation = 'fadeInUp 0.5s ease-out';
+            
+            console.log(`Activated slide ${index}:`, slides[index]);
         }
 
         // Update current index
@@ -345,12 +386,18 @@ class ResultsPageManager {
             
             // Add entrance animation
             targetPanel.style.animation = 'fadeInUp 0.5s ease-out';
+            
+            console.log(`Switched to tab: ${targetTabId}`);
         }
 
-        // Reinitialize carousels in the new tab
+        // Only initialize carousels for the new tab if they don't exist yet
         setTimeout(() => {
-            this.initCarousels();
-        }, 100);
+            console.log('Checking for new carousels after tab switch...');
+            this.initCarousels(); // This will skip already initialized carousels
+            
+            // Also reinitialize touch support for new carousels only
+            this.addTouchSupport();
+        }, 300);
     }
 
     /**
@@ -408,15 +455,20 @@ class ResultsPageManager {
      */
     addTouchSupport() {
         this.carousels.forEach((carousel, carouselId) => {
+            // Skip if touch listeners already added
+            if (carousel.container.hasAttribute('data-touch-enabled')) {
+                return;
+            }
+
             let startX = 0;
             let endX = 0;
             const minSwipeDistance = 50;
 
-            carousel.container.addEventListener('touchstart', (e) => {
+            const touchStartHandler = (e) => {
                 startX = e.touches[0].clientX;
-            }, { passive: true });
+            };
 
-            carousel.container.addEventListener('touchend', (e) => {
+            const touchEndHandler = (e) => {
                 endX = e.changedTouches[0].clientX;
                 const swipeDistance = Math.abs(endX - startX);
 
@@ -429,7 +481,17 @@ class ResultsPageManager {
                         this.previousSlide(carouselId);
                     }
                 }
-            }, { passive: true });
+            };
+
+            carousel.container.addEventListener('touchstart', touchStartHandler, { passive: true });
+            carousel.container.addEventListener('touchend', touchEndHandler, { passive: true });
+            
+            // Mark as touch-enabled to prevent duplicate listeners
+            carousel.container.setAttribute('data-touch-enabled', 'true');
+            
+            // Store handlers for potential cleanup
+            carousel.container._touchStartHandler = touchStartHandler;
+            carousel.container._touchEndHandler = touchEndHandler;
         });
     }
 
@@ -455,6 +517,20 @@ class ResultsPageManager {
         document.querySelectorAll('.result-card').forEach(card => {
             observer.observe(card);
         });
+    }
+
+    /**
+     * Force refresh all carousels (useful for debugging)
+     */
+    refreshAllCarousels() {
+        console.log('Force refreshing all carousels...');
+        this.carousels.clear();
+        this.currentSlides.clear();
+        
+        setTimeout(() => {
+            this.initCarousels();
+            console.log(`Found ${this.carousels.size} carousels after refresh`);
+        }, 100);
     }
 
     /**
@@ -533,6 +609,33 @@ window.addEventListener('beforeunload', () => {
         resultsPageManager.destroy();
     }
 });
+
+// Global debugging functions
+window.debugCarousels = function() {
+    if (resultsPageManager) {
+        console.log('=== Carousel Debug Info ===');
+        console.log(`Total carousels: ${resultsPageManager.carousels.size}`);
+        
+        resultsPageManager.carousels.forEach((carousel, carouselId) => {
+            console.log(`Carousel ${carouselId}:`);
+            console.log(`  - Total slides: ${carousel.totalSlides}`);
+            console.log(`  - Current index: ${carousel.currentIndex}`);
+            console.log(`  - Slides:`, carousel.slides);
+            
+            carousel.slides.forEach((slide, index) => {
+                const img = slide.querySelector('img');
+                const isVisible = slide.style.display !== 'none' && slide.classList.contains('active');
+                console.log(`    Slide ${index}: ${img ? img.src.split('/').pop() : 'no image'} (visible: ${isVisible})`);
+            });
+        });
+    }
+};
+
+window.refreshCarousels = function() {
+    if (resultsPageManager) {
+        resultsPageManager.refreshAllCarousels();
+    }
+};
 
 // Export for potential external use
 if (typeof module !== 'undefined' && module.exports) {

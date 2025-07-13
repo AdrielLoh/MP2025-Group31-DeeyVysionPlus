@@ -213,32 +213,58 @@
                                     </div>
                                 </div>
                                 {% elif physio_method =='machine' and face.result != 'Invalid' %}
+                                <div style="display:none;">
+                                    DEBUG: 
+                                    hr_trace_plot: {{ face.hr_trace_plot }}
+                                    hr_dist_plot: {{ face.hr_dist_plot }}
+                                    band_power_plot: {{ face.band_power_plot }}
+                                    spectrum_plot: {{ face.spectrum_plot }}
+                                    signal_plot: {{ face.signal_plot }}
+                                    pred_count_plot: {{ face.pred_count_plot }}
+                                </div>
                                 <div class="carousel-container" id="carousel-{{ face.track_id }}">
                                     <div class="carousel-track">
+                                        {% if face.hr_trace_plot %}
                                         <div class="carousel-slide active">
                                             <img src="{{ face.hr_trace_plot }}" alt="rPPG Signal Analysis" class="analysis-chart">
                                             <p class="chart-description">Real-time photoplethysmography signal analysis</p>
                                         </div>
-                                        <div class="carousel-slide">
+                                        {% endif %}
+                                        
+                                        {% if face.hr_dist_plot %}
+                                        <div class="carousel-slide{% if not face.hr_trace_plot %} active{% endif %}">
                                             <img src="{{ face.hr_dist_plot }}" alt="Heart Rate Distribution" class="analysis-chart">
                                             <p class="chart-description">Heart rate distribution patterns</p>
                                         </div>
-                                        <div class="carousel-slide">
+                                        {% endif %}
+                                        
+                                        {% if face.band_power_plot %}
+                                        <div class="carousel-slide{% if not face.hr_trace_plot and not face.hr_dist_plot %} active{% endif %}">
                                             <img src="{{ face.band_power_plot }}" alt="Frequency Band Power" class="analysis-chart">
                                             <p class="chart-description">Frequency band power analysis</p>
                                         </div>
+                                        {% endif %}
+                                        
+                                        {% if face.spectrum_plot %}
                                         <div class="carousel-slide">
                                             <img src="{{ face.spectrum_plot }}" alt="Signal Spectrum" class="analysis-chart">
                                             <p class="chart-description">rPPG signal spectrum analysis</p>
                                         </div>
+                                        {% endif %}
+                                        
+                                        {% if face.signal_plot %}
                                         <div class="carousel-slide">
                                             <img src="{{ face.signal_plot }}" alt="Raw Signal" class="analysis-chart">
                                             <p class="chart-description">Raw physiological signal data</p>
                                         </div>
+                                        {% endif %}
+                                        
+                                        {% if face.pred_count_plot %}
                                         <div class="carousel-slide">
                                             <img src="{{ face.pred_count_plot }}" alt="Prediction Distribution" class="analysis-chart">
                                             <p class="chart-description">Frame-by-frame prediction distribution</p>
                                         </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 {% endif %}
@@ -247,7 +273,7 @@
                             {% if face.result != 'Invalid' %}
                             <div class="video-analysis">
                                 <h3>Analyzed Video</h3>
-                                <video class="analysis-video" controls autoplay loop muted>
+                                <video class="analysis-video" controls muted>
                                     <source src="{{ output_video }}" type="video/mp4">
                                     Your browser does not support the video tag.
                                 </video>
@@ -376,7 +402,7 @@
 
                                 <div class="video-analysis">
                                     <h3>Analyzed Video</h3>
-                                    <video class="analysis-video" controls autoplay loop muted>
+                                    <video class="analysis-video" controls muted>
                                         <source src="{{ output_video }}" type="video/mp4">
                                         Your browser does not support the video tag.
                                     </video>

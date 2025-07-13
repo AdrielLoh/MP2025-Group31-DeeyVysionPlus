@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function() {
+    console.log("Script loaded")
     // Load the navbar
     fetch('navbar')
         .then(response => {
@@ -9,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .then(data => {
             document.getElementById('navbar-placeholder').innerHTML = data;
-            setupNavLinks();
+            setupNavbarJS(); // <--- Call the navbar setup after DOM is inserted
         })
         .catch(error => {
             console.error('Error loading navbar:', error);
@@ -49,6 +50,41 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 }
             });
+        });
+    }
+
+    // Put this in scripts.js, NOT inside navbar.html
+    function setupNavbarJS() {
+        const menuBtn = document.getElementById("mobileMenuBtn");
+        const mobileMenu = document.getElementById("mobileMenu");
+        const navLinks = document.querySelectorAll(".mobile-nav-link");
+
+        if (!menuBtn || !mobileMenu) return;
+
+        menuBtn.addEventListener("click", function () {
+            mobileMenu.classList.toggle("active");
+            menuBtn.classList.toggle("active");
+            document.body.style.overflow = mobileMenu.classList.contains("active") ? "hidden" : "";
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener("click", function () {
+                mobileMenu.classList.remove("active");
+                menuBtn.classList.remove("active");
+                document.body.style.overflow = "";
+            });
+        });
+
+        document.addEventListener("click", function (e) {
+            if (
+                mobileMenu.classList.contains("active") &&
+                !mobileMenu.contains(e.target) &&
+                !menuBtn.contains(e.target)
+            ) {
+                mobileMenu.classList.remove("active");
+                menuBtn.classList.remove("active");
+                document.body.style.overflow = "";
+            }
         });
     }
 
