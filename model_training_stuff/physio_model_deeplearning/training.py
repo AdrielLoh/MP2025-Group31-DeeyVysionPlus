@@ -342,7 +342,7 @@ def stratified_group_window_split(df, n_splits=5, random_state=42):
     splits = list(sgkf.split(df, df['label'], groups=df['video_id']))
     return splits  # Each tuple is (train_indices, val_indices)
 
-def window_level_data_generator(df, batch_size, window_size=150, n_roi_features=15, shuffle=True, infinite=True):
+def window_level_data_generator(df, batch_size, window_size=150, n_roi_features=15, shuffle=True, infinite=True, augment=False):
     indices = df.index.to_numpy()
     config=get_config()
     # SHUFFLE the DataFrame rows, not just indices!
@@ -357,6 +357,15 @@ def window_level_data_generator(df, batch_size, window_size=150, n_roi_features=
         with h5py.File(row['file_path'], 'r') as f:
             win_group = f[row['group_name']][row['window_name']]
             X_roi_combined, window_mask = load_window_new_format(win_group, window_size)
+            # ------ DATA AUGMENTATION HERE ------
+            if augment and random.random() < 0.4:
+                # Gaussian noise (stddev can be tuned)
+                X_roi_combined += np.random.normal(0, 0.02, X_roi_combined.shape).astype(np.float32)
+                # Random masking: with prob 0.1, set each feature to 0
+                mask_prob = 0.1
+                mask = np.random.binomial(1, mask_prob, X_roi_combined.shape).astype(bool)
+                X_roi_combined[mask] = 0.0
+            # -------------------------------------
             batch_roi.append(X_roi_combined)
             batch_mask.append(window_mask)
             batch_labels.append(row['label'])
@@ -470,64 +479,6 @@ def evaluate_model_efficiently(model, val_dataset):
 
     return np.array(y_true), np.array(y_pred)
 
-# --- Optuna objective ---
-
-def objective(trial, train_ds, val_ds, n_roi_features, window_size, use_mixed_precision):
-    """Optuna objective optimized for AMD"""
-    try:
-        cfg = {
-            'blocks': trial.suggest_int('blocks', 3, 6),
-            'filters': trial.suggest_categorical('filters', [32, 48, 64]),  # Smaller for AMD
-            'dense_dim': trial.suggest_categorical('dense_dim', [64, 96, 128]),
-            'lr': trial.suggest_float('lr', 5e-5, 2e-3, log=True),
-            'batch': trial.suggest_categorical('batch', [4, 6, 8, 16]),  # Small batches for 8GB VRAM
-            'dropout': trial.suggest_float('dropout', 0.1, 0.3),
-            'n_roi_features': n_roi_features,
-            'window_size': window_size
-        }
-        
-        # Build model
-        model = build_tcn_transformer(cfg, use_mixed_precision)
-        
-        # Compile with optimizer suitable for DirectML
-        optimizer = optimizers.Adam(cfg['lr'], clipnorm=1.0)  # Gradient clipping for stability
-        if use_mixed_precision:
-            optimizer = mixed_precision.LossScaleOptimizer(optimizer)
-        
-        model.compile(
-            optimizer=optimizer,
-            loss=tf.keras.losses.BinaryCrossentropy(label_smoothing=0.1),
-            metrics=[tf.keras.metrics.AUC(name='auroc')]
-        )
-        
-        # Train with early stopping
-        es = callbacks.EarlyStopping(patience=3, restore_best_weights=True, monitor='val_auroc', mode='max')
-
-        history = model.fit(
-            train_ds,
-            validation_data=val_ds,
-            epochs=8,  # Shorter for hyperparameter search
-            verbose=0,
-            callbacks=[es]
-        )
-        
-        # Get best validation score
-        best_auroc = max(history.history['val_auroc'])
-        
-        # Clean up
-        del model
-        del train_ds
-        del val_ds
-        tf.keras.backend.clear_session()
-        gc.collect()
-        
-        return 1.0 - best_auroc  # Optuna minimizes
-        
-    except Exception as e:
-        logger.error(f"Trial failed: {e}")
-        tf.keras.backend.clear_session()
-        gc.collect()
-        return 1.0
 
 # --- Main training function ---
 
@@ -578,6 +529,7 @@ def main():
     
     # --- Build window-level DataFrame ---
     df = build_window_metadata(valid_files)
+
     # print(df[['file_path', 'label']].head(30))  # See if both 0 and 1 exist
     splits = stratified_group_window_split(df, n_splits=config.folds, random_state=config.seed)
     
@@ -611,7 +563,8 @@ def main():
                 window_size=config.window_size,
                 n_roi_features=n_roi_features,
                 shuffle=True,
-                infinite=True
+                infinite=True,
+                augment=False
             ),
             output_signature=output_signature
         ).prefetch(8)
@@ -623,43 +576,24 @@ def main():
                 window_size=config.window_size,
                 n_roi_features=n_roi_features,
                 shuffle=False,
-                infinite=False
+                infinite=False,
+                augment=False
             ),
             output_signature=output_signature
         ).prefetch(8)
         
-        # Hyperparameter optimization
-        if not config.skip_optuna:
-            logger.info("Starting hyperparameter optimization...")
-            
-            def fold_objective(trial):
-                return objective(trial, train_ds, val_ds, n_roi_features, config.window_size, use_mixed_precision)
-            
-            study = optuna.create_study(direction='minimize', sampler=optuna.samplers.TPESampler(seed=config.seed))
-            study.optimize(fold_objective, n_trials=config.optuna_trials, timeout=config.optuna_timeout)
-            
-            best_cfg = {
-                **study.best_params,
-                'n_roi_features': n_roi_features,
-                'window_size': config.window_size
-            }
-            logger.info(f"Best config for fold {fold+1}: {best_cfg}")
-            with open(f"{config.log_dir}/fold{fold+1}_best_config.json", 'w') as f:
-                json.dump(best_cfg, f, indent=2)
-
-        else:
-            # Use default configuration optimized for AMD
-            best_cfg = {
-                'blocks': 4,
-                'filters': 48,
-                'dense_dim': 96,
-                'lr': 0.0001,
-                'batch': config.batch_size,
-                'dropout': 0.3,
-                'n_roi_features': n_roi_features,
-                'window_size': config.window_size
-            }
-            logger.info(f"Using default config for fold {fold+1}: {best_cfg}")
+        # Use default configuration optimized for AMD
+        best_cfg = {
+            'blocks': 4, # 4
+            'filters': 48, # 48
+            'dense_dim': 96, # 96
+            'lr': 0.0001,
+            'batch': config.batch_size,
+            'dropout': 0.3, # 0.3
+            'n_roi_features': n_roi_features,
+            'window_size': config.window_size
+        }
+        logger.info(f"Using default config for fold {fold+1}: {best_cfg}")
         
         # Compute class weights
         counts = train_df['label'].value_counts()
@@ -711,10 +645,10 @@ def main():
             callbacks.CSVLogger(f"{config.log_dir}/train_log_fold{fold+1}.csv")
         ]
 
-        print("--- FIRST 10 LABELS FOR EACH BATCH ---", flush=True)
-        for i, batch in enumerate(train_ds.take(10)):
-            (X_roi, X_mask), y = batch
-            print(f"Batch {i} labels:", y)
+        # print("--- FIRST 10 LABELS FOR EACH BATCH ---", flush=True)
+        # for i, batch in enumerate(train_ds.take(10)):
+        #     (X_roi, X_mask), y = batch
+        #     print(f"Batch {i} labels:", y)
 
         # Train model
         logger.info("Starting training...")
@@ -813,114 +747,6 @@ def main():
 
     logger.info("Training completed successfully!")
     logger.info(f"Results saved to: {config.log_dir}")
-
-def create_inference_model(model_path, config_path=None):
-    """Create model for inference with proper configuration"""
-    try:
-        # Load configuration if available
-        if config_path and os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                config_data = json.load(f)
-                model_config = config_data.get('config', {})
-        else:
-            # Default configuration
-            model_config = {
-                'blocks': 4,
-                'filters': 48,
-                'dense_dim': 96,
-                'dropout': 0.3,
-                'n_roi_features': 15,
-                'window_size': 150
-            }
-        
-        # Build model architecture
-        model = build_tcn_transformer(model_config)
-        
-        # Load weights
-        model.load_weights(model_path)
-        
-        logger.info(f"Inference model loaded from {model_path}")
-        return model, model_config
-        
-    except Exception as e:
-        logger.error(f"Failed to load inference model: {e}")
-        return None, None
-
-def predict_single_window(model, roi_features, window_mask):
-    """Predict on a single window of ROI features"""
-    try:
-        # Ensure proper shapes
-        if roi_features.ndim == 2:
-            roi_features = np.expand_dims(roi_features, 0)  # Add batch dimension
-        if window_mask.ndim == 1:
-            window_mask = np.expand_dims(window_mask, 0)  # Add batch dimension
-        
-        # Make prediction
-        prediction = model([roi_features, window_mask], training=False)
-        return float(prediction.numpy().squeeze())
-        
-    except Exception as e:
-        logger.error(f"Prediction failed: {e}")
-        return 0.5  # Return neutral prediction on error
-
-# --- Utility functions for analysis ---
-
-def analyze_feature_importance(model, val_dataset, n_samples=100):
-    """Analyze which ROI features are most important (simple ablation)"""
-    logger.info("Analyzing feature importance...")
-    
-    # Get some validation samples
-    sample_count = 0
-    baseline_preds = []
-    feature_ablation_preds = {i: [] for i in range(15)}  # 15 ROI features
-    
-    for batch in val_dataset:
-        if sample_count >= n_samples:
-            break
-            
-        roi_features, window_mask, labels = batch
-        batch_size = roi_features.shape[0]
-        
-        # Baseline predictions
-        baseline = model([roi_features, window_mask], training=False)
-        baseline_preds.extend(baseline.numpy().squeeze())
-        
-        # Feature ablation - zero out each feature one by one
-        for feature_idx in range(15):
-            roi_ablated = roi_features.numpy().copy()
-            roi_ablated[:, :, feature_idx] = 0  # Zero out feature
-            
-            ablated_preds = model([roi_ablated, window_mask], training=False)
-            feature_ablation_preds[feature_idx].extend(ablated_preds.numpy().squeeze())
-        
-        sample_count += batch_size
-    
-    # Calculate importance as change in prediction
-    feature_names = []
-    rois = ['left_cheek', 'right_cheek', 'forehead', 'chin', 'nose']
-    methods = ['chrom', 'pos', 'ica']
-    
-    for roi in rois:
-        for method in methods:
-            feature_names.append(f"{roi}_{method}")
-    
-    importance_scores = {}
-    baseline_preds = np.array(baseline_preds)
-    
-    for i, feature_name in enumerate(feature_names):
-        ablated = np.array(feature_ablation_preds[i])
-        # Importance = how much prediction changes when feature is removed
-        importance = np.mean(np.abs(baseline_preds - ablated))
-        importance_scores[feature_name] = importance
-    
-    # Sort by importance
-    sorted_features = sorted(importance_scores.items(), key=lambda x: x[1], reverse=True)
-    
-    logger.info("Feature importance ranking:")
-    for i, (feature, score) in enumerate(sorted_features[:10]):  # Top 10
-        logger.info(f"{i+1:2d}. {feature:20s}: {score:.4f}")
-    
-    return importance_scores
 
 if __name__ == "__main__":
     try:

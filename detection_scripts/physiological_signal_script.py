@@ -11,8 +11,12 @@ import multiprocessing
 # ========== Configuration ==========
 FACE_PROTO = 'models/weights-prototxt.txt'
 FACE_MODEL = 'models/res_ssd_300Dim.caffeModel'
-MODEL_PATH = 'models/physio_tcn_transformer_2.keras'      # <-- UPDATE THIS if you have a different model
+MODEL_PATH = 'models/physio_tcn_transformer_3p2.keras'      # <-- UPDATE THIS if you have a different model
 MODEL_CFG  = 'models/fold1_best_config.json'  # <-- Optional, use if you saved Optuna config
+# 0.460 - train 2 fold 1
+# 0.410 - train 3 fold 2
+# 0.520 - train 3 fold 3
+fake_threshold = 0.410
 
 # ---- rPPG/ROI config (must match training) ----
 ROI_INDICES = {
@@ -50,10 +54,10 @@ def create_inference_model(model_path, config_path=None):
             model_cfg = model_cfg.get('config', model_cfg)
     else:
         model_cfg = {
-            'blocks': 6,
-            'filters': 64,
-            'dense_dim': 128,
-            'dropout': 0.223,
+            'blocks': 4,
+            'filters': 48,
+            'dense_dim': 96,
+            'dropout': 0.3,
             'n_roi_features': 15,
             'window_size': 150
         }
@@ -522,7 +526,7 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
                     X_roi_combined = np.concatenate(all_roi_features, axis=-1)
                     X_mask = np.ones(window_size, dtype=np.float32)
                     prob = predict_single_window(model, X_roi_combined, X_mask)
-                    pred = 'FAKE' if prob > 0.460 else 'REAL'
+                    pred = 'FAKE' if prob > fake_threshold else 'REAL'
                 else:
                     prob = 0
                     pred = 'REAL'  # Default or "Unknown"

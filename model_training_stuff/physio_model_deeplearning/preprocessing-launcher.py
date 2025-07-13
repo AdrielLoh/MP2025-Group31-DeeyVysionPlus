@@ -3,11 +3,11 @@ import os
 import math
 import random
 
-INPUT_DIR = "G:/deepfake_training_datasets/Physio_Model/TRAINING/fake"
-OUTPUT_DIR = "D:/model_training/cache/batches/physio-deep-v1/fake"
-PROCESSED = "D:/model_training/cache/batches/physio-deep-v1/fake/fake_processed.txt"
-FAILED = "D:/model_training/cache/batches/physio-deep-v1/fake/fake_failed.txt"
-LABEL = "fake"
+INPUT_DIR = "F:/MP-Training-Datasets/ryerson-av-REAL"
+OUTPUT_DIR = "D:/model_training/cache/batches/physio-deep-v1/real"
+PROCESSED = "D:/model_training/cache/batches/physio-deep-v1/real/real_processed.txt"
+FAILED = "D:/model_training/cache/batches/physio-deep-v1/real/real_failed.txt"
+LABEL = "real"
 BATCH_SIZE = 40   # HDF5 videos per batch
 BATCHES_PER_RUN = 3   # Number of HDF5 files per subprocess
 STOP_FLAG_PATH = "model_training_stuff/physio_model_deeplearning/stop.flag"   # Change this path as needed

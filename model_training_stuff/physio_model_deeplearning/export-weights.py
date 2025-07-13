@@ -17,7 +17,7 @@ import json
 import pandas as pd
 import joblib
 
-model_path = "D:/model_training/physiological-model/deep-learning-1-1/fold1_best.h5"
+model_path = "D:/model_training/physiological-model/deep-learning-1-1/fold2_best.h5"
 
 def build_tcn_transformer(cfg, use_mixed_precision=False):
     window_size = cfg.get('window_size', 150)
@@ -103,9 +103,9 @@ def build_tcn_transformer(cfg, use_mixed_precision=False):
 try:
     # Default configuration
     model_config = {
-        'blocks': 6,
-        'filters': 64,
-        'dense_dim': 128,
+        'blocks': 4,
+        'filters': 48,
+        'dense_dim': 96,
         'dropout': 0.3,
         'n_roi_features': 15,
         'window_size': 150
@@ -120,7 +120,7 @@ try:
     weights = model.get_weights()
 
     # Save weights to disk
-    joblib.dump(weights, "model_training_stuff/physio_model_deeplearning/train_2_fold_1_weights.pkl")
+    joblib.dump(weights, "model_training_stuff/physio_model_deeplearning/train_3_fold_2_weights.pkl")
     print("Weights saved")
     
 except Exception as e:
