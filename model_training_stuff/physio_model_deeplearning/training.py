@@ -4,11 +4,8 @@ import h5py
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models, callbacks, optimizers, mixed_precision, regularizers
-from sklearn.model_selection import StratifiedGroupKFold
-import optuna
 from tqdm import tqdm
 import logging
-import gc
 import argparse
 from sklearn.metrics import roc_auc_score, accuracy_score
 import json
@@ -337,11 +334,6 @@ def build_window_metadata(hdf5_files):
             print(f"Error reading {h5_path}: {e}")
     return pd.DataFrame(rows)
 
-def stratified_group_window_split(df, n_splits=5, random_state=42):
-    sgkf = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
-    splits = list(sgkf.split(df, df['label'], groups=df['video_id']))
-    return splits  # Each tuple is (train_indices, val_indices)
-
 def window_level_data_generator(df, batch_size, window_size=150, n_roi_features=15, shuffle=True, infinite=True, augment=False):
     indices = df.index.to_numpy()
     config=get_config()
@@ -527,226 +519,153 @@ def main():
 
     logger.info(f"Dataset: {total_samples} samples, {n_roi_features} ROI features")
     
-    # --- Build window-level DataFrame ---
+        # --- Build window-level DataFrame ---
     df = build_window_metadata(valid_files)
 
-    # print(df[['file_path', 'label']].head(30))  # See if both 0 and 1 exist
-    splits = stratified_group_window_split(df, n_splits=config.folds, random_state=config.seed)
+    # Shuffle and stratified split: 80% train, 20% val
+    from sklearn.model_selection import train_test_split
+    train_df, val_df = train_test_split(
+        df,
+        test_size=0.2,
+        stratify=df['label'],
+        random_state=config.seed,
+    )
+
+    print("--- LABEL COUNTS ---", flush=True)
+    print(f"Train windows: {len(train_df)}, Validation windows: {len(val_df)}")
+    print("Train label counts:", train_df['label'].value_counts())
+    print("Val label counts:", val_df['label'].value_counts())
     
-    # Training loop
-    fold_results = []
-    
-    for fold, (train_idx, val_idx) in enumerate(splits):
-        print(f"===== Fold {fold+1}/{config.folds} =====")
-        train_df = df.iloc[train_idx]
-        val_df   = df.iloc[val_idx]
+    output_signature = (
+        (
+            tf.TensorSpec(shape=(None, config.window_size, n_roi_features), dtype=tf.float32),
+            tf.TensorSpec(shape=(None, config.window_size), dtype=tf.float32),
+        ),
+        tf.TensorSpec(shape=(None, 1), dtype=tf.float32)
+    )
 
-        print("--- LABEL COUNTS ---", flush=True)
-        print(f"Train windows: {len(train_df)}, Validation windows: {len(val_df)}")
-        # print("Train class balance:", train_df['label'].value_counts(normalize=True))
-        # print("Val class balance:", val_df['label'].value_counts(normalize=True))
-        print("Train label counts:", train_df['label'].value_counts())
-        print("Val label counts:", val_df['label'].value_counts())
+    train_ds = tf.data.Dataset.from_generator(
+        lambda: window_level_data_generator(
+            train_df,
+            batch_size=config.batch_size,
+            window_size=config.window_size,
+            n_roi_features=n_roi_features,
+            shuffle=True,
+            infinite=True,
+            augment=False
+        ),
+        output_signature=output_signature
+    ).prefetch(8)
 
-        output_signature = (
-            (
-                tf.TensorSpec(shape=(None, config.window_size, n_roi_features), dtype=tf.float32),
-                tf.TensorSpec(shape=(None, config.window_size), dtype=tf.float32),
-            ),
-            tf.TensorSpec(shape=(None, 1), dtype=tf.float32)
-        )
+    val_ds = tf.data.Dataset.from_generator(
+        lambda: window_level_data_generator(
+            val_df,
+            batch_size=config.batch_size,
+            window_size=config.window_size,
+            n_roi_features=n_roi_features,
+            shuffle=False,
+            infinite=False,
+            augment=False
+        ),
+        output_signature=output_signature
+    ).prefetch(8)
 
-        train_ds = tf.data.Dataset.from_generator(
-            lambda: window_level_data_generator(
-                train_df,
-                batch_size=config.batch_size,
-                window_size=config.window_size,
-                n_roi_features=n_roi_features,
-                shuffle=True,
-                infinite=True,
-                augment=False
-            ),
-            output_signature=output_signature
-        ).prefetch(8)
-
-        val_ds = tf.data.Dataset.from_generator(
-            lambda: window_level_data_generator(
-                val_df,
-                batch_size=config.batch_size,
-                window_size=config.window_size,
-                n_roi_features=n_roi_features,
-                shuffle=False,
-                infinite=False,
-                augment=False
-            ),
-            output_signature=output_signature
-        ).prefetch(8)
-        
-        # Use default configuration optimized for AMD
-        best_cfg = {
-            'blocks': 4, # 4
-            'filters': 48, # 48
-            'dense_dim': 96, # 96
-            'lr': 0.0001,
-            'batch': config.batch_size,
-            'dropout': 0.3, # 0.3
-            'n_roi_features': n_roi_features,
-            'window_size': config.window_size
-        }
-        logger.info(f"Using default config for fold {fold+1}: {best_cfg}")
-        
-        # Compute class weights
-        counts = train_df['label'].value_counts()
-        n_real = counts.get(0, 0)
-        n_fake = counts.get(1, 0)
-        total = n_real + n_fake
-        if total == 0 or n_real == 0 or n_fake == 0:
-            class_weight = {0: 1.0, 1: 1.0}
-        else:
-            class_weight = {0: total / (2 * n_real), 1: total / (2 * n_fake)}
-
-        
-        # Build and compile model
-        print("=== BUILDING MODEL ===", flush=True)
-        model = build_tcn_transformer(best_cfg, use_mixed_precision)
-        print("=== MODEL BUILT ===", flush=True)
-
-        with open("model_summary.txt", "w") as f:
-            model.summary(print_fn=lambda x: f.write(x + "\n"))
-        print("=== MODEL SUMMARY WRITTEN ===", flush=True)
-
-        optimizer = optimizers.Adam(best_cfg['lr'], clipnorm=1.0)  # Gradient clipping
-        if use_mixed_precision:
-            optimizer = mixed_precision.LossScaleOptimizer(optimizer)
-        
-        model.compile(
-            optimizer=optimizer,
-            loss=tf.keras.losses.BinaryCrossentropy(label_smoothing=0.1),
-            metrics=[tf.keras.metrics.AUC(name='auroc'),
-                     tf.keras.metrics.BinaryAccuracy()]
-        )
-        
-        # Callbacks
-        callbacks_list = [
-            callbacks.EarlyStopping(monitor="val_auroc", patience=5, mode="max", restore_best_weights=True),
-            callbacks.ModelCheckpoint(
-                f"{config.model_dir}/fold{fold+1}_best.h5", 
-                save_best_only=True, 
-                monitor="val_auroc", 
-                mode="max"
-            ),
-            callbacks.ReduceLROnPlateau(
-                monitor="val_loss", 
-                factor=0.6, 
-                patience=3, 
-                min_lr=1e-7, 
-                verbose=1
-            ),
-            callbacks.CSVLogger(f"{config.log_dir}/train_log_fold{fold+1}.csv")
-        ]
-
-        # print("--- FIRST 10 LABELS FOR EACH BATCH ---", flush=True)
-        # for i, batch in enumerate(train_ds.take(10)):
-        #     (X_roi, X_mask), y = batch
-        #     print(f"Batch {i} labels:", y)
-
-        # Train model
-        logger.info("Starting training...")
-        history = model.fit(
-            train_ds,
-            validation_data=val_ds,
-            epochs=config.epochs,
-            class_weight=class_weight,
-            callbacks=callbacks_list,
-            verbose=1
-        )
-        
-        # Evaluate model
-        logger.info("Evaluating model...")
-        y_true, y_pred = evaluate_model_efficiently(model, val_ds)
-        
-        # Calculate metrics
-        auroc = roc_auc_score(y_true, y_pred)
-        acc = accuracy_score(y_true, y_pred > 0.5)
-        
-        # Find optimal threshold
-        thresholds = np.linspace(0.1, 0.9, 81)
-        best_acc = 0
-        best_threshold = 0.5
-        
-        for thresh in thresholds:
-            acc_thresh = accuracy_score(y_true, y_pred > thresh)
-            if acc_thresh > best_acc:
-                best_acc = acc_thresh
-                best_threshold = thresh
-        
-        # Save predictions and results
-        results = {
-            'fold': fold + 1,
-            'auroc': float(auroc),
-            'accuracy': float(acc),
-            'best_threshold': float(best_threshold),
-            'best_accuracy': float(best_acc),
-            'config': best_cfg,
-            'n_train': len(train_df),
-            'n_val': len(val_df)
-        }
-        fold_results.append(results)
-        
-        np.savez(
-            f"{config.log_dir}/fold{fold+1}_predictions.npz", 
-            y_true=y_true, 
-            y_pred=y_pred,
-            **results
-        )
-        
-        logger.info(f"Fold {fold+1} results:")
-        logger.info(f"  AUROC: {auroc:.4f}")
-        logger.info(f"  Accuracy (0.5): {acc:.4f}")
-        logger.info(f"  Best Accuracy: {best_acc:.4f} (threshold: {best_threshold:.3f})")
-        model.save(f"{config.model_dir}/fold{fold+1}_savedmodel", save_format="tf")
-
-        # Clean up for next fold
-        del model
-        del train_ds
-        del val_ds
-        tf.keras.backend.clear_session()
-        gc.collect()
-    
-    # Calculate overall results
-    logger.info("\n" + "="*50)
-    logger.info("OVERALL RESULTS")
-    logger.info("="*50)
-    
-    aurocs = [r['auroc'] for r in fold_results]
-    accs = [r['accuracy'] for r in fold_results]
-    best_accs = [r['best_accuracy'] for r in fold_results]
-    
-    logger.info(f"AUROC: {np.mean(aurocs):.4f} ± {np.std(aurocs):.4f}")
-    logger.info(f"Accuracy (0.5): {np.mean(accs):.4f} ± {np.std(accs):.4f}")
-    logger.info(f"Best Accuracy: {np.mean(best_accs):.4f} ± {np.std(best_accs):.4f}")
-    
-    # Save overall results
-    overall_results = {
-        'mean_auroc': float(np.mean(aurocs)),
-        'std_auroc': float(np.std(aurocs)),
-        'mean_accuracy': float(np.mean(accs)),
-        'std_accuracy': float(np.std(accs)),
-        'mean_best_accuracy': float(np.mean(best_accs)),
-        'std_best_accuracy': float(np.std(best_accs)),
-        'fold_results': fold_results,
-        'dataset_info': {
-            'total_samples': int(total_samples),
-            'n_roi_features': int(n_roi_features),
-            'n_files': len(valid_files)
-        }
+    # Build config and model as usual
+    best_cfg = {
+        'blocks': 4,
+        'filters': 48,
+        'dense_dim': 96,
+        'lr': 0.0001,
+        'batch': config.batch_size,
+        'dropout': 0.3,
+        'n_roi_features': n_roi_features,
+        'window_size': config.window_size
     }
-    
-    with open(f"{config.log_dir}/overall_results.json", 'w') as f:
-        json.dump(overall_results, f, indent=2)
+    logger.info(f"Using default config: {best_cfg}")
 
+    counts = train_df['label'].value_counts()
+    n_real = counts.get(0, 0)
+    n_fake = counts.get(1, 0)
+    total = n_real + n_fake
+    if total == 0 or n_real == 0 or n_fake == 0:
+        class_weight = {0: 1.0, 1: 1.0}
+    else:
+        class_weight = {0: total / (2 * n_real), 1: total / (2 * n_fake)}
+
+    model = build_tcn_transformer(best_cfg, use_mixed_precision)
+    optimizer = optimizers.Adam(best_cfg['lr'], clipnorm=1.0)
+    if use_mixed_precision:
+        optimizer = mixed_precision.LossScaleOptimizer(optimizer)
+    model.compile(
+        optimizer=optimizer,
+        loss=tf.keras.losses.BinaryCrossentropy(label_smoothing=0.1),
+        metrics=[tf.keras.metrics.AUC(name='auroc'), tf.keras.metrics.BinaryAccuracy()]
+    )
+
+    callbacks_list = [
+        callbacks.EarlyStopping(monitor="val_auroc", patience=5, mode="max", restore_best_weights=True),
+        callbacks.ModelCheckpoint(
+            f"{config.model_dir}/best_model.h5", 
+            save_best_only=True, 
+            monitor="val_auroc", 
+            mode="max"
+        ),
+        callbacks.ReduceLROnPlateau(
+            monitor="val_loss", 
+            factor=0.6, 
+            patience=3, 
+            min_lr=1e-7, 
+            verbose=1
+        ),
+        callbacks.CSVLogger(f"{config.log_dir}/train_log.csv")
+    ]
+
+    logger.info("Starting training...")
+    history = model.fit(
+        train_ds,
+        validation_data=val_ds,
+        epochs=config.epochs,
+        class_weight=class_weight,
+        callbacks=callbacks_list,
+        verbose=1
+    )
+
+    # Evaluate
+    logger.info("Evaluating model...")
+    y_true, y_pred = evaluate_model_efficiently(model, val_ds)
+    auroc = roc_auc_score(y_true, y_pred)
+    acc = accuracy_score(y_true, y_pred > 0.5)
+    # Find optimal threshold
+    thresholds = np.linspace(0.1, 0.9, 81)
+    best_acc = 0
+    best_threshold = 0.5
+    for thresh in thresholds:
+        acc_thresh = accuracy_score(y_true, y_pred > thresh)
+        if acc_thresh > best_acc:
+            best_acc = acc_thresh
+            best_threshold = thresh
+
+    # Save results and model
+    results = {
+        'auroc': float(auroc),
+        'accuracy': float(acc),
+        'best_threshold': float(best_threshold),
+        'best_accuracy': float(best_acc),
+        'config': best_cfg,
+        'n_train': len(train_df),
+        'n_val': len(val_df)
+    }
+    np.savez(
+        f"{config.log_dir}/predictions.npz", 
+        y_true=y_true, 
+        y_pred=y_pred,
+        **results
+    )
+    model.save(f"{config.model_dir}/savedmodel", save_format="tf")
+    with open(f"{config.log_dir}/results.json", 'w') as f:
+        json.dump(results, f, indent=2)
     logger.info("Training completed successfully!")
-    logger.info(f"Results saved to: {config.log_dir}")
+
 
 if __name__ == "__main__":
     try:
