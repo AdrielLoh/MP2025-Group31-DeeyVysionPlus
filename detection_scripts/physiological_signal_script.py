@@ -459,6 +459,8 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
     model, model_cfg = create_inference_model(MODEL_PATH, MODEL_CFG)
     window_size = model_cfg.get('window_size', 150)
 
+    min_face_area_ratio=0.03 # Larger value = more restrictive face tracking 
+
     # First pass: collect all boxes per frame (for tracking)
     all_boxes = []
     while True:
@@ -466,7 +468,14 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
         if not ret:
             break
         boxes = detect_faces(frame, net=face_net)
-        all_boxes.append(boxes)
+        filtered_boxes = []
+        frame_area = frame.shape[0] * frame.shape[1]
+        for box in boxes:
+            _, _, w, h = box
+            area = w * h
+            if area >= frame_area * min_face_area_ratio:
+                filtered_boxes.append(box)
+        all_boxes.append(filtered_boxes)
     cap.release()
 
     # Build tracks (face IDs)
@@ -613,7 +622,3 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
 
     return face_results, output_path
 
-# Example usage:
-# results, vid = run_detection("input.mp4", video_tag="12345")
-# print(results)
-# print("Output video:", vid)

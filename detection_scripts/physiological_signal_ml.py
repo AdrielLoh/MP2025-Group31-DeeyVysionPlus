@@ -403,6 +403,7 @@ def get_video_fps(cap):
     return fps
 
 def run_detection(video_path, video_tag, output_path=f'static/results/physio_output.mp4', method="single"):
+    output_path = f'static/results/physio_output_{video_tag}.mp4'
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cap = cv2.VideoCapture(video_path)
     fps = get_video_fps(cap)

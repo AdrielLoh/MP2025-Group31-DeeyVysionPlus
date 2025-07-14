@@ -452,9 +452,13 @@ def multi_detection():
 
     output_folder = "static/results/"
 
-    def run_detection_wrapper(method, filename, output_folder, method_tag):
+    method_tag_map = {m: f"{video_tag}_{m}" for m in methods}
+
+    # Run detection methods one after another, not in parallel
+    results = {}
+    for method in methods:
+        method_tag = method_tag_map[method]
         try:
-            # Directly call detection functions, as before
             if method == "deep_learning":
                 result = deep_learning_static_detection(filename, output_folder, unique_tag=method_tag, method="multi")
             elif method == "physiological":
@@ -465,45 +469,98 @@ def multi_detection():
                 result = visual_artifacts_static_detection(filename, video_tag=method_tag, output_dir=output_folder, method="multi")
             else:
                 result = "Unknown"
-            return (method, result)
+            results[method] = result
         except Exception as e:
-            # For debugging, print the traceback
+            import traceback
             print(f"[ERROR] {method} crashed:\n{traceback.format_exc()}")
-            return (method, f"error: {e}")
-
-    # Use a ProcessPoolExecutor to parallelize detection methods
-    results = {}
-    with ProcessPoolExecutor(max_workers=len(methods)) as executor:
-        # Map each method to a future
-        method_tag_map = {m: f"{video_tag}_{m}" for m in methods}
-        future_to_method = {
-            executor.submit(run_detection_wrapper, method, filename, output_folder, method_tag_map[method]): method
-            for method in methods
-        }
-        for future in as_completed(future_to_method):
-            method = future_to_method[future]
-            try:
-                method_result, result = future.result(timeout=300)  # 5 minutes max per method
-            except Exception as exc:
-                method_result, result = method, f"error: {exc}"
-            results[method_result] = result
+            results[method] = f"error: {e}"
 
     if os.path.exists(filename):
         os.remove(filename)
 
-    # Process results just as before
+    # Process results to maintain full data structure for each method
     processed_results = {}
+    
     for method, result in results.items():
         if isinstance(result, str):
-            processed_results[method] = result
-        elif isinstance(result, tuple):
-            processed_results[method] = result[0]
-        elif isinstance(result, dict) and "prediction" in result:
-            processed_results[method] = result["prediction"]
+            if result.startswith("error:"):
+                processed_results[method] = {"error": result, "prediction": "Error"}
+            else:
+                processed_results[method] = {"prediction": result}
+        
+        elif method == "deep_learning":
+            # Deep learning returns: (detection_result, real_count, fake_count, rvf_plot, conf_plot)
+            if isinstance(result, tuple) and len(result) >= 5:
+                detection_result, real_count, fake_count, rvf_plot, conf_plot = result
+                processed_results[method] = {
+                    "prediction": detection_result,
+                    "real_count": real_count,
+                    "fake_count": fake_count,
+                    "rvf_plot": rvf_plot,
+                    "conf_plot": conf_plot,
+                    "type": "deep_learning"
+                }
+            else:
+                processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
+        
+        elif method == "physiological":
+            # Physiological returns: (face_results, output_video)
+            if isinstance(result, tuple) and len(result) >= 2:
+                face_results, output_video = result
+                # Determine overall prediction from face results
+                if face_results:
+                    real_faces = sum(1 for face in face_results if face.get('result') == 'Real')
+                    fake_faces = sum(1 for face in face_results if face.get('result') == 'Fake')
+                    overall_prediction = "Real" if real_faces > fake_faces else "Fake" if fake_faces > 0 else "Inconclusive"
+                else:
+                    overall_prediction = "No faces detected"
+                
+                processed_results[method] = {
+                    "prediction": overall_prediction,
+                    "face_results": face_results,
+                    "output_video": output_video,
+                    "type": "physiological"
+                }
+            else:
+                processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
+        
+        elif method == "visual_artifacts":
+            # Visual artifacts returns: (face_results, output_video)
+            if isinstance(result, tuple) and len(result) >= 2:
+                face_results, output_video = result
+                # Determine overall prediction from face results
+                if face_results:
+                    real_faces = sum(1 for face in face_results if face.get('result') == 'Real')
+                    fake_faces = sum(1 for face in face_results if face.get('result') == 'Fake')
+                    overall_prediction = "Real" if real_faces > fake_faces else "Fake" if fake_faces > 0 else "Inconclusive"
+                else:
+                    overall_prediction = "No faces detected"
+                
+                processed_results[method] = {
+                    "prediction": overall_prediction,
+                    "face_results": face_results,
+                    "output_video": output_video,
+                    "type": "visual_artifacts"
+                }
+            else:
+                processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
+        
+        elif method == "body_posture":
+            # Body posture returns: {"prediction": result, "confidence": confidence}
+            if isinstance(result, dict) and "prediction" in result:
+                processed_results[method] = {
+                    "prediction": result["prediction"],
+                    "confidence": result.get("confidence"),
+                    "type": "body_posture"
+                }
+            else:
+                processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
+        
         else:
-            processed_results[method] = "Unknown"
+            # Fallback for unknown methods
+            processed_results[method] = {"prediction": str(result)}
 
-    return render_template("result.html", analysis_type='multi_detection', results=processed_results)
+    return render_template("result.html", analysis_type='multi_detection', multi_results=processed_results)
 
 if __name__ == '__main__':
     # --- Comment line below to go to development, uncomment to go to production ---
