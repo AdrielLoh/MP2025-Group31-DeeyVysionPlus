@@ -4,19 +4,18 @@ import numpy as np
 import subprocess
 import mediapipe as mp
 import gc
-import keras
+from tensorflow.keras.utils import register_keras_serializable
 import matplotlib.pyplot as plt
-import multiprocessing
+from tensorflow.keras.models import load_model
+import tensorflow as tf
+import json
+import collections
 
 # ========== Configuration ==========
 FACE_PROTO = 'models/weights-prototxt.txt'
 FACE_MODEL = 'models/res_ssd_300Dim.caffeModel'
-MODEL_PATH = 'models/physio_tcn_transformer_3p2.keras'      # <-- UPDATE THIS if you have a different model
-MODEL_CFG  = 'models/fold1_best_config.json'  # <-- Optional, use if you saved Optuna config
-# 0.460 - train 2 fold 1
-# 0.410 - train 3 fold 2
-# 0.520 - train 3 fold 3
-fake_threshold = 0.410
+MODEL_PATH = 'models/physio_deep_evaluated.keras'
+fake_threshold = 0.420 # By youden's j index, train 8
 
 # ---- rPPG/ROI config (must match training) ----
 ROI_INDICES = {
@@ -30,11 +29,7 @@ WINDOW_SIZE = 150
 HOP_SIZE = 75
 
 # ========== Deep Model Utilities ==========
-import tensorflow as tf
-from tensorflow.keras.models import load_model
-import json
-
-@keras.saving.register_keras_serializable()
+@register_keras_serializable()
 def masked_gap(args):
     f, m = args
     seq_len = tf.shape(f)[1]
@@ -44,27 +39,6 @@ def masked_gap(args):
     denom = tf.reduce_sum(m, axis=1)
     pooled = num / tf.clip_by_value(denom, 1e-3, tf.float32.max)
     return pooled
-
-def create_inference_model(model_path, config_path=None):
-    """Load Keras TCN+Transformer model for inference."""
-    # (Slightly simplified for deployment; adjust as needed)
-    if config_path and os.path.exists(config_path):
-        with open(config_path, 'r') as f:
-            model_cfg = json.load(f)
-            model_cfg = model_cfg.get('config', model_cfg)
-    else:
-        model_cfg = {
-            'blocks': 4,
-            'filters': 48,
-            'dense_dim': 96,
-            'dropout': 0.3,
-            'n_roi_features': 15,
-            'window_size': 150
-        }
-    # You can paste your build_tcn_transformer from training.py here if needed.
-    # For deployment, we'll just load weights.
-    model = load_model(model_path, compile=False)
-    return model, model_cfg
 
 def predict_single_window(model, roi_features, window_mask):
     """Predict on a single window of ROI features."""
@@ -446,7 +420,6 @@ def plot_rppg_rois(roi_signals_dict, track_id, video_tag, save_dir="static/resul
 
 # ========== Main Inference Function ==========
 def run_detection(video_path, video_tag, output_path='static/results/physio_deep_output.mp4', method="single"):
-    import collections
     output_path = f'static/results/physio_deep_output_{video_tag}.mp4'
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cap = cv2.VideoCapture(video_path)
@@ -456,8 +429,8 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     face_net = load_face_net(FACE_PROTO, FACE_MODEL)
-    model, model_cfg = create_inference_model(MODEL_PATH, MODEL_CFG)
-    window_size = model_cfg.get('window_size', 150)
+    model = load_model(MODEL_PATH)
+    window_size = WINDOW_SIZE
 
     min_face_area_ratio=0.03 # Larger value = more restrictive face tracking 
 
