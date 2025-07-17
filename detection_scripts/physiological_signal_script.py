@@ -432,7 +432,7 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
     model = load_model(MODEL_PATH)
     window_size = WINDOW_SIZE
 
-    min_face_area_ratio=0.03 # Larger value = more restrictive face tracking 
+    min_face_area_ratio=0.01 # Larger value = more restrictive face tracking 
 
     # First pass: collect all boxes per frame (for tracking)
     all_boxes = []
