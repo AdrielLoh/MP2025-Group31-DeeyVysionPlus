@@ -485,7 +485,7 @@ def multi_detect():
 
 @app.route('/multi_detection', methods=['POST'])
 def multi_detection():
-    file = request.files["file"]
+    file = request.files.get("file")
     video_url = request.form.get('video_url', '').strip()
     video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
 
