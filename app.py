@@ -5,10 +5,8 @@ import subprocess
 import uuid
 from werkzeug.utils import secure_filename
 import json
-from concurrent.futures import ProcessPoolExecutor, as_completed
-import traceback
-import multiprocessing
 from waitress import serve
+import yt_dlp
 
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
@@ -34,6 +32,7 @@ ALLOWED_EXTENSIONS = {'.mp4', '.mov', '.avi', '.webm', '.wav', '.flac', '.mp3', 
 ALLOWED_MIME_TYPES = {'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'audio/mpeg', 
                       'audio/ogg', 'audio/wav', 'audio/vnd.wav',
                       'audio/flac', 'audio/x-flac'}
+MAX_VIDEO_DURATION = 30 # For URL downloads only 
 
 def allowed_file(filename, mimetype):
     ext = os.path.splitext(filename)[1].lower()
@@ -73,6 +72,34 @@ def convert_webm_to_mp4(original_path, mp4_path):
         mp4_path
     ]
     subprocess.run(cmd, check=True)
+
+def download_video(video_tag, video_url):
+    # Download the first 30 seconds, regardless of the video's full length
+    ydl_opts = {
+        'format': 'bestvideo+bestaudio/best',
+        'outtmpl': os.path.join(app.config['UPLOAD_FOLDER'], f'{video_tag}.%(ext)s'),
+        'noplaylist': True,
+        'quiet': True,
+        'merge_output_format': 'mp4',  # Will convert at the end if needed
+        'download_sections': {'*': ['0-30']},  # <-- This line is the key!
+    }
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=True)
+            downloaded_filename = ydl.prepare_filename(info)
+            # If merge_output_format doesn't already output .mp4, convert as before
+            if not downloaded_filename.lower().endswith('.mp4'):
+                mp4_path = os.path.splitext(downloaded_filename)[0] + '.mp4'
+                convert_webm_to_mp4(downloaded_filename, mp4_path)
+                video_path_for_processing = mp4_path
+                os.remove(downloaded_filename)
+            else:
+                video_path_for_processing = downloaded_filename
+                mp4_path = ""
+            return video_path_for_processing
+    except Exception as e:
+        return f"Failed to download video from URL: {e}"
+
 
 @app.route('/')
 def index():
@@ -179,7 +206,7 @@ def visual_artifacts_try():
 @app.route('/deep_learning_based_detection', methods=['GET', 'POST'])
 def deep_learning_based_detection():
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files.get('file')
         if file:
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filename)
@@ -196,13 +223,21 @@ def physiological_signal_try():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files.get('file')
         detection_method = request.form.get('detection_method', 'deep')
-        if file:
+        video_url = request.form.get('video_url', '').strip()
+        video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
+
+        if video_url:
+            video_path_for_processing = download_video(video_tag, video_url)
+            if "Failed to download" in video_path_for_processing:
+                return "Invalid video URL"
+            filename = video_path_for_processing
+            mp4_path = ""
+        elif file:
             if not allowed_file(file.filename, file.content_type):
                 return "Invalid file type"
             filename = secure_filename(file.filename)
-            video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
             name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
@@ -219,26 +254,25 @@ def physiological_signal_try():
                 video_path_for_processing = filename
                 mp4_path = ""
 
-            # === Call the respective detection function ===
-            if detection_method == "machine":
-                # Import if not already at top: from physiological_signal_ml import run_detection as run_physio_ml
-                face_results, output_video = run_physio_ml(video_path_for_processing, video_tag=video_tag)
-            else:
-                # Default: deep learning
-                face_results, output_video = run_detection(video_path_for_processing, video_tag=video_tag)
+        # === Call the respective detection function ===
+        if detection_method == "machine":
+            # Import if not already at top: from physiological_signal_ml import run_detection as run_physio_ml
+            face_results, output_video = run_physio_ml(video_path_for_processing, video_tag=video_tag)
+        else:
+            # Default: deep learning
+            face_results, output_video = run_detection(video_path_for_processing, video_tag=video_tag)
 
-            if os.path.exists(filename):
-                os.remove(filename)
-            if os.path.exists(mp4_path):
-                os.remove(mp4_path)
-                
-            return render_template(
-                'result.html',
-                analysis_type='physiological',
-                face_results=face_results,
-                output_video=output_video,
-                physio_method=detection_method
-            )
+        if os.path.exists(filename):
+            os.remove(filename)
+        if os.path.exists(mp4_path):
+            os.remove(mp4_path)
+        return render_template(
+            'result.html',
+            analysis_type='physiological',
+            face_results=face_results,
+            output_video=output_video,
+            physio_method=detection_method
+        )
     return render_template('physiological_signal_try.html')
 
 @app.route('/start_real_time_detection', methods=['POST'])
@@ -266,47 +300,21 @@ def audio_analysis_try_page():
     
 @app.route('/deep_learning_static', methods=['GET', 'POST'])
 def deep_learning_static():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
+    if request.method == "POST":
+        file = request.files.get('file')
+        video_url = request.form.get('video_url', '').strip()
+        video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
 
-    file = request.files['file']
-    if not allowed_file(file.filename, file.content_type):
-        return "Invalid file type"
-    filename = secure_filename(file.filename)
-    # Making the uploaded videos uniquely named
-    video_tag = uuid.uuid4().hex
-    name, ext = os.path.splitext(filename)
-    new_file_name = video_tag + ext
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
-    file.save(filename)
+        if video_url:
+            video_path_for_processing = download_video(video_tag, video_url)
+            if "Failed to download" in video_path_for_processing:
+                return "Invalid video URL"
+        elif file:
+            file = request.files.get('file')
 
-    # convert to mp4 for better compatibility
-    if not filename.lower().endswith('.mp4'):
-        mp4_path = os.path.splitext(filename)[0] + '.mp4'
-        convert_webm_to_mp4(filename, mp4_path)
-        video_path_for_processing = mp4_path
-        if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
-            os.remove(filename)
-    else:
-        video_path_for_processing = filename
-        mp4_path = ""
-
-    output_folder = "static/results/"
-    result, real_count, fake_count, rvf_plot, conf_plot = deep_learning_static_detection(video_path_for_processing, output_folder, video_tag)
-
-    return render_template('result.html', analysis_type='deep_learning_static', result=result, real_count=real_count, fake_count=fake_count, rvf_plot=rvf_plot, conf_plot=conf_plot)
-
-
-@app.route('/visual_artifacts_static', methods=['GET', 'POST'])
-def visual_artifacts_static():
-    if request.method == 'POST':
-        file = request.files['file']
-        if file:
             if not allowed_file(file.filename, file.content_type):
                 return "Invalid file type"
             filename = secure_filename(file.filename)
-            # Making the uploaded videos uniquely named
-            video_tag = uuid.uuid4().hex
             name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
@@ -323,21 +331,60 @@ def visual_artifacts_static():
                 video_path_for_processing = filename
                 mp4_path = ""
 
-            face_results, output_video = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir='static/results')
-            if os.path.exists(filename):
-                os.remove(filename)
-            return render_template(
-                'result.html',
-                analysis_type='visual_artifacts',
-                face_results=face_results,
-                output_video=output_video
-            )
+        output_folder = "static/results/"
+        result, real_count, fake_count, rvf_plot, conf_plot = deep_learning_static_detection(video_path_for_processing, output_folder, video_tag)
+
+        return render_template('result.html', analysis_type='deep_learning_static', result=result, real_count=real_count, fake_count=fake_count, rvf_plot=rvf_plot, conf_plot=conf_plot)
+
+
+@app.route('/visual_artifacts_static', methods=['GET', 'POST'])
+def visual_artifacts_static():
+    if request.method == 'POST':
+        file = request.files.get('file')
+        video_url = request.form.get('video_url', '').strip()
+        video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
+
+        if video_url:
+            video_path_for_processing = download_video(video_tag, video_url)
+            if "Failed to download" in video_path_for_processing:
+                return "Invalid video URL"
+            filename = video_path_for_processing
+        elif file:
+            if not allowed_file(file.filename, file.content_type):
+                return "Invalid file type"
+            filename = secure_filename(file.filename)
+            # Making the uploaded videos uniquely named
+            name, ext = os.path.splitext(filename)
+            new_file_name = video_tag + ext
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
+            file.save(filename)
+
+            # convert to mp4 for better compatibility
+            if not filename.lower().endswith('.mp4'):
+                mp4_path = os.path.splitext(filename)[0] + '.mp4'
+                convert_webm_to_mp4(filename, mp4_path)
+                video_path_for_processing = mp4_path
+                if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+                    os.remove(filename)
+            else:
+                video_path_for_processing = filename
+                mp4_path = ""
+
+        face_results, output_video = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir='static/results')
+        if os.path.exists(filename):
+            os.remove(filename)
+        return render_template(
+            'result.html',
+            analysis_type='visual_artifacts',
+            face_results=face_results,
+            output_video=output_video
+        )
     return render_template('visual_artifacts_try.html')
 
 @app.route('/audio_analysis', methods=['GET', 'POST'])
 def audio_analysis():
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files.get('file')
         output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
         os.makedirs(output_folder, exist_ok=True)
         
@@ -400,29 +447,34 @@ def body_posture_detect():
     if request.method == 'POST':
         output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
         os.makedirs(output_folder, exist_ok=True)
-        file = request.files['file']
+        file = request.files.get('file')
+        video_url = request.form.get('video_url', '').strip()
+        video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
         
-        if file:
+        if video_url:
+            filename = download_video(video_tag, video_url)
+            if "Failed to download" in filename:
+                return "Invalid video URL"
+        elif file:
             if not allowed_file(file.filename, file.content_type):
                 return "Invalid file type"
             filename = secure_filename(file.filename)
             # Making the uploaded videos uniquely named
-            video_tag = uuid.uuid4().hex
             name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
 
-            # Call video processing function
-            result = detect_body_posture(filename, video_tag)
+        # Call video processing function
+        result = detect_body_posture(filename, video_tag)
 
-            if "error" in result:
-                return render_template('result.html', analysis_type='body_posture', result=result["error"])
+        if "error" in result:
+            return render_template('result.html', analysis_type='body_posture', result=result["error"])
 
-            prediction = result["prediction"]
-            confidence = round(result["confidence"] * 100)
+        prediction = result["prediction"]
+        confidence = round(result["confidence"] * 100)
 
-            return render_template('result.html', analysis_type='body_posture', result=prediction, confidence=confidence)
+        return render_template('result.html', analysis_type='body_posture', result=prediction, confidence=confidence)
 
     return render_template('body_posture_analysis.html')
 
@@ -433,18 +485,22 @@ def multi_detect():
 
 @app.route('/multi_detection', methods=['POST'])
 def multi_detection():
-    if "file" not in request.files:
-        return "No file uploaded", 400
-
     file = request.files["file"]
-    if not allowed_file(file.filename, file.content_type):
-        return "Invalid file type"
-    filename = secure_filename(file.filename)
-    video_tag = uuid.uuid4().hex
-    name, ext = os.path.splitext(filename)
-    new_file_name = video_tag + ext
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
-    file.save(filename)
+    video_url = request.form.get('video_url', '').strip()
+    video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
+
+    if video_url:
+        filename = download_video(video_tag, video_url)
+        if "Failed to download" in filename:
+            return "Invalid video URL"
+    elif file:
+        if not allowed_file(file.filename, file.content_type):
+            return "Invalid file type"
+        filename = secure_filename(file.filename)
+        name, ext = os.path.splitext(filename)
+        new_file_name = video_tag + ext
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
+        file.save(filename)
 
     methods = request.form.getlist("methods")
     if not methods:

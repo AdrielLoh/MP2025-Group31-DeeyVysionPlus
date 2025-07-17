@@ -1,0 +1,18 @@
+{
+  "auroc": 0.9238994160245916,
+  "accuracy": 0.8551141957078165,
+  "youden_j": 0.710788532503198,
+  "best_threshold": 0.49,
+  "config": {
+    "blocks": 6,
+    "filters": 64,
+    "dense_dim": 128,
+    "lr": 0.0001,
+    "batch": 8,
+    "dropout": 0.2,
+    "n_roi_features": 15,
+    "window_size": 150
+  },
+  "n_train": 162526,
+  "n_val": 40632
+}

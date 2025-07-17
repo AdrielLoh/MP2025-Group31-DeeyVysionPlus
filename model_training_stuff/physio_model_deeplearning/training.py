@@ -12,6 +12,7 @@ import json
 import pandas as pd
 import random
 from tensorflow.keras.utils import register_keras_serializable
+from tensorflow.keras.models import load_model
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -412,7 +413,7 @@ def main():
         except Exception as e:
             logger.warning(f"Failed to set GPU memory growth: {e}")
 
-    use_mixed_precision = setup_mixed_precision()
+    use_mixed_precision = False
     logger.info(f"Starting training with config: {vars(config)}")
     logger.info(f"Mixed precision: {use_mixed_precision}")
 
@@ -446,7 +447,7 @@ def main():
 
     # Build and Filter dataframes
     df = build_window_metadata(valid_files)
-    filter_dataframes = True # ----- TOGGLE FILTERING ON / OFF
+    filter_dataframes = False # ----- TOGGLE FILTERING ON / OFF
     if filter_dataframes:
         df = df[df.apply(keep_row, axis=1)].reset_index(drop=True)
         print("Filtered windows by source:")
@@ -526,8 +527,6 @@ def main():
     else:
         class_weight = {0: total / (2 * n_real), 1: total / (2 * n_fake)}
 
-    model = build_tcn_transformer(best_cfg, use_mixed_precision)
-
     # If only evaluating, load model weights and skip training
     if config.eval_only:
         weights_path = "/root/model_training/physiological-model/deep-learning-1-1/checkpoint_best_model.keras"
@@ -535,23 +534,33 @@ def main():
             logger.error(f"Specified weights file does not exist: {weights_path}")
             return
         logger.info(f"Loading model weights from: {weights_path}")
+        model = build_tcn_transformer(best_cfg, use_mixed_precision)
         model.load_weights(weights_path)
-        model.save("/mnt/c/Users/Adrie/Documents/GitHub/MP2025-Group31-DeeyVysionPlus/model_training_stuff/physio_model_deeplearning/physio_deep_evaluated.keras")
+        model.save("/mnt/c/Users/Adrie/Documents/GitHub/MP2025-Group31-DeeyVysionPlus/model_training_stuff/physio_model_deeplearning/physio_deep_evaluated_9ft3.keras")
     else:
-        optimizer = optimizers.Adam(best_cfg['lr'], clipnorm=1.0)
-        if use_mixed_precision:
-            optimizer = mixed_precision.LossScaleOptimizer(optimizer)
-        model.compile(
-            optimizer=optimizer,
-            loss=tf.keras.losses.BinaryCrossentropy(label_smoothing=0.1),
-            metrics=[tf.keras.metrics.AUC(name='auroc'), tf.keras.metrics.BinaryAccuracy()]
-        )
+        # ===== TOGGLE IF FINE TUNING IS WANTED INSTEAD OF RETRAINING =====
+        FINE_TUNING = True
+        if FINE_TUNING:
+            # ----- CHANGE MODEL PATH -----
+            # model = load_model("/mnt/c/Users/Adrie/Documents/GitHub/MP2025-Group31-DeeyVysionPlus/models/physio_deep_evaluated.keras", compile=False)
+            model = load_model("/root/model_training/physiological-model/deep-learning-1-1/checkpoint_best_model.keras", compile=True)
+        else:
+            model = build_tcn_transformer(best_cfg, use_mixed_precision)
+            optimizer = optimizers.Adam(best_cfg['lr'], clipnorm=1.0)
+            if use_mixed_precision:
+                optimizer = mixed_precision.LossScaleOptimizer(optimizer)
+            model.compile(
+                optimizer=optimizer,
+                loss=tf.keras.losses.BinaryCrossentropy(label_smoothing=0.1),
+                metrics=[tf.keras.metrics.AUC(name='auroc'), tf.keras.metrics.BinaryAccuracy()]
+            )
 
         callbacks_list = [
-            callbacks.EarlyStopping(monitor="val_auroc", patience=5, mode="max", restore_best_weights=True),
+            callbacks.EarlyStopping(monitor="val_loss", patience=5, mode="max", restore_best_weights=True),
             callbacks.ModelCheckpoint(
                 f"{config.model_dir}/checkpoint_best_model.keras",
                 save_best_only=True,
+                save_weights_only=False,
                 monitor="val_auroc",
                 mode="max"
             ),

@@ -883,11 +883,17 @@ footer::after {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .hero h2 {
+    .hero h2,
+    .purpose-title {
         font-size: 2.5rem;
     }
 
     .hero p {
+        font-size: 1rem;
+    }
+    .stats-subtitle,
+    .stat-desc,
+    .purpose-subtitle {
         font-size: 1.1rem;
     }
 
@@ -933,11 +939,8 @@ footer::after {
     .infogram-container {
         display: none;
     }
-    .purpose-section {
-        padding: 0;
-    }
     .explore-section {
-        padding: 0 2rem;
+        display: none;
     }
 }
 
@@ -5414,10 +5417,14 @@ Future Trends Page Specific Styles
     }
 
     .innovations-grid,
-    .detection-methods,
     .frameworks-development,
     .industry-impacts {
         padding: 1.5rem;
+    }
+
+    .detection-methods,
+    .creation-step-card {
+        padding: 0;
     }
 
     .sector-header {
@@ -6213,7 +6220,7 @@ Identify Deepfakes Page Specific Styles
     .audio-analysis,
     .tools-showcase,
     .detection-workflow {
-        padding: 1.5rem;
+        padding: 1.5rem 0;
     }
 
     .technique-header,
@@ -6968,6 +6975,7 @@ Impact on Society Page Specific Styles
     flex-shrink: 0;
     z-index: 2;
     border: 3px solid var(--dark-bg);
+    margin: 0 auto;
 }
 
 .progress-item.completed .progress-marker {
@@ -6985,6 +6993,7 @@ Impact on Society Page Specific Styles
 .progress-content {
     flex: 1;
     padding: 0.5rem 0;
+    margin: 0 auto;
 }
 
 .progress-content p {
@@ -7127,7 +7136,7 @@ Impact on Society Page Specific Styles
     .social-solutions,
     .legal-challenges,
     .regulatory-progress {
-        padding: 1.5rem;
+        padding: 1.5rem 0;
     }
 }
 /* ================================
@@ -8627,6 +8636,7 @@ Protect Yourself Page Specific Styles
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto;
 }
 
 .phase-number {
@@ -8975,11 +8985,13 @@ Protect Yourself Page Specific Styles
     .awareness-scorecard,
     .privacy-framework,
     .privacy-audit,
-    .legal-framework,
     .singapore-authorities,
     .digital-toolkit,
     .implementation-guide {
         padding: 1.5rem;
+    }
+    .legal-framework {
+        padding: 0;
     }
 
     .strategy-meta h2 {
