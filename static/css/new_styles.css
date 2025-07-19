@@ -19,14 +19,25 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
     background: var(--dark-bg);
     color: var(--text-primary);
     line-height: 1.6;
-    background-image: 
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+    background-image: radial-gradient(
+            circle at 20% 80%,
+            rgba(120, 119, 198, 0.3) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 80% 20%,
+            rgba(255, 119, 198, 0.15) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 40% 40%,
+            rgba(120, 219, 255, 0.1) 0%,
+            transparent 50%
+        );
     overflow-x: hidden;
 }
 /* ===============================
@@ -78,7 +89,7 @@ nav .nav-container {
 }
 
 .nav-left .brand::before {
-    content: '🔮';
+    content: "🔮";
     font-size: 1.2rem;
     margin-right: 0.3rem;
     animation: float 3s ease-in-out infinite;
@@ -121,13 +132,18 @@ nav .nav-container {
 }
 
 .nav-right li a::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -245,7 +261,7 @@ footer {
 }
 
 footer::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
@@ -282,13 +298,18 @@ footer ul li a {
 }
 
 footer ul li a::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(102, 126, 234, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -327,13 +348,17 @@ footer ul li a:hover {
 }
 
 .social-icons a::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.3) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -361,13 +386,20 @@ footer ul li a:hover {
 
 .social-icons a:hover img {
     opacity: 1;
-    filter: brightness(0) invert(1) drop-shadow(0 0 5px rgba(102, 126, 234, 0.5));
+    filter: brightness(0) invert(1)
+        drop-shadow(0 0 5px rgba(102, 126, 234, 0.5));
 }
 
 /* Fallback icons if images don't load */
-.social-icons a[href*="facebook"]::after { content: '📘'; }
-.social-icons a[href*="twitter"]::after { content: '🐦'; }
-.social-icons a[href*="linkedin"]::after { content: '💼'; }
+.social-icons a[href*="facebook"]::after {
+    content: "📘";
+}
+.social-icons a[href*="twitter"]::after {
+    content: "🐦";
+}
+.social-icons a[href*="linkedin"]::after {
+    content: "💼";
+}
 
 .social-icons a img:not([src]) + ::after {
     display: block;
@@ -375,7 +407,7 @@ footer ul li a:hover {
 
 /* Footer branding */
 footer::after {
-    content: '© 2025 DeepVysion+';
+    content: "© 2025 DeepVysion+";
     position: absolute;
     bottom: 1rem;
     left: 50%;
@@ -428,8 +460,13 @@ footer::after {
 
 /* Animations */
 @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
 /* Demo content for preview */
@@ -472,21 +509,28 @@ footer::after {
     text-align: center;
     padding: 2rem;
     position: relative;
-    background: url('../images/hero-bg.gif') no-repeat center center/cover;
+    background: url("../images/hero-bg.gif") no-repeat center center/cover;
 }
 
 .hero::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
-        radial-gradient(circle at 50% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 30% 70%, rgba(255, 119, 198, 0.08) 0%, transparent 50%);
+    background: radial-gradient(
+            circle at 50% 50%,
+            rgba(102, 126, 234, 0.1) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 30% 70%,
+            rgba(255, 119, 198, 0.08) 0%,
+            transparent 50%
+        );
     pointer-events: none;
-    background: rgba(0, 0, 0, 0.60);
+    background: rgba(0, 0, 0, 0.6);
     z-index: 1;
 }
 
@@ -590,13 +634,18 @@ footer::after {
 }
 
 .stat-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -778,7 +827,11 @@ footer::after {
     left: 0;
     width: 100%;
     height: 60%;
-    background: linear-gradient(to bottom, transparent 0%, rgba(15, 15, 35, 0.8) 100%);
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(15, 15, 35, 0.8) 100%
+    );
 }
 
 .carousel-content {
@@ -822,7 +875,7 @@ footer::after {
 }
 
 .carousel-button::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -875,10 +928,14 @@ footer::after {
     right: -40px;
 }
 
-
 @keyframes shimmer {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
 }
 
 /* Responsive Design */
@@ -1020,13 +1077,18 @@ footer::after {
 }
 
 .method-card-multi::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -1097,13 +1159,17 @@ footer::after {
 }
 
 .dropbox::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.1) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
 }
@@ -1141,10 +1207,6 @@ footer::after {
     color: var(--text-secondary);
 }
 
-.file-input {
-    display: none;
-}
-
 .video-preview {
     max-width: 100%;
     max-height: 300px;
@@ -1169,7 +1231,7 @@ footer::after {
 }
 
 .submit-btn::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -1230,37 +1292,51 @@ footer::after {
 }
 
 @keyframes shimmer {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
 }
 
 @media (max-width: 768px) {
     .container {
         padding: 1rem;
     }
-    
+
     .title {
         font-size: 2.2rem;
     }
-    
+
     .form-card {
         padding: 1.5rem;
     }
-    
+
     .methods-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .dropbox {
         padding: 2rem 1rem;
     }
@@ -1275,20 +1351,31 @@ footer::after {
     padding: 5rem 2rem 3rem;
     text-align: center;
     position: relative;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    background: linear-gradient(
+        135deg,
+        rgba(102, 126, 234, 0.1) 0%,
+        rgba(118, 75, 162, 0.1) 100%
+    );
     backdrop-filter: blur(10px);
 }
 
 .banner::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
-        radial-gradient(circle at 30% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 70% 80%, rgba(255, 119, 198, 0.1) 0%, transparent 50%);
+    background: radial-gradient(
+            circle at 30% 20%,
+            rgba(102, 126, 234, 0.15) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 70% 80%,
+            rgba(255, 119, 198, 0.1) 0%,
+            transparent 50%
+        );
     pointer-events: none;
 }
 
@@ -1350,13 +1437,18 @@ footer::after {
 }
 
 .about-intro::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -1437,13 +1529,18 @@ footer::after {
 }
 
 .team-member::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -1526,13 +1623,18 @@ footer::after {
 }
 
 .successor::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -1605,7 +1707,9 @@ footer::after {
         font-size: 2rem;
     }
 
-    .about-intro, .team-member, .successor {
+    .about-intro,
+    .team-member,
+    .successor {
         padding: 1.5rem;
     }
 
@@ -1663,7 +1767,7 @@ footer::after {
 }
 
 .search-bar::before {
-    content: '🔍';
+    content: "🔍";
     position: absolute;
     left: 1.2rem;
     top: 50%;
@@ -1696,13 +1800,18 @@ footer::after {
 }
 
 .box::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -1735,11 +1844,19 @@ footer::after {
 
 /* Special styling for available boxes */
 .box:not(.hidden) {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+    );
 }
 
 .box:not(.hidden):hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(102, 126, 234, 0.15) 100%);
+    background: linear-gradient(
+        135deg,
+        rgba(102, 126, 234, 0.1) 0%,
+        rgba(102, 126, 234, 0.15) 100%
+    );
 }
 
 /* Hidden boxes styling */
@@ -1751,7 +1868,7 @@ footer::after {
 }
 
 .box.hidden::after {
-    content: '🔒 Coming Soon';
+    content: "🔒 Coming Soon";
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -1775,18 +1892,33 @@ footer::after {
 }
 
 /* Animation delays for staggered effect */
-.box:nth-child(1) { animation-delay: 0.1s; }
-.box:nth-child(2) { animation-delay: 0.2s; }
-.box:nth-child(3) { animation-delay: 0.3s; }
-.box:nth-child(4) { animation-delay: 0.4s; }
-.box:nth-child(5) { animation-delay: 0.5s; }
-.box:nth-child(6) { animation-delay: 0.6s; }
-.box:nth-child(7) { animation-delay: 0.7s; }
-.box:nth-child(8) { animation-delay: 0.8s; }
+.box:nth-child(1) {
+    animation-delay: 0.1s;
+}
+.box:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.box:nth-child(3) {
+    animation-delay: 0.3s;
+}
+.box:nth-child(4) {
+    animation-delay: 0.4s;
+}
+.box:nth-child(5) {
+    animation-delay: 0.5s;
+}
+.box:nth-child(6) {
+    animation-delay: 0.6s;
+}
+.box:nth-child(7) {
+    animation-delay: 0.7s;
+}
+.box:nth-child(8) {
+    animation-delay: 0.8s;
+}
 
 /* Responsive design for education page */
 @media (max-width: 768px) {
-
     .title {
         font-size: 2.5rem;
     }
@@ -1873,13 +2005,18 @@ footer::after {
 }
 
 .challenge-section::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -1910,13 +2047,17 @@ footer::after {
 }
 
 .icon-container::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -1980,7 +2121,7 @@ footer::after {
 }
 
 .try-button::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -2004,7 +2145,11 @@ footer::after {
 
 /* Special styling for different challenge types */
 .challenge-section:nth-child(1) {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+    );
 }
 
 .challenge-section:nth-child(1) .try-button {
@@ -2012,7 +2157,11 @@ footer::after {
 }
 
 .challenge-section:nth-child(2) {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(240, 147, 251, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(240, 147, 251, 0.05) 100%
+    );
 }
 
 .challenge-section:nth-child(2) .try-button {
@@ -2020,7 +2169,11 @@ footer::after {
 }
 
 .challenge-section:nth-child(3) {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255, 119, 198, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(255, 119, 198, 0.05) 100%
+    );
 }
 
 .challenge-section:nth-child(3) .try-button {
@@ -2035,9 +2188,15 @@ footer::after {
 }
 
 /* Animation delays for staggered effect */
-.challenge-section:nth-child(1) { animation-delay: 0.1s; }
-.challenge-section:nth-child(2) { animation-delay: 0.3s; }
-.challenge-section:nth-child(3) { animation-delay: 0.5s; }
+.challenge-section:nth-child(1) {
+    animation-delay: 0.1s;
+}
+.challenge-section:nth-child(2) {
+    animation-delay: 0.3s;
+}
+.challenge-section:nth-child(3) {
+    animation-delay: 0.5s;
+}
 
 /* Responsive design for challenge page */
 @media (max-width: 768px) {
@@ -2133,11 +2292,10 @@ footer::after {
     transform: translateY(0);
 }
 
-
 /* ======================================
 Detection Information Pages Specific Styles 
 =========================================*/
-        
+
 /* Hero Section */
 .physiological-hero {
     min-height: 100vh;
@@ -2146,10 +2304,12 @@ Detection Information Pages Specific Styles
     justify-content: center;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, 
-        rgba(102, 126, 234, 0.1) 0%, 
+    background: linear-gradient(
+        135deg,
+        rgba(102, 126, 234, 0.1) 0%,
         rgba(118, 75, 162, 0.1) 50%,
-        rgba(75, 181, 67, 0.1) 100%);
+        rgba(75, 181, 67, 0.1) 100%
+    );
 }
 
 .hero-background {
@@ -2163,7 +2323,7 @@ Detection Information Pages Specific Styles
 
 .floating-particles::before,
 .floating-particles::after {
-    content: '';
+    content: "";
     position: absolute;
     width: 4px;
     height: 4px;
@@ -2198,7 +2358,7 @@ Detection Information Pages Specific Styles
 
 .pulse-waves::before,
 .pulse-waves::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -2373,13 +2533,18 @@ Detection Information Pages Specific Styles
 }
 
 .method-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -2406,7 +2571,11 @@ Detection Information Pages Specific Styles
     transform: translate(-50%, -50%);
     width: 80px;
     height: 80px;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     border-radius: 50%;
     animation: glow-pulse 2s ease-in-out infinite;
 }
@@ -2459,11 +2628,19 @@ Detection Information Pages Specific Styles
 }
 
 .advantages-panel {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(75, 181, 67, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(75, 181, 67, 0.05) 100%
+    );
 }
 
 .challenges-panel {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(250, 112, 154, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(250, 112, 154, 0.05) 100%
+    );
 }
 
 .advantages-panel h2 {
@@ -2551,13 +2728,18 @@ Detection Information Pages Specific Styles
 }
 
 .application-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -2696,7 +2878,7 @@ Detection Information Pages Specific Styles
 }
 
 .cta-button::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -2729,7 +2911,8 @@ Detection Information Pages Specific Styles
 
 /* Animations */
 @keyframes float-particles {
-    0%, 100% {
+    0%,
+    100% {
         transform: translate(0, 0) rotate(0deg);
         opacity: 1;
     }
@@ -2748,7 +2931,8 @@ Detection Information Pages Specific Styles
 }
 
 @keyframes pulse-expand {
-    0%, 100% {
+    0%,
+    100% {
         transform: translate(-50%, -50%) scale(1);
         opacity: 0.3;
     }
@@ -2759,7 +2943,8 @@ Detection Information Pages Specific Styles
 }
 
 @keyframes heartbeat {
-    0%, 100% {
+    0%,
+    100% {
         transform: scale(1);
     }
     50% {
@@ -2779,7 +2964,11 @@ Detection Information Pages Specific Styles
 }
 
 @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
         transform: translateY(0);
     }
     40% {
@@ -2791,7 +2980,8 @@ Detection Information Pages Specific Styles
 }
 
 @keyframes glow-pulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 0.5;
         transform: translate(-50%, -50%) scale(1);
     }
@@ -2811,7 +3001,8 @@ Detection Information Pages Specific Styles
 }
 
 @keyframes signal-flow {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
     }
     50% {
@@ -2929,21 +3120,41 @@ Detection Information Pages Specific Styles
 
 /* Enhanced visual effects */
 .method-card:nth-child(1) {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+    );
 }
 
 .method-card:nth-child(2) {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(79, 172, 254, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(79, 172, 254, 0.05) 100%
+    );
 }
 
 .method-card:nth-child(3) {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(240, 147, 251, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(240, 147, 251, 0.05) 100%
+    );
 }
 
-.application-card:nth-child(1) { animation-delay: 0.1s; }
-.application-card:nth-child(2) { animation-delay: 0.2s; }
-.application-card:nth-child(3) { animation-delay: 0.3s; }
-.application-card:nth-child(4) { animation-delay: 0.4s; }
+.application-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+.application-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.application-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+.application-card:nth-child(4) {
+    animation-delay: 0.4s;
+}
 
 /* Scroll reveal animations */
 .methodology-section,
@@ -2953,16 +3164,23 @@ Detection Information Pages Specific Styles
     animation: fadeInUp 0.8s ease-out both;
 }
 
-.methodology-section { animation-delay: 0.2s; }
-.comparison-section { animation-delay: 0.4s; }
-.applications-showcase { animation-delay: 0.6s; }
-.demo-section { animation-delay: 0.8s; }
-
+.methodology-section {
+    animation-delay: 0.2s;
+}
+.comparison-section {
+    animation-delay: 0.4s;
+}
+.applications-showcase {
+    animation-delay: 0.6s;
+}
+.demo-section {
+    animation-delay: 0.8s;
+}
 
 /* =============================
 Try Page Specific Styles 
 =============================*/
-        
+
 /* Hero Section */
 .try-hero {
     min-height: 60vh;
@@ -2973,10 +3191,12 @@ Try Page Specific Styles
     position: relative;
     margin-top: 80px;
     padding: 3rem 2rem;
-    background: linear-gradient(135deg, 
-        rgba(102, 126, 234, 0.1) 0%, 
+    background: linear-gradient(
+        135deg,
+        rgba(102, 126, 234, 0.1) 0%,
         rgba(118, 75, 162, 0.1) 50%,
-        rgba(79, 172, 254, 0.1) 100%);
+        rgba(79, 172, 254, 0.1) 100%
+    );
 }
 
 .hero-background {
@@ -3002,7 +3222,7 @@ Try Page Specific Styles
 
 .animated-pulse::before,
 .animated-pulse::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -3102,13 +3322,18 @@ Try Page Specific Styles
 }
 
 .detection-method::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -3123,11 +3348,19 @@ Try Page Specific Styles
 }
 
 .upload-method {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+    );
 }
 
 .webcam-method {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(79, 172, 254, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(79, 172, 254, 0.05) 100%
+    );
 }
 
 /* Method Header */
@@ -3198,13 +3431,17 @@ Try Page Specific Styles
 }
 
 .dropbox::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.1) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
 }
@@ -3283,7 +3520,7 @@ Try Page Specific Styles
 }
 
 .analyze-button::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -3354,8 +3591,12 @@ Try Page Specific Styles
     animation: wave-pulse 1.5s ease-in-out infinite;
 }
 
-.wave-2 { animation-delay: 0.2s; }
-.wave-3 { animation-delay: 0.4s; }
+.wave-2 {
+    animation-delay: 0.2s;
+}
+.wave-3 {
+    animation-delay: 0.4s;
+}
 
 .loading-text h4 {
     font-size: 1.2rem;
@@ -3465,7 +3706,7 @@ Try Page Specific Styles
 }
 
 .webcam-button::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -3537,7 +3778,8 @@ Try Page Specific Styles
 
 /* Animations */
 @keyframes pulse-expand {
-    0%, 100% {
+    0%,
+    100% {
         transform: translate(-50%, -50%) scale(1);
         opacity: 0.3;
     }
@@ -3559,7 +3801,8 @@ Try Page Specific Styles
 }
 
 @keyframes glow-pulse {
-    0%, 100% {
+    0%,
+    100% {
         box-shadow: 0 0 10px rgba(250, 112, 154, 0.5);
     }
     50% {
@@ -3568,12 +3811,17 @@ Try Page Specific Styles
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes wave-pulse {
-    0%, 100% {
+    0%,
+    100% {
         height: 10px;
         opacity: 0.5;
     }
@@ -3584,8 +3832,13 @@ Try Page Specific Styles
 }
 
 @keyframes record-blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
 }
 
 /* Responsive Design */
@@ -3698,13 +3951,18 @@ Try Page Specific Styles
 }
 
 .tab-button::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -3774,13 +4032,18 @@ Try Page Specific Styles
 }
 
 .quicklink-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -3844,7 +4107,7 @@ Try Page Specific Styles
     }
 }
 @media (max-width: 480px) {
-     .tabs {
+    .tabs {
         padding: 0.3rem;
         gap: 0.5rem;
     }
@@ -3895,13 +4158,18 @@ Case Studies Page Specific Styles
 }
 
 .case-study-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -3937,13 +4205,17 @@ Case Studies Page Specific Styles
 }
 
 .case-icon::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -4027,19 +4299,35 @@ Case Studies Page Specific Styles
 
 /* Special styling for different case types */
 #political-case-study {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+    );
 }
 
 #celebrity-case-study {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(240, 147, 251, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(240, 147, 251, 0.05) 100%
+    );
 }
 
 #corporate-case-study {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(79, 172, 254, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(79, 172, 254, 0.05) 100%
+    );
 }
 
 #educational-case-study {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(75, 181, 67, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(75, 181, 67, 0.05) 100%
+    );
 }
 
 /* Responsive Design */
@@ -4120,13 +4408,18 @@ Case Studies Page Specific Styles
 }
 
 .creation-step-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -4162,13 +4455,17 @@ Case Studies Page Specific Styles
 }
 
 .step-icon::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -4443,23 +4740,43 @@ Case Studies Page Specific Styles
 
 /* Special styling for different steps */
 #data-collection {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+    );
 }
 
 #training-the-model {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(240, 147, 251, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(240, 147, 251, 0.05) 100%
+    );
 }
 
 #creating-deepfake {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(79, 172, 254, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(79, 172, 254, 0.05) 100%
+    );
 }
 
 #refinement {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(75, 181, 67, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(75, 181, 67, 0.05) 100%
+    );
 }
 
 #applications-implications {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(250, 112, 154, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(250, 112, 154, 0.05) 100%
+    );
 }
 
 /* Responsive Design */
@@ -4565,13 +4882,18 @@ Case Studies Page Specific Styles
 }
 
 .history-period-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -4608,13 +4930,17 @@ Case Studies Page Specific Styles
 }
 
 .period-icon::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -4859,15 +5185,27 @@ Case Studies Page Specific Styles
 
 /* Special styling for different periods */
 #early-developments {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+    );
 }
 
 #breakthroughs {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(240, 147, 251, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(240, 147, 251, 0.05) 100%
+    );
 }
 
 #current-state {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(75, 181, 67, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(75, 181, 67, 0.05) 100%
+    );
 }
 
 /* Responsive Design */
@@ -4961,13 +5299,18 @@ Future Trends Page Specific Styles
 }
 
 .trend-category-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -5013,13 +5356,17 @@ Future Trends Page Specific Styles
 }
 
 .trend-icon::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -5293,7 +5640,7 @@ Future Trends Page Specific Styles
 }
 
 .framework-area li::before {
-    content: '•';
+    content: "•";
     position: absolute;
     left: 0;
     color: var(--text-primary);
@@ -5341,19 +5688,35 @@ Future Trends Page Specific Styles
 
 /* Special styling for different trend categories */
 #advancements-in-technology {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+    );
 }
 
 #detection-and-countermeasures {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(75, 181, 67, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(75, 181, 67, 0.05) 100%
+    );
 }
 
 #ethical-and-legal-frameworks {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(250, 112, 154, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(250, 112, 154, 0.05) 100%
+    );
 }
 
 #impact-on-industries {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(240, 147, 251, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(240, 147, 251, 0.05) 100%
+    );
 }
 
 /* Responsive Design */
@@ -5435,7 +5798,7 @@ Future Trends Page Specific Styles
 }
 /* ===========================================
 Identify Deepfakes Page Specific Styles 
-==========================================*/ 
+==========================================*/
 
 /* Detection Container */
 .detection-container {
@@ -5460,13 +5823,18 @@ Identify Deepfakes Page Specific Styles
 }
 
 .detection-method-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -5512,13 +5880,17 @@ Identify Deepfakes Page Specific Styles
 }
 
 .method-icon-edu::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -5740,13 +6112,18 @@ Identify Deepfakes Page Specific Styles
 
 /* CONSOLIDATED: Common Before Effects */
 .clue-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.05),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -5820,11 +6197,26 @@ Identify Deepfakes Page Specific Styles
     flex-wrap: wrap;
 }
 
-.tag.reliable { background: #10b981; color: white; }
-.tag.advanced { background: #3b82f6; color: white; }
-.tag.moderate { background: #f59e0b; color: white; }
-.tag.basic { background: #6b7280; color: white; }
-.tag.subjective { background: #8b5cf6; color: white; }
+.tag.reliable {
+    background: #10b981;
+    color: white;
+}
+.tag.advanced {
+    background: #3b82f6;
+    color: white;
+}
+.tag.moderate {
+    background: #f59e0b;
+    color: white;
+}
+.tag.basic {
+    background: #6b7280;
+    color: white;
+}
+.tag.subjective {
+    background: #8b5cf6;
+    color: white;
+}
 
 /* Waveform Visual */
 .waveform-visual {
@@ -5848,8 +6240,12 @@ Identify Deepfakes Page Specific Styles
     animation: waveform-pulse 2s ease-in-out infinite;
 }
 
-.bar:nth-child(2n) { animation-delay: 0.2s; }
-.bar:nth-child(3n) { animation-delay: 0.4s; }
+.bar:nth-child(2n) {
+    animation-delay: 0.2s;
+}
+.bar:nth-child(3n) {
+    animation-delay: 0.4s;
+}
 
 .waveform-label {
     font-size: 0.8rem;
@@ -5934,21 +6330,38 @@ Identify Deepfakes Page Specific Styles
 
 /* Special styling for different detection methods */
 #visual-clues {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(102, 126, 234, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+    );
 }
 
 #audio-clues {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(75, 181, 67, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(75, 181, 67, 0.05) 100%
+    );
 }
 
 #technical-tools {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(240, 147, 251, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(240, 147, 251, 0.05) 100%
+    );
 }
 
 /* Animations */
 @keyframes waveform-pulse {
-    0%, 100% { transform: scaleY(1); }
-    50% { transform: scaleY(1.5); }
+    0%,
+    100% {
+        transform: scaleY(1);
+    }
+    50% {
+        transform: scaleY(1.5);
+    }
 }
 
 /* Volume Meter Styles */
@@ -5994,16 +6407,46 @@ Identify Deepfakes Page Specific Styles
     opacity: 1;
 }
 
-.volume-bar:nth-child(1), .volume-bar:nth-child(20) { height: 20%; }
-.volume-bar:nth-child(2), .volume-bar:nth-child(19) { height: 25%; }
-.volume-bar:nth-child(3), .volume-bar:nth-child(18) { height: 30%; }
-.volume-bar:nth-child(4), .volume-bar:nth-child(17) { height: 35%; }
-.volume-bar:nth-child(5), .volume-bar:nth-child(16) { height: 40%; }
-.volume-bar:nth-child(6), .volume-bar:nth-child(15) { height: 45%; }
-.volume-bar:nth-child(7), .volume-bar:nth-child(14) { height: 50%; }
-.volume-bar:nth-child(8), .volume-bar:nth-child(13) { height: 60%; }
-.volume-bar:nth-child(9), .volume-bar:nth-child(12) { height: 70%; }
-.volume-bar:nth-child(10), .volume-bar:nth-child(11) { height: 80%; }
+.volume-bar:nth-child(1),
+.volume-bar:nth-child(20) {
+    height: 20%;
+}
+.volume-bar:nth-child(2),
+.volume-bar:nth-child(19) {
+    height: 25%;
+}
+.volume-bar:nth-child(3),
+.volume-bar:nth-child(18) {
+    height: 30%;
+}
+.volume-bar:nth-child(4),
+.volume-bar:nth-child(17) {
+    height: 35%;
+}
+.volume-bar:nth-child(5),
+.volume-bar:nth-child(16) {
+    height: 40%;
+}
+.volume-bar:nth-child(6),
+.volume-bar:nth-child(15) {
+    height: 45%;
+}
+.volume-bar:nth-child(7),
+.volume-bar:nth-child(14) {
+    height: 50%;
+}
+.volume-bar:nth-child(8),
+.volume-bar:nth-child(13) {
+    height: 60%;
+}
+.volume-bar:nth-child(9),
+.volume-bar:nth-child(12) {
+    height: 70%;
+}
+.volume-bar:nth-child(10),
+.volume-bar:nth-child(11) {
+    height: 80%;
+}
 
 .volume-level-text {
     text-align: center;
@@ -6264,13 +6707,18 @@ Impact on Society Page Specific Styles
 }
 
 .impact-sector-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -6316,13 +6764,17 @@ Impact on Society Page Specific Styles
 }
 
 .impact-icon::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -6369,10 +6821,18 @@ Impact on Society Page Specific Styles
     color: var(--dark-bg);
 }
 
-.impact-severity.high { background: #ef4444; }
-.impact-severity.critical { background: #dc2626; }
-.impact-severity.medium { background: #f59e0b; }
-.impact-severity.evolving { background: #8b5cf6; }
+.impact-severity.high {
+    background: #ef4444;
+}
+.impact-severity.critical {
+    background: #dc2626;
+}
+.impact-severity.medium {
+    background: #f59e0b;
+}
+.impact-severity.evolving {
+    background: #8b5cf6;
+}
 
 .impact-scope {
     background: var(--success-gradient);
@@ -6923,7 +7383,7 @@ Impact on Society Page Specific Styles
 }
 
 .pillar-content li::before {
-    content: '•';
+    content: "•";
     position: absolute;
     left: 0;
     color: var(--text-primary);
@@ -6948,7 +7408,7 @@ Impact on Society Page Specific Styles
 }
 
 .progress-timeline::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 20px;
     top: 20px;
@@ -7013,27 +7473,51 @@ Impact on Society Page Specific Styles
 
 /* Special styling for different sectors */
 #political-impact {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(239, 68, 68, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(239, 68, 68, 0.05) 100%
+    );
 }
 
 #entertainment-impact {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(245, 158, 11, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(245, 158, 11, 0.05) 100%
+    );
 }
 
 #personal-privacy-impact {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(220, 38, 38, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(220, 38, 38, 0.05) 100%
+    );
 }
 
 #economic-impact {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(16, 185, 129, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(16, 185, 129, 0.05) 100%
+    );
 }
 
 #social-impact {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(59, 130, 246, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(59, 130, 246, 0.05) 100%
+    );
 }
 
 #legal-impact {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(139, 92, 246, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(139, 92, 246, 0.05) 100%
+    );
 }
 
 /* Responsive Design */
@@ -7141,7 +7625,7 @@ Impact on Society Page Specific Styles
 }
 /* ================================
 Legal and Ethics Page Specific Styles 
-====================================*/  
+====================================*/
 
 /* Main Container */
 .legal-ethics-container {
@@ -7166,13 +7650,18 @@ Legal and Ethics Page Specific Styles
 }
 
 .ethics-category-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -7218,13 +7707,17 @@ Legal and Ethics Page Specific Styles
 }
 
 .category-icon::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -7271,9 +7764,15 @@ Legal and Ethics Page Specific Styles
     color: var(--dark-bg);
 }
 
-.category-status.urgent { background: #ef4444; }
-.category-status.fundamental { background: #8b5cf6; }
-.category-status.developing { background: #f59e0b; }
+.category-status.urgent {
+    background: #ef4444;
+}
+.category-status.fundamental {
+    background: #8b5cf6;
+}
+.category-status.developing {
+    background: #f59e0b;
+}
 
 .category-complexity {
     background: var(--success-gradient);
@@ -7463,12 +7962,30 @@ Legal and Ethics Page Specific Styles
     border: 1px solid rgba(102, 126, 234, 0.2);
 }
 
-.tag.critical { background: #dc2626; color: white; }
-.tag.active { background: #f59e0b; color: white; }
-.tag.evolving { background: #8b5cf6; color: white; }
-.tag.complex { background: #6b7280; color: white; }
-.tag.urgent { background: #ef4444; color: white; }
-.tag.widespread { background: #dc2626; color: white; }
+.tag.critical {
+    background: #dc2626;
+    color: white;
+}
+.tag.active {
+    background: #f59e0b;
+    color: white;
+}
+.tag.evolving {
+    background: #8b5cf6;
+    color: white;
+}
+.tag.complex {
+    background: #6b7280;
+    color: white;
+}
+.tag.urgent {
+    background: #ef4444;
+    color: white;
+}
+.tag.widespread {
+    background: #dc2626;
+    color: white;
+}
 
 .domain-issues {
     display: flex;
@@ -7611,9 +8128,18 @@ Legal and Ethics Page Specific Styles
     font-weight: 600;
 }
 
-.complexity-indicator.moderate { background: #f59e0b; color: white; }
-.complexity-indicator.low { background: #10b981; color: white; }
-.complexity-indicator.high { background: #ef4444; color: white; }
+.complexity-indicator.moderate {
+    background: #f59e0b;
+    color: white;
+}
+.complexity-indicator.low {
+    background: #10b981;
+    color: white;
+}
+.complexity-indicator.high {
+    background: #ef4444;
+    color: white;
+}
 
 .scenario-content {
     margin-top: 1rem;
@@ -7666,7 +8192,7 @@ Legal and Ethics Page Specific Styles
 }
 
 .side li::before {
-    content: '•';
+    content: "•";
     position: absolute;
     left: 0;
     color: var(--text-primary);
@@ -7847,7 +8373,7 @@ Legal and Ethics Page Specific Styles
 }
 
 .trend-timeline-2::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 20px;
     top: 20px;
@@ -7924,15 +8450,27 @@ Legal and Ethics Page Specific Styles
 
 /* Special styling for different categories */
 #legal-challenges {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(239, 68, 68, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(239, 68, 68, 0.05) 100%
+    );
 }
 
 #ethical-considerations {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(139, 92, 246, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(139, 92, 246, 0.05) 100%
+    );
 }
 
 #regulatory-efforts {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(245, 158, 11, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(245, 158, 11, 0.05) 100%
+    );
 }
 
 /* Responsive Design */
@@ -8050,13 +8588,18 @@ Protect Yourself Page Specific Styles
 }
 
 .protection-strategy-card::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transition: left 0.5s ease;
 }
 
@@ -8102,13 +8645,17 @@ Protect Yourself Page Specific Styles
 }
 
 .strategy-icon::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.2) 0%,
+        transparent 70%
+    );
     transform: translate(-50%, -50%);
     transition: all 0.3s ease;
     border-radius: 50%;
@@ -8155,10 +8702,18 @@ Protect Yourself Page Specific Styles
     color: #fff;
 }
 
-.strategy-priority.high { background: #ef4444; }
-.strategy-priority.critical { background: #dc2626; }
-.strategy-priority.essential { background: #f59e0b; }
-.strategy-priority.recommended { background: #10b981; }
+.strategy-priority.high {
+    background: #ef4444;
+}
+.strategy-priority.critical {
+    background: #dc2626;
+}
+.strategy-priority.essential {
+    background: #f59e0b;
+}
+.strategy-priority.recommended {
+    background: #10b981;
+}
 
 .strategy-difficulty {
     background: var(--success-gradient);
@@ -8315,11 +8870,26 @@ Protect Yourself Page Specific Styles
     font-weight: 600;
 }
 
-.tag.ongoing { background: #3b82f6; color: white; }
-.tag.essential { background: #ef4444; color: white; }
-.tag.periodic { background: #f59e0b; color: white; }
-.tag.valuable { background: #10b981; color: white; }
-.tag.daily { background: #8b5cf6; color: white; }
+.tag.ongoing {
+    background: #3b82f6;
+    color: white;
+}
+.tag.essential {
+    background: #ef4444;
+    color: white;
+}
+.tag.periodic {
+    background: #f59e0b;
+    color: white;
+}
+.tag.valuable {
+    background: #10b981;
+    color: white;
+}
+.tag.daily {
+    background: #8b5cf6;
+    color: white;
+}
 
 .layer-impact {
     background: rgba(239, 68, 68, 0.2);
@@ -8548,9 +9118,18 @@ Protect Yourself Page Specific Styles
     font-weight: 600;
 }
 
-.setting-status.secure { background: #10b981; color: white; }
-.setting-status.warning { background: #f59e0b; color: white; }
-.setting-status.danger { background: #ef4444; color: white; }
+.setting-status.secure {
+    background: #10b981;
+    color: white;
+}
+.setting-status.warning {
+    background: #f59e0b;
+    color: white;
+}
+.setting-status.danger {
+    background: #ef4444;
+    color: white;
+}
 
 .indicator-list {
     display: flex;
@@ -8666,9 +9245,15 @@ Protect Yourself Page Specific Styles
 }
 
 /* Authority Specific Styles */
-.authority-card.csa { border-left: 4px solid #3b82f6; }
-.authority-card.imda { border-left: 4px solid #10b981; }
-.authority-card.spf { border-left: 4px solid #ef4444; }
+.authority-card.csa {
+    border-left: 4px solid #3b82f6;
+}
+.authority-card.imda {
+    border-left: 4px solid #10b981;
+}
+.authority-card.spf {
+    border-left: 4px solid #ef4444;
+}
 
 .authority-info {
     flex: 1;
@@ -8896,19 +9481,35 @@ Protect Yourself Page Specific Styles
 
 /* Special styling for different strategies */
 #awareness {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(59, 130, 246, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(59, 130, 246, 0.05) 100%
+    );
 }
 
 #online-privacy {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(239, 68, 68, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(239, 68, 68, 0.05) 100%
+    );
 }
 
 #legal-protection {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(245, 158, 11, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(245, 158, 11, 0.05) 100%
+    );
 }
 
 #digital-tools {
-    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(16, 185, 129, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 0%,
+        rgba(16, 185, 129, 0.05) 100%
+    );
 }
 
 /* Responsive Design */
@@ -9048,11 +9649,11 @@ Protect Yourself Page Specific Styles
 .model-tab:focus {
     background: var(--primary-gradient);
     color: #fff;
-    box-shadow: 0 4px 16px rgba(102,126,234,0.18);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.18);
     z-index: 2;
 }
 .model-tab:not(.active):hover {
-    background: rgba(102,126,234,0.10);
+    background: rgba(102, 126, 234, 0.1);
     color: var(--text-primary);
 }
 .model-tab-icon {

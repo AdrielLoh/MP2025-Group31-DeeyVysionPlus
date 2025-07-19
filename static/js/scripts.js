@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .then(data => {
             document.getElementById('navbar-placeholder').innerHTML = data;
-            setupNavbarJS(); // <--- Call the navbar setup after DOM is inserted
+            setupNavbarJS();
         })
         .catch(error => {
             console.error('Error loading navbar:', error);
@@ -53,7 +53,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Put this in scripts.js, NOT inside navbar.html
     function setupNavbarJS() {
         const menuBtn = document.getElementById("mobileMenuBtn");
         const mobileMenu = document.getElementById("mobileMenu");
@@ -178,56 +177,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             });
         });
-    }
-
-    // Drag and drop for audio upload
-    const dropbox = document.getElementById('dropbox');
-    const fileInput = document.getElementById('file');
-    const audioPreview = document.getElementById('audio-preview');
-    const uploadForm = document.getElementById('upload-form');
-
-    if (dropbox && fileInput && audioPreview && uploadForm) {
-        // dropbox.addEventListener('click', () => fileInput.click());
-
-        dropbox.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropbox.classList.add('dragover');
-        });
-
-        dropbox.addEventListener('dragleave', () => dropbox.classList.remove('dragover'));
-
-        dropbox.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropbox.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            handleFile(file);
-        });
-
-        fileInput.addEventListener('change', () => {
-            const file = fileInput.files[0];
-            handleFile(file);
-        });
-
-        function handleFile(file) {
-            if (file) {
-                const url = URL.createObjectURL(file);
-                audioPreview.src = url;
-                audioPreview.style.display = 'block';
-                dropbox.querySelector('p').style.display = 'none';
-            } else {
-                audioPreview.style.display = 'none';
-                dropbox.querySelector('p').style.display = 'block';
-            }
-        }
-
-        uploadForm.addEventListener('submit', function(e) {
-            if (!fileInput.files.length) {
-                e.preventDefault();
-                alert('Please select an audio file before submitting.');
-                fileInput.focus();
-            }
-        });
-    }    
+    }  
 });
 
 function deleteFilesAndGoBack() {
