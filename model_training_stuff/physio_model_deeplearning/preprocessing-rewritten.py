@@ -511,13 +511,13 @@ def extract_window_signals(frames, boxes, start, end, fps=30, augment=True):
 
         # Apply augmentation if requested
         if augment:
-            if random.random() < 0.6: # CHANGE TO BE LOWER FOR FAKE, HIGHER FOR REAL
+            if random.random() < 0.7: # CHANGE TO BE LOWER FOR FAKE, HIGHER FOR REAL
                 augs = ['noise', 'amplitude', 'frequency', 'phase']
                 aug = random.choice(augs)
                 chrom = augment_signal(chrom, aug, strength=0.12, mask=np.array(window_mask))
                 pos = augment_signal(pos, aug, strength=0.12, mask=np.array(window_mask))
                 ica = augment_signal(ica, aug, strength=0.12, mask=np.array(window_mask))
-            elif random.random() < 0.15:
+            elif random.random() < 0.25:
                 for s in [chrom, pos, ica]:
                     s = augment_signal(s, 'dropout', strength=0.1, mask=np.array(window_mask))
         
@@ -528,7 +528,9 @@ def extract_window_signals(frames, boxes, start, end, fps=30, augment=True):
         
         multi_roi[roi] = {'chrom': chrom, 'pos': pos, 'ica': ica}
     
-    return multi_roi, np.array(window_mask, np.float32)
+    _, window_mask_padded = pad_mask(window_mask, WINDOW_SIZE)
+    return multi_roi, window_mask_padded
+
 
 def interpolate_corrupted_frames(frames):
     """
@@ -715,7 +717,7 @@ def process_video(video_path, augment=True):
 
         boxes_seq = [detect_faces(frame, face_net) for frame in frames]
 
-        if len(frames) < WINDOW_SIZE:
+        if len(frames) < MIN_REAL_FRAMES:
             return None
 
         tracks = robust_track_faces(boxes_seq)

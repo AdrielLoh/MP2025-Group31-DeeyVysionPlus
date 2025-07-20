@@ -1,37 +1,81 @@
 import subprocess
-import os
-import math
+import signal 
+import sys
+def run_preprocessing(input_folder, output_folder, label, augment_chance, batch_size=40, max_workers=8):
+    cmd = [
+        "python", "model_training_stuff/physio_model_deeplearning/deep_learning_version_2/preprocessing-version2.py",
+        "--input", input_folder,
+        "--output", output_folder,
+        "--label", label,
+        "--augment_chance", str(augment_chance),
+        "--batch_size", str(batch_size),
+        "--max_workers", str(max_workers)
+    ]
+    print("Running:", " ".join(cmd))
+    print("Running:", " ".join(cmd))
+    try:
+        # Use subprocess.Popen to allow signal handling
+        proc = subprocess.Popen(cmd)
+        def handle_sigint(sig, frame):
+            print("\nReceived stop signal. Waiting for the current batch to finish and save...")
+            # Let the subprocess finish its current batch (the child handles this)
+            proc.terminate()  # Sends SIGTERM (not SIGKILL) for graceful shutdown
+        signal.signal(signal.SIGINT, handle_sigint)
+        proc.wait()
+        if proc.returncode == 0:
+            print(f"Preprocessing for {label} finished normally.")
+        else:
+            print(f"Preprocessing for {label} exited with code {proc.returncode}.")
+            if proc.returncode != -15:  # -15 is SIGTERM, so not an error
+                raise RuntimeError(f"Preprocessing for {label} failed!")
+    except KeyboardInterrupt:
+        print("Main script interrupted. Waiting for subprocess cleanup...")
+        proc.terminate()
+        proc.wait()
 
-INPUT_DIR = "G:/deepfake_training_datasets/Physio_Model/VALIDATION/real"
-OUTPUT_DIR = "D:/model_training/cache/batches/physio-deep-v1/real"
-LABEL = "real"
-BATCH_SIZE = 40   # HDF5 videos per batch
-BATCHES_PER_RUN = 5   # Number of HDF5 files per subprocess
+if __name__ == "__main__":
+    # Edit these paths as needed:
+    fake_input = "E:/deepfake_training_datasets/Physio_Model/TRAINING/fake"
+    real_input = "E:/deepfake_training_datasets/Physio_Model/TRAINING/real"
+    real_input_2 = "F:/MP-Training-Datasets/real-celebvhq/35666"
+    real_input_3 = "E:/deepfake_training_datasets/Physio_Model/TRAINING/real-semi-frontal"
+    output_dir = "C:/model_training/physio_DL_no_roi"
 
-def get_video_files(input_dir, exts=('.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv')):
-    return [os.path.join(input_dir, f) for f in os.listdir(input_dir)
-            if f.lower().endswith(exts)]
+    # Run fake first (0.35 aug chance)
+    # run_preprocessing(
+    #     input_folder=fake_input,
+    #     output_folder=output_dir,
+    #     label="fake",
+    #     augment_chance=0.35,
+    #     batch_size=100,
+    #     max_workers=8
+    # )
 
-videos = get_video_files(INPUT_DIR)
-total_videos = len(videos)
-videos_per_run = BATCH_SIZE * BATCHES_PER_RUN
+    # Run real next (0.65 aug chance)
+    # run_preprocessing(
+    #     input_folder=real_input,
+    #     output_folder=output_dir,
+    #     label="real",
+    #     augment_chance=0.65,
+    #     batch_size=100,
+    #     max_workers=8
+    # )
 
-for i in range(0, total_videos, videos_per_run):
-    chunk = videos[i:i+videos_per_run]
-    # Save chunk to a temp file
-    chunk_file = f"video_chunk_{i//videos_per_run}.txt"
-    with open(chunk_file, 'w') as f:
-        for v in chunk:
-            f.write(f"{v}\n")
-    print(f"Launching batch {i//videos_per_run+1} with {len(chunk)} videos...")
-    # Launch subprocess for this chunk
-    subprocess.run([
-        "python", "model_training_stuff\physio_model_deeplearning\preprocessing-rewritten.py",
-        "--input", chunk_file,
-        "--output", OUTPUT_DIR,
-        "--label", LABEL,
-        "--batch_size", str(BATCH_SIZE),
-        "--max_workers", "6"   # or whatever is safe for your RAM
-    ])
-    # Optionally, remove the temp file after
-    os.remove(chunk_file)
+    run_preprocessing(
+        input_folder=real_input_3,
+        output_folder=output_dir,
+        label="real",
+        augment_chance=0.5,
+        batch_size=100,
+        max_workers=4
+    )
+    run_preprocessing(
+        input_folder=real_input_2,
+        output_folder=output_dir,
+        label="real",
+        augment_chance=0,
+        batch_size=100,
+        max_workers=4
+    )
+
+    print("Both fake and real preprocessing complete.")

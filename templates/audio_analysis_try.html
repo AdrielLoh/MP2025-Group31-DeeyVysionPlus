@@ -125,7 +125,7 @@
             </div>
 
             <!-- Live Microphone Recording Method -->
-            <div class="detection-method">
+            <div class="detection-method" id="microphoneDetection">
                 <div class="method-header">
                     <div class="method-icon-try">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
@@ -215,5 +215,63 @@
 
     <script src="../static/js/audio-recording.js"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script>
+        function isMobileDevice() {
+            return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|BlackBerry|webOS/i.test(navigator.userAgent);
+        }
+
+        if (isMobileDevice()) {
+            document.getElementById("microphoneDetection").style.display="none";
+            document.getElementById("audioUploadForm").style.display="none";
+        }
+        // Drag and drop for audio upload
+    const dropbox = document.getElementById('dropbox');
+    const fileInput = document.getElementById('file');
+    const audioPreview = document.getElementById('audio-preview');
+    const uploadForm = document.getElementById('upload-form');
+
+    if (dropbox && fileInput && audioPreview && uploadForm) {
+        // dropbox.addEventListener('click', () => fileInput.click());
+
+        dropbox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropbox.classList.add('dragover');
+        });
+
+        dropbox.addEventListener('dragleave', () => dropbox.classList.remove('dragover'));
+
+        dropbox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropbox.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            handleFile(file);
+        });
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            handleFile(file);
+        });
+
+        function handleFile(file) {
+            if (file) {
+                const url = URL.createObjectURL(file);
+                audioPreview.src = url;
+                audioPreview.style.display = 'block';
+                dropbox.querySelector('p').style.display = 'none';
+            } else {
+                audioPreview.style.display = 'none';
+                dropbox.querySelector('p').style.display = 'block';
+            }
+        }
+
+        uploadForm.addEventListener('submit', function(e) {
+            if (!fileInput.files.length) {
+                e.preventDefault();
+                alert('Please select an audio file before submitting.');
+                fileInput.focus();
+            }
+        });
+    }  
+    </script>
 </body>
 </html>

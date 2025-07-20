@@ -215,30 +215,47 @@
                                 {% elif physio_method =='machine' and face.result != 'Invalid' %}
                                 <div class="carousel-container" id="carousel-{{ face.track_id }}">
                                     <div class="carousel-track">
+                                        {% if face.hr_trace_plot %}
                                         <div class="carousel-slide active">
                                             <img src="{{ face.hr_trace_plot }}" alt="rPPG Signal Analysis" class="analysis-chart">
                                             <p class="chart-description">Real-time photoplethysmography signal analysis</p>
                                         </div>
-                                        <div class="carousel-slide">
+                                        {% endif %}
+                                        
+                                        {% if face.hr_dist_plot %}
+                                        <div class="carousel-slide{% if not face.hr_trace_plot %} active{% endif %}">
                                             <img src="{{ face.hr_dist_plot }}" alt="Heart Rate Distribution" class="analysis-chart">
                                             <p class="chart-description">Heart rate distribution patterns</p>
                                         </div>
-                                        <div class="carousel-slide">
+                                        {% endif %}
+                                        
+                                        {% if face.band_power_plot %}
+                                        <div class="carousel-slide{% if not face.hr_trace_plot and not face.hr_dist_plot %} active{% endif %}">
                                             <img src="{{ face.band_power_plot }}" alt="Frequency Band Power" class="analysis-chart">
                                             <p class="chart-description">Frequency band power analysis</p>
                                         </div>
+                                        {% endif %}
+                                        
+                                        {% if face.spectrum_plot %}
                                         <div class="carousel-slide">
                                             <img src="{{ face.spectrum_plot }}" alt="Signal Spectrum" class="analysis-chart">
                                             <p class="chart-description">rPPG signal spectrum analysis</p>
                                         </div>
+                                        {% endif %}
+                                        
+                                        {% if face.signal_plot %}
                                         <div class="carousel-slide">
                                             <img src="{{ face.signal_plot }}" alt="Raw Signal" class="analysis-chart">
                                             <p class="chart-description">Raw physiological signal data</p>
                                         </div>
+                                        {% endif %}
+                                        
+                                        {% if face.pred_count_plot %}
                                         <div class="carousel-slide">
                                             <img src="{{ face.pred_count_plot }}" alt="Prediction Distribution" class="analysis-chart">
                                             <p class="chart-description">Frame-by-frame prediction distribution</p>
                                         </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 {% endif %}
@@ -247,7 +264,7 @@
                             {% if face.result != 'Invalid' %}
                             <div class="video-analysis">
                                 <h3>Analyzed Video</h3>
-                                <video class="analysis-video" controls autoplay loop muted>
+                                <video class="analysis-video" controls muted>
                                     <source src="{{ output_video }}" type="video/mp4">
                                     Your browser does not support the video tag.
                                 </video>
@@ -462,36 +479,175 @@
                 </div>
 
             {% elif analysis_type == 'multi_detection' %}
-                <!-- Multi-Detection Results -->
-                <div class="multi-detection-results">
-                    <div class="detection-tabs">
-                        <div class="tab-navigation">
-                            {% set method_names = {'deep_learning': 'Deep Learning', 'visual_artifacts': 'Visual Artifacts', 'physiological': 'Physiological', 'body_posture': 'Body Posture'} %}
-                            {% for method, prediction in results.items() %}
-                            <button class="tab-btn{% if loop.first %} active{% endif %}" data-tab="multi-{{ method }}">
-                                {{ method_names.get(method, method.replace("_", " ").title()) }}
-                            </button>
-                            {% endfor %}
+            <!-- Multi-Detection Results -->
+            <div class="multi-detection-results">
+                <div class="detection-tabs">
+                    <div class="tab-navigation">
+                        {% set method_names = {'deep_learning': 'Deep Learning', 'visual_artifacts': 'Visual Artifacts', 'physiological': 'Physiological', 'body_posture': 'Body Posture', 'audio': 'Audio'} %}
+                        {% for method, data in multi_results.items() %}
+                        <button class="tab-btn{% if loop.first %} active{% endif %}" data-tab="multi-{{ method }}">
+                            {{ method_names.get(method, method.replace("_", " ").title()) }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% for method, data in multi_results.items() %}
+                <div class="result-card multi-result tab-panel{% if loop.first %} active{% endif %}" id="multi-{{ method }}">
+                    <div class="result-header">
+                        <div class="result-status">
+                            <div class="method-label">{{ method_names.get(method, method.replace("_", " ").title()) }}</div>
+                            
+                            {% if data.get('error') %}
+                                <h2 class="status-text" style="color: #f59e0b;">Error</h2>
+                                <p class="error-message">{{ data.error }}</p>
+                            {% else %}
+                                <h2 class="status-text" style="color: {% if data.prediction == 'Real' %}#10b981{% elif data.prediction == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                    {% if data.prediction == 'Real' %}Authentic{% elif data.prediction == 'Fake' %}Likely Deepfake{% else %}{{ data.prediction }}{% endif %}
+                                </h2>
+                                
+                                <!-- Show method-specific metrics -->
+                                {% if method == 'deep_learning' and data.real_count is defined %}
+                                    <div class="metrics-grid">
+                                        <div class="metric-item">
+                                            <span class="metric-label">Real Frames:</span>
+                                            <span class="metric-value">{{ data.real_count }}</span>
+                                        </div>
+                                        <div class="metric-item">
+                                            <span class="metric-label">Fake Frames:</span>
+                                            <span class="metric-value">{{ data.fake_count }}</span>
+                                        </div>
+                                    </div>
+                                {% elif method == 'body_posture' and data.confidence is defined %}
+                                    <div class="confidence-badge">
+                                        <span class="confidence-label">Deepfake Probability:</span>
+                                        <span class="confidence-value">{{ (data.confidence * 100) | round }}%</span>
+                                    </div>
+                                {% elif method in ['physiological', 'visual_artifacts'] and data.face_results %}
+                                    <div class="metrics-grid">
+                                        {% set total_real = data.face_results | selectattr('result', 'equalto', 'Real') | list | length %}
+                                        {% set total_fake = data.face_results | selectattr('result', 'equalto', 'Fake') | list | length %}
+                                        <div class="metric-item">
+                                            <span class="metric-label">Real Faces:</span>
+                                            <span class="metric-value">{{ total_real }}</span>
+                                        </div>
+                                        <div class="metric-item">
+                                            <span class="metric-label">Fake Faces:</span>
+                                            <span class="metric-value">{{ total_fake }}</span>
+                                        </div>
+                                        <div class="metric-item">
+                                            <span class="metric-label">Total Faces:</span>
+                                            <span class="metric-value">{{ data.face_results | length }}</span>
+                                        </div>
+                                    </div>
+                                {% elif method == 'audio' and data.prediction_value is defined %}
+                                    <div class="confidence-badge">
+                                        <span class="confidence-label">Deepfake Probability:</span>
+                                        <span class="confidence-value">{{ data.prediction_value }}%</span>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <p class="method-description">{{ method_names.get(method, method.replace("_", " ").title()) }} detection algorithm result</p>
                         </div>
+                        <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
+                            <span>←</span> Return to Analysis
+                        </button>
                     </div>
 
-                    {% for method, prediction in results.items() %}
-                    <div class="result-card multi-result tab-panel{% if loop.first %} active{% endif %}" id="multi-{{ method }}">
-                        <div class="result-header">
-                            <div class="result-status">
-                                <div class="method-label">{{ method_names.get(method, method.replace("_", " ").title()) }}</div>
-                                <h2 class="status-text" style="color: {% if prediction == 'Real' %}#10b981{% elif prediction == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
-                                    {% if prediction == 'Real' %}Authentic{% elif prediction == 'Fake' %}Likely Deepfake{% else %}Inconclusive{% endif %}
-                                </h2>
-                                <p class="method-description">{{ method_names.get(method, method.replace("_", " ").title()) }} detection algorithm result</p>
+                    {% if not data.get('error') %}
+                        <!-- Method-specific detailed results -->
+                        {% if method == 'deep_learning' and data.rvf_plot %}
+                            <div class="analysis-charts">
+                                <div class="chart-grid">
+                                    <div class="chart-item">
+                                        <h3>Frame Classification</h3>
+                                        <div class="chart-container">
+                                            <img src="{{ data.rvf_plot }}" alt="Frames Real vs Fake" class="analysis-chart">
+                                        </div>
+                                    </div>
+                                    {% if data.conf_plot %}
+                                    <div class="chart-item">
+                                        <h3>Confidence Distribution</h3>
+                                        <div class="chart-container">
+                                            <img src="{{ data.conf_plot }}" alt="Confidence Score" class="analysis-chart">
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
-                                <span>←</span> Return to Analysis
-                            </button>
-                        </div>
-                    </div>
-                    {% endfor %}
+                        {% endif %}
+
+                        {% if method=='audio' %}
+                            <div class="analysis-charts">
+                                <div class="chart-grid">
+                                    <div class="chart-item">
+                                        <h3>Mel Spectrogram</h3>
+                                        <div class="chart-container">
+                                            <img src="static/{{ data.mel_spectrogram_path }}" alt="Mel Spectrogram" class="analysis-chart">
+                                        </div>
+                                    </div>
+                                    <div class="chart-item">
+                                        <h3>MFCC Plot</h3>
+                                        <div class="chart-container">
+                                            <img src="static/{{ data.mfcc_path }}" alt="MFCC" class="analysis-chart">
+                                        </div>
+                                    </div>
+                                    <div class="chart-item">
+                                        <h3>Delta MFCC</h3>
+                                        <div class="chart-container">
+                                            <img src="static/{{ data.delta_path }}" alt="Delta MFCC" class="analysis-chart">
+                                        </div>
+                                    </div>
+                                    <div class="chart-item">
+                                        <h3>Fundamental Frequency</h3>
+                                        <div class="chart-container">
+                                            <img src="static/{{ data.f0_path }}" alt="F0" class="analysis-chart">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if method in ['physiological', 'visual_artifacts'] and data.face_results %}
+                            <div class="face-summary">
+                                <h3>Face Detection Summary</h3>
+                                <div class="face-grid">
+                                    {% for face in data.face_results %}
+                                    <div class="face-summary-card">
+                                        <div class="face-id">Face #{{ face.track_id }}</div>
+                                        <div class="face-result" style="color: {% if face.result == 'Real' %}#10b981{% elif face.result == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                            {{ face.result }}
+                                        </div>
+                                        {% if face.real_count is defined and face.fake_count is defined %}
+                                        <div class="face-counts">
+                                            Real: {{ face.real_count }} | Fake: {{ face.fake_count }}
+                                        </div>
+                                        {% endif %}
+                                        {% if face.confidence is defined %}
+                                        <div class="face-confidence">
+                                            Confidence: {{ face.confidence }}%
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            {% if data.output_video %}
+                            <div class="video-analysis">
+                                <h3>Analyzed Video</h3>
+                                <video class="analysis-video" controls muted>
+                                    <source src="{{ data.output_video }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
                 </div>
+                {% endfor %}
+            </div>
             {% endif %}
         </div>
     </main>

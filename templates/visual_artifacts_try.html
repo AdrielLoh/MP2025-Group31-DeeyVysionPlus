@@ -29,6 +29,19 @@
                 return;
             });
         });
+        document.addEventListener("DOMContentLoaded", function() {
+            let dvurlForm = document.getElementById("dvurl-form");
+            let dvurlLoading = document.getElementById("dvurl-loading");
+            let dvurlSubmit = document.getElementById("dvurl-submit");
+
+            if (dvurlForm) {
+                dvurlForm.addEventListener("submit", function(event) {
+                    dvurlSubmit.disabled = true;
+                    dvurlSubmit.innerHTML = "Processing...";
+                    dvurlLoading.style.display = "block";
+                });
+            }
+        });
     </script>
     <script src="../static/js/handle-upload.js"></script>
 </head>
@@ -77,6 +90,50 @@
 
     <section class="try-container">
         <div class="detection-methods">
+            <!-- Video URL Submission Method -->
+            <div class="detection-method dvurl-method">
+                <div class="method-header">
+                    <div class="method-icon-try">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                            <!-- Link/URL Icon -->
+                            <path d="M17 7a5 5 0 0 1 0 7l-1 1m-4-1a5 5 0 1 1 0-7l1-1" stroke="#764ba2" stroke-width="2"/>
+                            <path d="M8 16a6 6 0 1 1 8 0M8 8a6 6 0 0 1 8 8" stroke="#667eea" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="method-text">
+                        <h2 class="method-title">Submit Video URL</h2>
+                        <p class="method-description">
+                            Paste a YouTube, Twitter, or TikTok video link.<br>
+                            <b>Only public and short videos are accepted (max 30 seconds).</b>
+                        </p>
+                    </div>
+                </div>
+                <form id="dvurl-form" class="dvurl-form" method="POST" action="/visual_artifacts_static" autocomplete="off" style="display: flex; flex-direction: column; gap: 2rem;">
+                    <div class="dvurl-input-container">
+                        <input type="url" name="video_url" id="dvurl-input" class="dvurl-input" 
+                            placeholder="Paste video URL (e.g. https://...)" 
+                            pattern="https?://.*" required 
+                            style="width: 100%; padding: 1rem 1.2rem; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--card-bg); color: var(--text-primary); font-size: 1.1rem;">
+                        <span class="dvurl-hint">Supports YouTube, Twitter, TikTok, and other public video links.</span>
+                    </div>
+                    <div style="display: flex; gap: 1.5rem; align-items: center;">
+                        <button type="submit" id="dvurl-submit" class="analyze-button dvurl-submit">
+                            <span>Analyze URL</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="dvurl-loading" class="loading-spinner dvurl-loading" style="display: none;">
+                        <div class="spinner-container"><div class="spinner"></div></div>
+                        <div class="loading-text">
+                            <h4>Fetching & Processing video...</h4>
+                            <p>Please <b>do not</b> refresh or leave this page.</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
             <!-- File Upload Method -->
             <div class="detection-method upload-method">
                 <div class="method-header">
@@ -91,7 +148,7 @@
                     </div>
                     <div class="method-text">
                         <h2 class="method-title">Upload Video File</h2>
-                        <p class="method-description">Upload a video file from your device for analysis. Supports most common video formats.</p>
+                        <p class="method-description">Upload a video file from your device for analysis. Supports most common video formats (Max 50 MB).</p>
                     </div>
                 </div>
                 
@@ -130,7 +187,7 @@
             </div>
 
             <!-- Webcam Detection Method -->
-            <div class="detection-method webcam-method">
+            <div class="detection-method webcam-method" id="webcamSection">
                 <div class="method-header">
                     <div class="method-icon-try">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
@@ -195,5 +252,15 @@
         <div id="footer-placeholder"></div>
     </footer>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <script>
+        function isMobileDevice() {
+            return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|BlackBerry|webOS/i.test(navigator.userAgent);
+        }
+
+        if (isMobileDevice()) {
+            document.getElementById("webcamSection").style.display="none";
+            document.getElementById("webcamUploadForm").style.display="none";
+        }
+    </script>
 </body>
 </html>
