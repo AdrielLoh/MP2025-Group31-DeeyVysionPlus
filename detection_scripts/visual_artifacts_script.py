@@ -18,7 +18,7 @@ PROTO_PATH = "models/weights-prototxt.txt"
 MODEL_CAFFE_PATH = "models/res_ssd_300Dim.caffeModel"
 FACE_SIZE = 64
 FRAME_INTERVAL = 0.5
-MIN_FRAMES = 1
+MIN_FRAMES = 30
 
 DEFAULT_OUTPUT_DIR = "static/results"
 
@@ -216,7 +216,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
                 per_face_data[tid]["boxes"].append(box)
                 per_face_data[tid]["probs"].append(prob)
                 per_face_data[tid]["features"].append(feat_vec)
-    per_face_data = {tid: d for tid, d in per_face_data.items() if len(d["probs"]) >= 30}
+    per_face_data = {tid: d for tid, d in per_face_data.items() if len(d["probs"]) >= MIN_FRAMES}
 
     # Make overlay video with all faces/IDs
     color_palette = [
