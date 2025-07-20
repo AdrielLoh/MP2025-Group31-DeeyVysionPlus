@@ -267,7 +267,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         num_fake = sum(1 for p in d["probs"] if p >= 0.5)
         charts = []
         # Framewise Probability
-        plt.figure(figsize=(10,4))
+        plt.figure(figsize=(10,5))
         plt.plot(d["frame_indices"], d["probs"], marker='o')
         plt.axhline(0.5, color='gray', linestyle='--')
         plt.title(f"Face {tid} - Framewise Fake Probability")
@@ -278,7 +278,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         plt.close()
         charts.append(os.path.relpath(framewise_path, "static").replace("\\", "/"))
         # Histogram
-        plt.figure(figsize=(6,4))
+        plt.figure(figsize=(10,5))
         plt.hist(d["probs"], bins=20, color='orange', edgecolor='k')
         plt.axvline(np.mean(d["probs"]), color='b', linestyle='--', label=f"Mean={avg_prob:.2f}")
         plt.axvline(0.5, color='gray', linestyle='--', label="Threshold=0.5")
@@ -291,7 +291,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         plt.close()
         charts.append(os.path.relpath(prob_hist_path, "static").replace("\\", "/"))
         # Real vs Fake Bar
-        plt.figure()
+        plt.figure(figsize=(10,5))
         plt.bar(['Fake', 'Real'], [num_fake, num_real], color=['red', 'green'], alpha=0.7)
         plt.xlabel('Label')
         plt.ylabel('Count')
@@ -305,7 +305,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         window = 5
         if len(d["probs"]) >= window:
             smoothed_probs = np.convolve(d["probs"], np.ones(window)/window, mode='valid')
-            plt.figure(figsize=(10,4))
+            plt.figure(figsize=(10,5))
             plt.plot(d["frame_indices"][:len(smoothed_probs)], smoothed_probs, marker='o', color='blue', label='Smoothed')
             plt.axhline(0.5, color='gray', linestyle='--')
             plt.title(f"Face {tid} - Smoothed Fake Probability")
@@ -319,7 +319,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         # CDF
         probs_sorted = np.sort(d["probs"])
         cdf = np.arange(1, len(probs_sorted)+1) / len(probs_sorted)
-        plt.figure()
+        plt.figure(figsize=(10,5))
         plt.plot(probs_sorted, cdf, label='CDF')
         plt.xlabel('Fake Probability')
         plt.ylabel('Cumulative Fraction of Frames')
@@ -332,7 +332,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         # Variance (Rolling)
         if len(d["probs"]) >= window:
             variances = [np.var(d["probs"][max(0,i-window):i+1]) for i in range(len(d["probs"]))]
-            plt.figure()
+            plt.figure(figsize=(10,5))
             plt.plot(d["frame_indices"], variances)
             plt.xlabel('Frame Number')
             plt.ylabel('Prediction Variance')
@@ -343,7 +343,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
             charts.append(os.path.relpath(variance_path, "static").replace("\\", "/"))
         # Scatter
         colors = ['red' if p >= 0.5 else 'green' for p in d["probs"]]
-        plt.figure(figsize=(10,4))
+        plt.figure(figsize=(10,5))
         plt.scatter(d["frame_indices"], d["probs"], c=colors, alpha=0.7)
         plt.axhline(0.5, color='gray', linestyle='--')
         plt.title(f'Face {tid} - Framewise Fake Probability (Class Color)')
@@ -357,7 +357,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         class_seq = [int(p >= 0.5) for p in d["probs"]]
         run_lengths = [len(list(group)) for key, group in itertools.groupby(class_seq)]
         if run_lengths:
-            plt.figure()
+            plt.figure(figsize=(10,5))
             plt.hist(run_lengths, bins=range(1, max(run_lengths)+2), align='left', color='purple')
             plt.xlabel('Run Length')
             plt.ylabel('Count')

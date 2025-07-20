@@ -373,21 +373,11 @@ def deep_learning_static():
 @app.route('/visual_artifacts_static', methods=['GET', 'POST'])
 def visual_artifacts_static():
     if request.method == 'POST':
-        file = request.files.get('file')
-        video_url = request.form.get('video_url', '').strip()
-        video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
-
-        if video_url:
-            video_path_for_processing = download_video(video_tag, video_url)
-            if "Failed to download" in video_path_for_processing:
-                return "Invalid video URL"
-            filename = video_path_for_processing
-        elif file:
-            if not allowed_file(file.filename, file.content_type):
-                return "Invalid file type"
-            filename = secure_filename(file.filename)
+        file = request.files['file']
+        if file:
             # Making the uploaded videos uniquely named
-            name, ext = os.path.splitext(filename)
+            video_tag = uuid.uuid4().hex
+            name, ext = os.path.splitext(file.filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
@@ -403,23 +393,12 @@ def visual_artifacts_static():
                 video_path_for_processing = filename
                 mp4_path = ""
 
-        face_results, output_video = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir='static/results')
-        if os.path.exists(filename):
-            os.remove(filename)
+            output_dir = os.path.join('static', 'results', video_tag)
+            os.makedirs(output_dir, exist_ok=True)
 
-        if request.headers.get('Accept') == 'application/json':
-            if face_results:
-                real_faces = sum(1 for face in face_results if face.get('result') == 'Real')
-                fake_faces = sum(1 for face in face_results if face.get('result') == 'Fake')
-                overall_prediction = "Real" if real_faces > fake_faces else "Fake" if fake_faces > 0 else "Inconclusive"
-                if real_faces > 0 and fake_faces > 0:
-                    overall_prediction = "Partial Fake"
-                return jsonify({
-                    "prediction": overall_prediction,
-                    "face_results": face_results,
-                    "output_video": output_video
-                })
-        else:
+            result = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir=output_dir)
+            if os.path.exists(filename):
+                os.remove(filename)
             return render_template(
                 'result.html',
                 analysis_type='visual_artifacts',
