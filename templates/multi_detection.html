@@ -18,7 +18,7 @@
         </div>
 
         <div class="form-card">
-            <form id="multiUploadForm" method="POST" enctype="multipart/form-data" action="/multi_detection">
+            <form id="multiUploadForm" method="POST" enctype="multipart/form-data">
                 <div class="methods-section-multi">
                     <h2 class="section-title">Select Detection Methods</h2>
                     <div class="methods-grid-multi">
@@ -62,17 +62,30 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="method-card-multi" data-method="audio">
+                            <input type="checkbox" name="methods" value="audio" class="method-checkbox">
+                            <div class="method-content">
+                                <div class="method-icon-multi">🔊</div>
+                                <div class="method-info">
+                                    <h3>Audio Analysis</h3>
+                                    <p>Detects deepfake from audio features</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="upload-section">
                     <h2 class="section-title">Upload Video File</h2>
-                    <div class="dropbox" id="dropbox">
+                    <div id="dropbox" class="dropbox">
                         <div class="upload-icon">📁</div>
-                        <div class="upload-text">Drag & drop your video file here</div>
-                        <div class="upload-subtext">or click to select from your device</div>
-                        <input type="file" name="file" id="file" accept="video/*" class="file-input">
-                        <video id="video-preview" class="video-preview" controls></video>
+                        <div class="upload-content">
+                            <h3>Drop your video here</h3>
+                            <p>or click to browse files</p>
+                            <span class="file-types">MP4, AVI, MOV, WebM supported</span>
+                        </div>
+                        <input type="file" name="file" id="file" accept="video/*" required>
+                        <video id="video-preview" controls style="display: none;"></video>
                     </div>
                     <h2 class="section-title" style="margin-top:3rem; margin-bottom: 1rem">Submit Video URL</h2>
                     <div class="dvurl-input-container">
@@ -96,58 +109,37 @@
     <div id="footer-placeholder"></div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-        const form = document.getElementById("multiUploadForm");
-        const submitButton = document.getElementById("submitButton");
-        const spinner = document.getElementById("loadingSpinner");
-        const fileInput = document.getElementById("file");
-        const videoUrlInput = document.getElementById("dvurl-input");
-        const methodCards = document.querySelectorAll(".method-card-multi");
-
-        // Method selection UI
-        methodCards.forEach(card => {
-            card.addEventListener("click", function() {
-                const checkbox = this.querySelector(".method-checkbox");
-                checkbox.checked = !checkbox.checked;
-                this.classList.toggle("selected", checkbox.checked);
-            });
-        });
-
-        // Unified form submission
-        form.addEventListener("submit", function(event) {
-            // Prevent default first
-            event.preventDefault();
-
-            // Validate methods
-            const selectedMethods = document.querySelectorAll("input[name='methods']:checked");
-            if (selectedMethods.length === 0) {
-                alert("🚨 Please select at least one detection method to proceed!");
-                return;
-            }
-
-            // Validate at least one source
-            const fileProvided = fileInput && fileInput.files.length > 0;
-            const urlProvided = videoUrlInput && videoUrlInput.value.trim().length > 0;
-            if (!fileProvided && !urlProvided) {
-                alert("📁 Please upload a video file or paste a video URL!");
-                return;
-            }
-            if (fileProvided && urlProvided) {
-                alert("Please provide only one source: either upload a file OR paste a URL, not both.");
-                return;
-            }
-
-            // Show loading spinner, lock submit
-            submitButton.disabled = true;
-            submitButton.innerHTML = "🔄 Processing...";
-            spinner.style.display = "block";
-
-            setTimeout(() => {
-                form.submit();
-            }, 1000);
+document.addEventListener("DOMContentLoaded", function() {
+    const methodCards = document.querySelectorAll(".method-card-multi");
+    let form = document.getElementById("multiUploadForm");
+    let spinner = document.getElementById("loadingSpinner");
+    let submitButton = document.getElementById("submitButton");
+    // Method selection UI
+    methodCards.forEach(card => {
+        card.addEventListener("click", function() {
+            const checkbox = this.querySelector(".method-checkbox");
+            checkbox.checked = !checkbox.checked;
+            this.classList.toggle("selected", checkbox.checked);
         });
     });
-    </script>
+    form.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        // Disable the button and change text
+        submitButton.disabled = true;
+        submitButton.innerText = "Processing...";
+
+        // Show the spinner
+        spinner.style.display = "block";
+        // Submit the form normally
+        form.setAttribute("action", "/multi_detection");
+        form.setAttribute("method", "POST");
+        form.submit();
+        return;
+    });
+});
+</script>
     <script src="../static/js/scripts.js"></script>
+    <script src="../static/js/handle-upload.js"></script>
 </body>
 </html>

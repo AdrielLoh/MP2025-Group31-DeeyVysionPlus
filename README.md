@@ -7,7 +7,7 @@
 2) run `pip install -r requirements.txt`
 
 ### External Dependencies to install (Important)
-##### **1) FFmpeg**
+#### **1) FFmpeg**
 1. Go to [https://www.gyan.dev/ffmpeg/builds/]
 2. Go to "Release builds"
 3. Download the **release full build** `.zip` file.
@@ -33,8 +33,9 @@
   ffmpeg -version
   ```
 
-  ##### **2) Microsoft Visual C++ Redistributable**
-  1. Download and setup using this link: [https://aka.ms/vs/17/release/vc_redist.x86.exe]
+
+#### **2) Microsoft Visual C++ Redistributable**
+1. Download and setup using this link: [https://aka.ms/vs/17/release/vc_redist.x86.exe]
 ---
 
 
@@ -51,6 +52,16 @@ To start the project:
 1) run python app.py 
 2) start DeepFace Live, and turn on all the settings available
 3) start OBS and start virtual camera
+
+---
+
+### Loading Browser Extension
+1) Go to `chrome://extensions` or `edge://extensions`
+2) Enable Developer Mode
+3) Click on "Load unpacked"
+4) Browse to the project's "browser extension" folder and select the folder
+
+---
 
 ### Rough guide for setting up web server (for own reference):
 1. Download and install nginx [https://nginx.org/download/nginx-1.29.0.zip]

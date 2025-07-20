@@ -485,7 +485,7 @@
             <div class="multi-detection-results">
                 <div class="detection-tabs">
                     <div class="tab-navigation">
-                        {% set method_names = {'deep_learning': 'Deep Learning', 'visual_artifacts': 'Visual Artifacts', 'physiological': 'Physiological', 'body_posture': 'Body Posture'} %}
+                        {% set method_names = {'deep_learning': 'Deep Learning', 'visual_artifacts': 'Visual Artifacts', 'physiological': 'Physiological', 'body_posture': 'Body Posture', 'audio': 'Audio'} %}
                         {% for method, data in multi_results.items() %}
                         <button class="tab-btn{% if loop.first %} active{% endif %}" data-tab="multi-{{ method }}">
                             {{ method_names.get(method, method.replace("_", " ").title()) }}
@@ -542,6 +542,11 @@
                                             <span class="metric-value">{{ data.face_results | length }}</span>
                                         </div>
                                     </div>
+                                {% elif method == 'audio' and data.prediction_value is defined %}
+                                    <div class="confidence-badge">
+                                        <span class="confidence-label">Deepfake Probability:</span>
+                                        <span class="confidence-value">{{ data.prediction_value }}%</span>
+                                    </div>
                                 {% endif %}
                             {% endif %}
                             
@@ -554,7 +559,6 @@
 
                     {% if not data.get('error') %}
                         <!-- Method-specific detailed results -->
-                        
                         {% if method == 'deep_learning' and data.rvf_plot %}
                             <div class="analysis-charts">
                                 <div class="chart-grid">
@@ -572,6 +576,37 @@
                                         </div>
                                     </div>
                                     {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if method=='audio' %}
+                            <div class="analysis-charts">
+                                <div class="chart-grid">
+                                    <div class="chart-item">
+                                        <h3>Mel Spectrogram</h3>
+                                        <div class="chart-container">
+                                            <img src="static/{{ data.mel_spectrogram_path }}" alt="Mel Spectrogram" class="analysis-chart">
+                                        </div>
+                                    </div>
+                                    <div class="chart-item">
+                                        <h3>MFCC Plot</h3>
+                                        <div class="chart-container">
+                                            <img src="static/{{ data.mfcc_path }}" alt="MFCC" class="analysis-chart">
+                                        </div>
+                                    </div>
+                                    <div class="chart-item">
+                                        <h3>Delta MFCC</h3>
+                                        <div class="chart-container">
+                                            <img src="static/{{ data.delta_path }}" alt="Delta MFCC" class="analysis-chart">
+                                        </div>
+                                    </div>
+                                    <div class="chart-item">
+                                        <h3>Fundamental Frequency</h3>
+                                        <div class="chart-container">
+                                            <img src="static/{{ data.f0_path }}" alt="F0" class="analysis-chart">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         {% endif %}
