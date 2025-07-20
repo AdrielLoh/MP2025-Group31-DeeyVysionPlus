@@ -14,8 +14,8 @@ import collections
 # ========== Configuration ==========
 FACE_PROTO = 'models/weights-prototxt.txt'
 FACE_MODEL = 'models/res_ssd_300Dim.caffeModel'
-MODEL_PATH = 'models/physio_deep_evaluated.keras'
-fake_threshold = 0.420 # By youden's j index, train 8
+MODEL_PATH = 'models/physio_deep_evaluated_9ft3.keras'
+fake_threshold = 0.49 # By youden's j index
 
 # ---- rPPG/ROI config (must match training) ----
 ROI_INDICES = {
@@ -320,42 +320,6 @@ def pad_mask(arr, win):
 def segment_windows(nframes, win=WINDOW_SIZE, hop=HOP_SIZE):
     return [(s, min(s + win, nframes)) for s in range(0, max(nframes - win + 1, 1), hop)]
 
-def interpolate_corrupted_frames(frames):
-    """
-    Replace None or corrupted frames with interpolation of prev/next valid frames.
-    Args:
-        frames: list of frames (some are None)
-    Returns:
-        new_frames: list of same length, with all frames valid
-    """
-    n = len(frames)
-    valid_indices = [i for i, f in enumerate(frames) if f is not None]
-    if not valid_indices:
-        raise ValueError("No valid frames found in video.")
-    out_frames = list(frames)
-    for idx in range(n):
-        if out_frames[idx] is not None:
-            continue
-        prev_idx = idx - 1
-        while prev_idx >= 0 and out_frames[prev_idx] is None:
-            prev_idx -= 1
-        next_idx = idx + 1
-        while next_idx < n and out_frames[next_idx] is None:
-            next_idx += 1
-        prev_frame = out_frames[prev_idx] if prev_idx >= 0 else None
-        next_frame = out_frames[next_idx] if next_idx < n else None
-        if prev_frame is not None and next_frame is not None:
-            interp = cv2.addWeighted(prev_frame, 0.5, next_frame, 0.5, 0)
-            out_frames[idx] = interp
-        elif prev_frame is not None:
-            out_frames[idx] = prev_frame.copy()
-        elif next_frame is not None:
-            out_frames[idx] = next_frame.copy()
-        else:
-            h, w, c = frames[valid_indices[0]].shape
-            out_frames[idx] = np.zeros((h, w, c), dtype=frames[valid_indices[0]].dtype)
-    return out_frames
-
 # ========== Bounding Box Output & Graphing Drawing ==========
 def draw_output(frame, face_box, prediction, confidence, track_id):
     x, y, w, h = face_box
@@ -432,7 +396,7 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
     model = load_model(MODEL_PATH)
     window_size = WINDOW_SIZE
 
-    min_face_area_ratio=0.01 # Larger value = more restrictive face tracking 
+    min_face_area_ratio=0.001 # Larger value = more restrictive face tracking 
 
     # First pass: collect all boxes per frame (for tracking)
     all_boxes = []

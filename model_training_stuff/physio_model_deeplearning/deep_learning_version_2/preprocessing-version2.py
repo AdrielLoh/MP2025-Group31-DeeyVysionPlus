@@ -5,18 +5,15 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from scipy.signal import detrend, butter, filtfilt, periodogram
 import logging
-import h5py
 from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
 import re
-import threading
-import uuid
-import scipy.stats
 import random
-import mediapipe as mp
 from sklearn.decomposition import PCA
 import argparse
 import gc
+import time
+import tempfile
 
 # ==================== CONFIGURATION =========================
 
@@ -29,8 +26,8 @@ HOP_SIZE = 75      # Overlap step (e.g. 50% overlap)
 BATCH_SIZE = 40    # Videos per output HDF5 file
 MIN_REAL_FRAMES = int(0.6 * WINDOW_SIZE)  # Reject if <60% valid frames
 
-np.random.seed(42)
-random.seed(42)
+np.random.seed(int(time.time()) % 2**32)
+random.seed(int(time.time()) % 2**32)
 
 # Suppress MediaPipe logs
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -48,7 +45,7 @@ def load_face_net(proto, model):
         logger.warning(f"Loading Caffe Model Failed: {e}")
         return None
 
-def detect_faces(frame, net, conf=0.5):
+def detect_faces(frame, net, conf=0.75):
     h, w = frame.shape[:2]
     blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
     net.setInput(blob)
@@ -375,7 +372,7 @@ def augment_signal(sig, aug=None, strength=0.1, mask=None):
     
     return sig.astype(np.float32)
 
-def extract_window_face_rppg_signals(frames, boxes, start, end, fps=30, augment=True):
+def extract_window_face_rppg_signals(frames, boxes, start, end, fps=30, augment=True, augment_chance=0.5):
     rgb_signals = []
     window_boxes = boxes[start:end]
     window_mask = [1 if b is not None else 0 for b in window_boxes]
@@ -394,7 +391,7 @@ def extract_window_face_rppg_signals(frames, boxes, start, end, fps=30, augment=
     signals['pbv']   = apply_signal_preprocessing(rppg_pbv(rgb_signals), fps)
     # Optional: augmentation
     if augment:
-        if random.random() < 0.7: # CHANGE TO BE LOWER FOR FAKE, HIGHER FOR REAL
+        if random.random() < augment_chance: # CHANGE TO BE LOWER FOR FAKE, HIGHER FOR REAL
             augs = ['noise', 'amplitude', 'frequency', 'phase']
             aug = random.choice(augs)
             aug_mask = np.array(window_mask)
@@ -412,7 +409,7 @@ def segment_windows(nframes, win=WINDOW_SIZE, hop=HOP_SIZE):
     """Generate sliding windows over video frames"""
     return [(s, min(s + win, nframes)) for s in range(0, max(nframes - win + 1, 1), hop)]
 
-def process_video(video_path, augment=True):
+def process_video(video_path, augment_chance, augment=True):
     cap = None
     frames = []
     face_net = None
@@ -446,7 +443,7 @@ def process_video(video_path, augment=True):
                 if sum(1 for b in per_frame_boxes[start:end] if b is not None) < 2:
                     continue
                 signals, window_mask = extract_window_face_rppg_signals(
-                    frames, per_frame_boxes, start, end, fps=fps, augment=augment
+                    frames, per_frame_boxes, start, end, fps=fps, augment=augment, augment_chance=augment_chance
                 )
                 if window_mask.sum() < MIN_REAL_FRAMES:
                     continue
@@ -500,7 +497,6 @@ def get_video_files(input_arg, exts=('.mp4', '.avi', '.mov', '.mkv', '.flv', '.w
                 if f.lower().endswith(exts)]
 
 def get_next_batch_idx(output_dir, label):
-    # Should search for .npz, not _raw.h5
     batch_files = [f for f in os.listdir(output_dir) if f.startswith(f"{label}_batch") and f.endswith(".npz")]
     max_idx = -1
     for fname in batch_files:
@@ -517,7 +513,8 @@ def main():
     parser.add_argument('--output', type=str)
     parser.add_argument('--label', type=str, required=True)
     parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
-    parser.add_argument('--max_workers', type=int, default=8)
+    parser.add_argument('--max_workers', type=int, default=4)
+    parser.add_argument('--augment_chance', type=float, required=True)
     args = parser.parse_args()
 
     os.makedirs(args.output, exist_ok=True)
@@ -543,15 +540,17 @@ def main():
         if os.path.basename(v) not in processed
         and os.path.basename(v) not in failed
     ]
+    random.shuffle(videos)
 
     logger.info(f"Processing {len(videos)} new videos (label: {args.label})")
 
-    batch_idx = 0
+    batch_idx = batch_idx = get_next_batch_idx(args.output, args.label)
     n_in_batch = 0
     batch_data = {}
+    just_batched_videos = []
 
     with ProcessPoolExecutor(max_workers=args.max_workers) as exe:
-        future_to_vid = {exe.submit(process_video, v): v for v in videos}
+        future_to_vid = {exe.submit(process_video, v, args.augment_chance): v for v in videos}
         for fut in tqdm(as_completed(future_to_vid), total=len(future_to_vid), desc='Videos'):
             vid = future_to_vid[fut]
             try:
@@ -559,23 +558,36 @@ def main():
             except Exception as e:
                 print(f"Error processing {vid}: {e}")
                 windows = None
+
             if windows and len(windows) > 0:
                 batch_data[vid] = windows
                 n_in_batch += 1
-                with open(log_file, 'a') as f:
+                just_batched_videos.append(os.path.basename(vid))
+            else:
+                # Log as failed
+                with open(failure_log, 'a') as f:
                     f.write(os.path.basename(vid) + '\n')
+
             if n_in_batch >= args.batch_size:
                 out_path = os.path.join(args.output, f'{args.label}_batch{batch_idx}.npz')
                 save_npz_batch(batch_data, out_path, args.label)
                 print(f"Saved batch {batch_idx} ({n_in_batch} videos) to {out_path}")
+                with open(log_file, 'a') as f:
+                    for v in just_batched_videos:
+                        f.write(v + '\n')
+                just_batched_videos = []
                 batch_data = {}
                 n_in_batch = 0
                 batch_idx += 1
-        # Save final batch
+
+        # Save the final partial batch after loop ends
         if batch_data:
             out_path = os.path.join(args.output, f'{args.label}_batch{batch_idx}.npz')
             save_npz_batch(batch_data, out_path, args.label)
             print(f"Saved final batch {batch_idx} ({n_in_batch} videos) to {out_path}")
+            with open(log_file, 'a') as f:
+                for v in just_batched_videos:
+                    f.write(v + '\n')
 
 if __name__ == '__main__':
     main()
