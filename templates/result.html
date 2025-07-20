@@ -326,7 +326,6 @@
                                     {% endfor %}
                                 </div>
                             </div>
-
                             {% for face in face_results %}
                             <div class="result-card visual-result tab-panel{% if loop.first %} active{% endif %}" id="face-{{ face.track_id }}">
                                 <div class="result-header">
@@ -353,7 +352,6 @@
                                         <span>←</span> Return to Analysis
                                     </button>
                                 </div>
-
                                 <div class="analysis-carousel">
                                     <div class="carousel-header">
                                         <h3>Visual Artifact Analysis</h3>
@@ -373,17 +371,17 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="video-analysis">
                                     <h3>Analyzed Video</h3>
                                     <video class="analysis-video" controls autoplay loop muted>
-                                        <source src="{{ output_video }}" type="video/mp4">
+                                        <source src="{{ url_for('static', filename=video_with_boxes) }}" type="video/mp4">
                                         Your browser does not support the video tag.
                                     </video>
                                 </div>
                             </div>
                             {% endfor %}
                         </div>
+
                     {% else %}
                         <!-- Static Visual Artifacts -->
                         <div class="result-card visual-result">

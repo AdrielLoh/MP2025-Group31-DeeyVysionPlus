@@ -304,14 +304,17 @@ def visual_artifacts_static():
                 video_path_for_processing = filename
                 mp4_path = ""
 
-            face_results, output_video = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir='static/results')
+            output_dir = os.path.join('static', 'results', video_tag)
+            os.makedirs(output_dir, exist_ok=True)
+
+            result = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir=output_dir)
             if os.path.exists(filename):
                 os.remove(filename)
             return render_template(
                 'result.html',
                 analysis_type='visual_artifacts',
-                face_results=face_results,
-                output_video=output_video
+                face_results=result['face_results'],
+                video_with_boxes=result['video_with_boxes'],
             )
     return render_template('visual_artifacts_try.html')
 
