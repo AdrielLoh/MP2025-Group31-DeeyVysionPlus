@@ -54,8 +54,6 @@ def iou(boxA, boxB):
     boxBArea = boxB[2] * boxB[3]
     return interArea / float(boxAArea + boxBArea - interArea + 1e-5)
 
-
-
 def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=100):
     tracks = {}
     active_tracks = {}
@@ -166,7 +164,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
             face_feats = []
             for i in range(detections.shape[2]):
                 conf = detections[0, 0, i, 2]
-                if conf > 0.3:
+                if conf > 0.6:
                     box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                     (x1, y1, x2, y2) = box.astype('int')
                     x1, y1 = max(0, x1), max(0, y1)
