@@ -297,6 +297,38 @@ def start_real_time_detection():
     face_results, output_video  = run_dl_detection(0, is_webcam=True)
     return render_template('result.html', analysis_type='physiological', face_results=face_results, output_video=output_video)
 
+@app.route('/start_visual_artifacts_detection', methods=['POST'])
+def start_visual_artifacts_detection():
+    file = request.files.get('video')
+    if not file or file.filename == '':
+        return "No video uploaded", 400
+
+    import uuid
+    video_tag = uuid.uuid4().hex
+    name, ext = os.path.splitext(file.filename)
+    new_file_name = video_tag + ext
+    upload_path = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
+    file.save(upload_path)
+
+    # Process video with visual artifact detection
+    output_dir = os.path.join('static', 'results', video_tag)
+    os.makedirs(output_dir, exist_ok=True)
+
+    from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection
+    result = run_visual_artifacts_detection(upload_path, output_dir)
+
+    # Optionally clean up uploaded file
+    # os.remove(upload_path)
+    for idx, face in enumerate(result['face_results']):
+        face['display_id'] = idx + 1
+        
+    return render_template(
+        'result.html',
+        analysis_type='visual_artifacts',
+        face_results=result['face_results'],
+        video_with_boxes=result['video_with_boxes']
+    )
+
 @app.route('/visual_artifacts_detection')
 def visual_artifacts_detection():
     return render_template('visual_artifacts_detection.html')
@@ -370,17 +402,31 @@ def deep_learning_static():
 
 @app.route('/visual_artifacts_static', methods=['GET', 'POST'])
 def visual_artifacts_static():
+    output_folder = 'static/results'
+    os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
-        file = request.files['file']
-        if file:
-            # Making the uploaded videos uniquely named
-            video_tag = uuid.uuid4().hex
-            name, ext = os.path.splitext(file.filename)
+        file = request.files.get('file')
+        video_url = request.form.get('video_url', '').strip()
+        video_tag = uuid.uuid4().hex  # unique
+        filename = ""
+        mp4_path = ""
+
+        if video_url:
+            video_path_for_processing = download_video(video_tag, video_url)
+            if "Failed to download" in video_path_for_processing:
+                return render_template('visual_artifacts_try.html', error="Invalid video URL.")
+            filename = video_path_for_processing
+            mp4_path = ""
+        elif file:
+            if not allowed_file(file.filename, file.content_type):
+                return render_template('visual_artifacts_try.html', error="Invalid file type.")
+            filename = secure_filename(file.filename)
+            name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
 
-            # convert to mp4 for better compatibility
+            # Convert to mp4 if needed
             if not filename.lower().endswith('.mp4'):
                 mp4_path = os.path.splitext(filename)[0] + '.mp4'
                 convert_webm_to_mp4(filename, mp4_path)
@@ -390,18 +436,33 @@ def visual_artifacts_static():
             else:
                 video_path_for_processing = filename
                 mp4_path = ""
+        else:
+            return render_template('visual_artifacts_try.html', error="Please upload a file or provide a URL.")
 
-            output_dir = os.path.join('static', 'results', video_tag)
-            os.makedirs(output_dir, exist_ok=True)
+        # Process with your detection function
+        output_dir = os.path.join('static', 'results', video_tag)
+        os.makedirs(output_dir, exist_ok=True)
+        result = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir=output_dir)
 
-            result = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir=output_dir)
-            if os.path.exists(filename):
-                os.remove(filename)
+        if filename and os.path.exists(filename):
+            os.remove(filename)
+        if mp4_path and os.path.exists(mp4_path):
+            os.remove(mp4_path)
+
+        if request.headers.get('Accept') == 'application/json':
+            # Example JSON response, adjust as needed
+            overall_prediction = "Fake" if any(f.get('result') == 'Fake' for f in result.get('face_results', [])) else "Real"
+            return jsonify({
+                "prediction": overall_prediction,
+                "face_results": result.get('face_results', []),
+                "video_with_boxes": result.get('video_with_boxes')
+            })
+        else:
             return render_template(
                 'result.html',
                 analysis_type='visual_artifacts',
-                face_results=result['face_results'],
-                video_with_boxes=result['video_with_boxes'],
+                face_results=result.get('face_results', []),
+                video_with_boxes=result.get('video_with_boxes'),
             )
     return render_template('visual_artifacts_try.html')
 
