@@ -5,30 +5,40 @@ import subprocess
 import uuid
 from werkzeug.utils import secure_filename
 import json
-from concurrent.futures import ProcessPoolExecutor, as_completed
-import traceback
-import multiprocessing
 from waitress import serve
+import yt_dlp
 
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
 from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
-from detection_scripts.physiological_signal_script import run_detection
+from detection_scripts.physiological_signal_script import run_detection as run_dl_detection
 from detection_scripts.audio_analysis_script import predict_audio
 from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
 from detection_scripts.legacy.body_posture_script import body_posture_live_detection
 from detection_scripts.body_posture_script import detect_body_posture
-from detection_scripts.physiological_signal_ml import run_detection as run_physio_ml
+from detection_scripts.legacy.body_posture_script import detect_body_posture, body_posture_live_detection
+from detection_scripts.physiological_signal_ml import run_detection as run_ml_detection
 
 app = Flask(__name__)
 
 # Dynamically get the absolute path to the 'static/uploads/' directory
 upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
 app.config['UPLOAD_FOLDER'] = upload_folder
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 
 # Create the directory if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
+ALLOWED_EXTENSIONS = {'.mp4', '.mov', '.avi', '.webm', '.wav', '.flac', '.mp3', '.ogg'}
+ALLOWED_MIME_TYPES = {'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'audio/mpeg', 
+                      'audio/ogg', 'audio/wav', 'audio/vnd.wav',
+                      'audio/flac', 'audio/x-flac'}
+MAX_VIDEO_DURATION = 30 # For URL downloads only 
+
+def allowed_file(filename, mimetype):
+    ext = os.path.splitext(filename)[1].lower()
+    return ext in ALLOWED_EXTENSIONS and mimetype in ALLOWED_MIME_TYPES
 
 def get_video_fps(video_path, default_fps=30):
     """
@@ -64,6 +74,35 @@ def convert_webm_to_mp4(original_path, mp4_path):
         mp4_path
     ]
     subprocess.run(cmd, check=True)
+
+def trim_video(input_path, output_path, duration=30):
+    cmd = [
+        'ffmpeg', '-y', '-i', input_path,
+        '-t', str(duration),
+        '-c', 'copy',
+        output_path
+    ]
+    subprocess.run(cmd, check=True)
+
+def download_video(video_tag, video_url):
+    ydl_opts = {
+        'format': 'bestvideo+bestaudio/best',
+        'outtmpl': os.path.join(app.config['UPLOAD_FOLDER'], f'{video_tag}.%(ext)s'),
+        'noplaylist': True,
+        'quiet': True,
+        'merge_output_format': 'mp4'
+    }
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=True)
+            downloaded_filename = ydl.prepare_filename(info)
+            # trim long videos to 30s
+            trimmed_filename = os.path.splitext(downloaded_filename)[0] + '_trimmed.mp4'
+            trim_video(downloaded_filename, trimmed_filename, duration=30)
+            os.remove(downloaded_filename)
+            return trimmed_filename
+    except Exception as e:
+        return f"Failed to download video from URL: {e}"
 
 @app.route('/')
 def index():
@@ -170,7 +209,7 @@ def visual_artifacts_try():
 @app.route('/deep_learning_based_detection', methods=['GET', 'POST'])
 def deep_learning_based_detection():
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files.get('file')
         if file:
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filename)
@@ -187,12 +226,22 @@ def physiological_signal_try():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files.get('file')
         detection_method = request.form.get('detection_method', 'deep')
-        if file:
-            # Making the uploaded videos uniquely named
-            video_tag = uuid.uuid4().hex
-            name, ext = os.path.splitext(file.filename)
+        video_url = request.form.get('video_url', '').strip()
+        video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
+
+        if video_url:
+            video_path_for_processing = download_video(video_tag, video_url)
+            if "Failed to download" in video_path_for_processing:
+                return "Invalid video URL"
+            filename = video_path_for_processing
+            mp4_path = ""
+        elif file:
+            if not allowed_file(file.filename, file.content_type):
+                return "Invalid file type"
+            filename = secure_filename(file.filename)
+            name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
@@ -208,19 +257,31 @@ def physiological_signal_try():
                 video_path_for_processing = filename
                 mp4_path = ""
 
-            # === Call the respective detection function ===
-            if detection_method == "machine":
-                # Import if not already at top: from physiological_signal_ml import run_detection as run_physio_ml
-                face_results, output_video = run_physio_ml(video_path_for_processing, video_tag=video_tag)
-            else:
-                # Default: deep learning
-                face_results, output_video = run_detection(video_path_for_processing, video_tag=video_tag)
+        # === Call the respective detection function ===
+        if detection_method == "machine":
+            face_results, output_video = run_ml_detection(video_path_for_processing, video_tag=video_tag)
+        else:
+            # Default: deep learning
+            face_results, output_video = run_dl_detection(video_path_for_processing, video_tag=video_tag)
 
-            if os.path.exists(filename):
-                os.remove(filename)
-            if os.path.exists(mp4_path):
-                os.remove(mp4_path)
-                
+        if os.path.exists(filename):
+            os.remove(filename)
+        if os.path.exists(mp4_path):
+            os.remove(mp4_path)
+            
+        if request.headers.get('Accept') == 'application/json':
+            # Build JSON result for extension
+            real_faces = sum(1 for face in face_results if face.get('result') == 'Real')
+            fake_faces = sum(1 for face in face_results if face.get('result') == 'Fake')
+            overall_prediction = "Real" if real_faces > fake_faces else "Fake" if fake_faces > 0 else "Inconclusive"
+            if real_faces > 0 and fake_faces > 0:
+                overall_prediction = "Partial Fake"
+            return jsonify({
+                "prediction": overall_prediction,
+                "face_results": face_results,
+                "output_video": output_video
+            })
+        else:
             return render_template(
                 'result.html',
                 analysis_type='physiological',
@@ -228,14 +289,47 @@ def physiological_signal_try():
                 output_video=output_video,
                 physio_method=detection_method
             )
+
     return render_template('physiological_signal_try.html')
 
 @app.route('/start_real_time_detection', methods=['POST'])
 def start_real_time_detection():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
-    face_results, output_video  = run_detection(0, is_webcam=True)
+    face_results, output_video  = run_dl_detection(0, is_webcam=True)
     return render_template('result.html', analysis_type='physiological', face_results=face_results, output_video=output_video)
+
+@app.route('/start_visual_artifacts_detection', methods=['POST'])
+def start_visual_artifacts_detection():
+    file = request.files.get('video')
+    if not file or file.filename == '':
+        return "No video uploaded", 400
+
+    import uuid
+    video_tag = uuid.uuid4().hex
+    name, ext = os.path.splitext(file.filename)
+    new_file_name = video_tag + ext
+    upload_path = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
+    file.save(upload_path)
+
+    # Process video with visual artifact detection
+    output_dir = os.path.join('static', 'results', video_tag)
+    os.makedirs(output_dir, exist_ok=True)
+
+    from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection
+    result = run_visual_artifacts_detection(upload_path, output_dir)
+
+    # Optionally clean up uploaded file
+    # os.remove(upload_path)
+    for idx, face in enumerate(result['face_results']):
+        face['display_id'] = idx + 1
+        
+    return render_template(
+        'result.html',
+        analysis_type='visual_artifacts',
+        face_results=result['face_results'],
+        video_with_boxes=result['video_with_boxes']
+    )
 
 @app.route('/visual_artifacts_detection')
 def visual_artifacts_detection():
@@ -255,42 +349,22 @@ def audio_analysis_try_page():
     
 @app.route('/deep_learning_static', methods=['GET', 'POST'])
 def deep_learning_static():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
+    if request.method == "POST":
+        file = request.files.get('file')
+        video_url = request.form.get('video_url', '').strip()
+        video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
 
-    file = request.files['file']
-    # Making the uploaded videos uniquely named
-    video_tag = uuid.uuid4().hex
-    name, ext = os.path.splitext(file.filename)
-    new_file_name = video_tag + ext
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
-    file.save(filename)
+        if video_url:
+            video_path_for_processing = download_video(video_tag, video_url)
+            if "Failed to download" in video_path_for_processing:
+                return "Invalid video URL"
+        elif file:
+            file = request.files.get('file')
 
-    # convert to mp4 for better compatibility
-    if not filename.lower().endswith('.mp4'):
-        mp4_path = os.path.splitext(filename)[0] + '.mp4'
-        convert_webm_to_mp4(filename, mp4_path)
-        video_path_for_processing = mp4_path
-        if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
-            os.remove(filename)
-    else:
-        video_path_for_processing = filename
-        mp4_path = ""
-
-    output_folder = "static/results/"
-    result, real_count, fake_count, rvf_plot, conf_plot = deep_learning_static_detection(video_path_for_processing, output_folder, video_tag)
-
-    return render_template('result.html', analysis_type='deep_learning_static', result=result, real_count=real_count, fake_count=fake_count, rvf_plot=rvf_plot, conf_plot=conf_plot)
-
-
-@app.route('/visual_artifacts_static', methods=['GET', 'POST'])
-def visual_artifacts_static():
-    if request.method == 'POST':
-        file = request.files['file']
-        if file:
-            # Making the uploaded videos uniquely named
-            video_tag = uuid.uuid4().hex
-            name, ext = os.path.splitext(file.filename)
+            if not allowed_file(file.filename, file.content_type):
+                return "Invalid file type"
+            filename = secure_filename(file.filename)
+            name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
@@ -306,25 +380,104 @@ def visual_artifacts_static():
                 video_path_for_processing = filename
                 mp4_path = ""
 
-            face_results, output_video = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir='static/results')
-            if os.path.exists(filename):
-                os.remove(filename)
+        output_folder = "static/results/"
+        result, real_count, fake_count, rvf_plot, conf_plot = deep_learning_static_detection(video_path_for_processing, output_folder, video_tag)
+
+        if request.headers.get('Accept') == 'application/json':
+            return jsonify({
+                "prediction": result,
+                "real_count": real_count,
+                "fake_count": fake_count,
+                "rvf_plot": rvf_plot,
+                "conf_plot": conf_plot
+            })
+        else:
+            return render_template(
+                'result.html', 
+                analysis_type='deep_learning_static', 
+                result=result, 
+                real_count=real_count, 
+                fake_count=fake_count, 
+                rvf_plot=rvf_plot, 
+                conf_plot=conf_plot
+            )
+
+@app.route('/visual_artifacts_static', methods=['GET', 'POST'])
+def visual_artifacts_static():
+    output_folder = 'static/results'
+    os.makedirs(output_folder, exist_ok=True)
+    if request.method == 'POST':
+        file = request.files.get('file')
+        video_url = request.form.get('video_url', '').strip()
+        video_tag = uuid.uuid4().hex  # unique
+        filename = ""
+        mp4_path = ""
+
+        if video_url:
+            video_path_for_processing = download_video(video_tag, video_url)
+            if "Failed to download" in video_path_for_processing:
+                return render_template('visual_artifacts_try.html', error="Invalid video URL.")
+            filename = video_path_for_processing
+            mp4_path = ""
+        elif file:
+            if not allowed_file(file.filename, file.content_type):
+                return render_template('visual_artifacts_try.html', error="Invalid file type.")
+            filename = secure_filename(file.filename)
+            name, ext = os.path.splitext(filename)
+            new_file_name = video_tag + ext
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
+            file.save(filename)
+
+            # Convert to mp4 if needed
+            if not filename.lower().endswith('.mp4'):
+                mp4_path = os.path.splitext(filename)[0] + '.mp4'
+                convert_webm_to_mp4(filename, mp4_path)
+                video_path_for_processing = mp4_path
+                if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+                    os.remove(filename)
+            else:
+                video_path_for_processing = filename
+                mp4_path = ""
+        else:
+            return render_template('visual_artifacts_try.html', error="Please upload a file or provide a URL.")
+
+        # Process with your detection function
+        output_dir = os.path.join('static', 'results', video_tag)
+        os.makedirs(output_dir, exist_ok=True)
+        result = visual_artifacts_static_detection(video_path_for_processing, video_tag, output_dir=output_dir)
+
+        if filename and os.path.exists(filename):
+            os.remove(filename)
+        if mp4_path and os.path.exists(mp4_path):
+            os.remove(mp4_path)
+
+        if request.headers.get('Accept') == 'application/json':
+            # Example JSON response, adjust as needed
+            overall_prediction = "Fake" if any(f.get('result') == 'Fake' for f in result.get('face_results', [])) else "Real"
+            return jsonify({
+                "prediction": overall_prediction,
+                "face_results": result.get('face_results', []),
+                "video_with_boxes": result.get('video_with_boxes')
+            })
+        else:
             return render_template(
                 'result.html',
                 analysis_type='visual_artifacts',
-                face_results=face_results,
-                output_video=output_video
+                face_results=result.get('face_results', []),
+                video_with_boxes=result.get('video_with_boxes'),
             )
     return render_template('visual_artifacts_try.html')
 
 @app.route('/audio_analysis', methods=['GET', 'POST'])
 def audio_analysis():
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files.get('file')
         output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
         os.makedirs(output_folder, exist_ok=True)
         
         if file and file.filename:
+            if not allowed_file(file.filename, file.content_type):
+                return "Invalid file type"
             # Get the file extension
             original_filename = secure_filename(file.filename)
             file_extension = os.path.splitext(original_filename)[1]
@@ -338,14 +491,22 @@ def audio_analysis():
             
             prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value, uploaded_audio = predict_audio(filename, output_folder, unique_tag)
             result = "Spoof" if prediction_class == 1 else "Bonafide"
-            
-            return render_template('result.html', analysis_type='audio', result=result, 
-                                   mel_spectrogram_path=mel_spectrogram_path, 
-                                   mfcc_path=mfcc_path,
-                                   delta_path=delta_path,
-                                   f0_path=f0_path,
-                                   prediction_value=round(prediction_value*100),
-                                   uploaded_audio=uploaded_audio)
+            if request.headers.get('Accept') == 'application/json':
+                return jsonify({
+                    "prediction": result,
+                    "mel_spectrogram_path": mel_spectrogram_path,
+                    "mfcc_path": mfcc_path
+                })
+            else:
+                return render_template(
+                    'result.html', analysis_type='audio', result=result, 
+                    mel_spectrogram_path=mel_spectrogram_path, 
+                    mfcc_path=mfcc_path,
+                    delta_path=delta_path,
+                    f0_path=f0_path,
+                    prediction_value=round(prediction_value*100),
+                    uploaded_audio=uploaded_audio
+                )
     
     return render_template('audio_analysis_try.html')
     
@@ -381,12 +542,20 @@ def body_posture_detect():
     if request.method == 'POST':
         output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
         os.makedirs(output_folder, exist_ok=True)
-        file = request.files['file']
+        file = request.files.get('file')
+        video_url = request.form.get('video_url', '').strip()
+        video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
         
-        if file:
+        if video_url:
+            filename = download_video(video_tag, video_url)
+            if "Failed to download" in filename:
+                return "Invalid video URL"
+        elif file:
+            if not allowed_file(file.filename, file.content_type):
+                return "Invalid file type"
+            filename = secure_filename(file.filename)
             # Making the uploaded videos uniquely named
-            video_tag = uuid.uuid4().hex
-            name, ext = os.path.splitext(file.filename)
+            name, ext = os.path.splitext(filename)
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
@@ -410,15 +579,22 @@ def multi_detect():
 
 @app.route('/multi_detection', methods=['POST'])
 def multi_detection():
-    if "file" not in request.files:
-        return "No file uploaded", 400
+    file = request.files.get("file")
+    video_url = request.form.get('video_url', '').strip()
+    video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
 
-    file = request.files["file"]
-    video_tag = uuid.uuid4().hex
-    name, ext = os.path.splitext(file.filename)
-    new_file_name = video_tag + ext
-    filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
-    file.save(filename)
+    if video_url:
+        filename = download_video(video_tag, video_url)
+        if "Failed to download" in filename:
+            return "Invalid video URL"
+    elif file:
+        if not allowed_file(file.filename, file.content_type):
+            return "Invalid file type"
+        filename = secure_filename(file.filename)
+        name, ext = os.path.splitext(filename)
+        new_file_name = video_tag + ext
+        filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
+        file.save(filename)
 
     methods = request.form.getlist("methods")
     if not methods:
@@ -426,62 +602,144 @@ def multi_detection():
 
     output_folder = "static/results/"
 
-    def run_detection_wrapper(method, filename, output_folder, method_tag):
+    method_tag_map = {m: f"{video_tag}_{m}" for m in methods}
+
+    # Run detection methods one after another, not in parallel
+    results = {}
+    for method in methods:
+        method_tag = method_tag_map[method]
         try:
-            # Directly call detection functions, as before
-            if method == "deep_learning":
+            if method == "audio":
+                prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value, uploaded_audio = predict_audio(
+                    filename, output_folder, unique_tag=method_tag
+                )
+                if prediction_class is not None:
+                    result = {
+                        "prediction": "Fake" if prediction_class == 1 else "Real",
+                        "mel_spectrogram_path": mel_spectrogram_path,
+                        "mfcc_path": mfcc_path,
+                        "delta_path": delta_path,
+                        "f0_path": f0_path,
+                        "prediction_value": round(prediction_value * 100),
+                        "type": "audio"
+                    }
+                else:
+                    result = {"prediction": "No audio detected", "type": "audio"}
+            elif method == "deep_learning":
                 result = deep_learning_static_detection(filename, output_folder, unique_tag=method_tag, method="multi")
             elif method == "physiological":
-                result = run_physio_ml(filename, video_tag=method_tag, method="multi")
+                result = run_ml_detection(filename, video_tag=method_tag, method="multi")
             elif method == "body_posture":
                 result = detect_body_posture(filename, unique_tag=method_tag)
             elif method == "visual_artifacts":
                 result = visual_artifacts_static_detection(filename, video_tag=method_tag, output_dir=output_folder, method="multi")
             else:
                 result = "Unknown"
-            return (method, result)
+            results[method] = result
         except Exception as e:
-            # For debugging, print the traceback
+            import traceback
             print(f"[ERROR] {method} crashed:\n{traceback.format_exc()}")
-            return (method, f"error: {e}")
-
-    # Use a ProcessPoolExecutor to parallelize detection methods
-    results = {}
-    with ProcessPoolExecutor(max_workers=len(methods)) as executor:
-        # Map each method to a future
-        method_tag_map = {m: f"{video_tag}_{m}" for m in methods}
-        future_to_method = {
-            executor.submit(run_detection_wrapper, method, filename, output_folder, method_tag_map[method]): method
-            for method in methods
-        }
-        for future in as_completed(future_to_method):
-            method = future_to_method[future]
-            try:
-                method_result, result = future.result(timeout=300)  # 5 minutes max per method
-            except Exception as exc:
-                method_result, result = method, f"error: {exc}"
-            results[method_result] = result
+            results[method] = f"error: {e}"
 
     if os.path.exists(filename):
         os.remove(filename)
 
-    # Process results just as before
+    # Process results to maintain full data structure for each method
     processed_results = {}
+    
     for method, result in results.items():
         if isinstance(result, str):
-            processed_results[method] = result
-        elif isinstance(result, tuple):
-            processed_results[method] = result[0]
-        elif isinstance(result, dict) and "prediction" in result:
-            processed_results[method] = result["prediction"]
-        else:
-            processed_results[method] = "Unknown"
+            if result.startswith("error:"):
+                processed_results[method] = {"error": result, "prediction": "Error"}
+            else:
+                processed_results[method] = {"prediction": result}
+        
+        elif method == "deep_learning":
+            # Deep learning returns: (detection_result, real_count, fake_count, rvf_plot, conf_plot)
+            if isinstance(result, tuple) and len(result) >= 5:
+                detection_result, real_count, fake_count, rvf_plot, conf_plot = result
+                processed_results[method] = {
+                    "prediction": detection_result,
+                    "real_count": real_count,
+                    "fake_count": fake_count,
+                    "rvf_plot": rvf_plot,
+                    "conf_plot": conf_plot,
+                    "type": "deep_learning"
+                }
+            else:
+                processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
+        
+        elif method == "physiological":
+            # Physiological returns: (face_results, output_video)
+            if isinstance(result, tuple) and len(result) >= 2:
+                face_results, output_video = result
+                # Determine overall prediction from face results
+                if face_results:
+                    real_faces = sum(1 for face in face_results if face.get('result') == 'Real')
+                    fake_faces = sum(1 for face in face_results if face.get('result') == 'Fake')
+                    overall_prediction = "Real" if real_faces > fake_faces else "Fake" if fake_faces > 0 else "Inconclusive"
+                else:
+                    overall_prediction = "No faces detected"
+                
+                processed_results[method] = {
+                    "prediction": overall_prediction,
+                    "face_results": face_results,
+                    "output_video": output_video,
+                    "type": "physiological"
+                }
+            else:
+                processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
+        
+        elif method == "visual_artifacts":
+            # Visual artifacts returns: (face_results, output_video)
+            if isinstance(result, tuple) and len(result) >= 2:
+                face_results, output_video = result
+                # Determine overall prediction from face results
+                if face_results:
+                    real_faces = sum(1 for face in face_results if face.get('result') == 'Real')
+                    fake_faces = sum(1 for face in face_results if face.get('result') == 'Fake')
+                    overall_prediction = "Real" if real_faces > fake_faces else "Fake" if fake_faces > 0 else "Inconclusive"
+                else:
+                    overall_prediction = "No faces detected"
+                
+                processed_results[method] = {
+                    "prediction": overall_prediction,
+                    "face_results": face_results,
+                    "output_video": output_video,
+                    "type": "visual_artifacts"
+                }
+            else:
+                processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
+        
+        elif method == "body_posture":
+            # Body posture returns: {"prediction": result, "confidence": confidence}
+            if isinstance(result, dict) and "prediction" in result:
+                processed_results[method] = {
+                    "prediction": result["prediction"],
+                    "confidence": result.get("confidence"),
+                    "type": "body_posture"
+                }
+            else:
+                processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
 
-    return render_template("result.html", analysis_type='multi_detection', results=processed_results)
+        elif method == "audio":
+            # Audio result as defined above
+            if isinstance(result, dict):
+                processed_results[method] = result
+            else:
+                processed_results[method] = {"prediction": "No result", "type": "audio"}
+
+        else:
+            # Fallback for unknown methods
+            processed_results[method] = {"prediction": str(result)}
+
+    if request.headers.get('Accept') == 'application/json':
+        return jsonify(processed_results)
+    return render_template("result.html", analysis_type='multi_detection', multi_results=processed_results)
 
 if __name__ == '__main__':
     # --- Comment line below to go to development, uncomment to go to production ---
-    serve(app, host="0.0.0.0", port=5000)
+    # serve(app, host="0.0.0.0", port=5000)
 
     # --- Comment line below to go to production, uncomment to go to development ---
-    # app.run(debug=True)
+    app.run(debug=True)

@@ -12,7 +12,7 @@ import argparse
 import logging
 import random
 from tqdm import tqdm
-
+import time
 logging.basicConfig(level=logging.INFO)
 
 # Directories and model paths
@@ -34,6 +34,8 @@ face_landmarker = None
 
 def process_video(video_path, label, frame_step=1, do_augment=True):
     """Process a single video: detect faces, extract features (and augment)."""
+    logging.info(f"[{label}] Starting {video_path}")
+    start_time = time.time()
     global face_net, face_landmarker
     # Initialize models once per process
     if face_net is None:
@@ -260,7 +262,6 @@ if __name__ == "__main__":
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(REAL_IMG_DIR, exist_ok=True)
     os.makedirs(FAKE_IMG_DIR, exist_ok=True)
-
     log_path = os.path.join(OUTPUT_DIR, "processed_videos.log")
     processed_videos = set()
     if resume and os.path.exists(log_path):
@@ -288,13 +289,22 @@ if __name__ == "__main__":
         real_videos = [v for v in real_videos if v not in processed_videos]
         fake_videos = [v for v in fake_videos if v not in processed_videos]
 
-    batch_size = 1000
+    batch_size = 500
     batch_features = []
     batch_labels = []
     real_batch_index = 0
+    fake_batch_index = 0	
     count_real = 0
     count_fake = 0
-
+    real_batches = [f for f in os.listdir(OUTPUT_DIR) if f.startswith("real_data_batch_") and f.endswith(".npz")]
+    fake_batches = [f for f in os.listdir(OUTPUT_DIR) if f.startswith("fake_data_batch_") and f.endswith(".npz")]
+    if real_batches:
+    # Extract the highest index used so far
+        indices = [int(f.split("_")[-1].split(".")[0]) for f in real_batches]
+        real_batch_index = max(indices) + 1
+    if fake_batches:
+        indices = [int(f.split("_")[-1].split(".")[0]) for f in fake_batches]
+        fake_batch_index = max(indices) + 1
     logging.info(f"Found {len(real_videos)} real and {len(fake_videos)} fake videos.")
     # Open log file for appending
     with open(log_path, "a") as log_f:

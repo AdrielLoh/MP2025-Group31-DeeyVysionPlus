@@ -4,15 +4,18 @@ import numpy as np
 import subprocess
 import mediapipe as mp
 import gc
-import keras
+from tensorflow.keras.utils import register_keras_serializable
 import matplotlib.pyplot as plt
-import multiprocessing
+from tensorflow.keras.models import load_model
+import tensorflow as tf
+import json
+import collections
 
 # ========== Configuration ==========
 FACE_PROTO = 'models/weights-prototxt.txt'
 FACE_MODEL = 'models/res_ssd_300Dim.caffeModel'
-MODEL_PATH = 'models/physio_tcn_transformer_2.keras'      # <-- UPDATE THIS if you have a different model
-MODEL_CFG  = 'models/fold1_best_config.json'  # <-- Optional, use if you saved Optuna config
+MODEL_PATH = 'models/physio_deep_evaluated_9ft3.keras'
+fake_threshold = 0.49 # By youden's j index
 
 # ---- rPPG/ROI config (must match training) ----
 ROI_INDICES = {
@@ -26,11 +29,7 @@ WINDOW_SIZE = 150
 HOP_SIZE = 75
 
 # ========== Deep Model Utilities ==========
-import tensorflow as tf
-from tensorflow.keras.models import load_model
-import json
-
-@keras.saving.register_keras_serializable()
+@register_keras_serializable()
 def masked_gap(args):
     f, m = args
     seq_len = tf.shape(f)[1]
@@ -40,27 +39,6 @@ def masked_gap(args):
     denom = tf.reduce_sum(m, axis=1)
     pooled = num / tf.clip_by_value(denom, 1e-3, tf.float32.max)
     return pooled
-
-def create_inference_model(model_path, config_path=None):
-    """Load Keras TCN+Transformer model for inference."""
-    # (Slightly simplified for deployment; adjust as needed)
-    if config_path and os.path.exists(config_path):
-        with open(config_path, 'r') as f:
-            model_cfg = json.load(f)
-            model_cfg = model_cfg.get('config', model_cfg)
-    else:
-        model_cfg = {
-            'blocks': 6,
-            'filters': 64,
-            'dense_dim': 128,
-            'dropout': 0.223,
-            'n_roi_features': 15,
-            'window_size': 150
-        }
-    # You can paste your build_tcn_transformer from training.py here if needed.
-    # For deployment, we'll just load weights.
-    model = load_model(model_path, compile=False)
-    return model, model_cfg
 
 def predict_single_window(model, roi_features, window_mask):
     """Predict on a single window of ROI features."""
@@ -75,7 +53,7 @@ def predict_single_window(model, roi_features, window_mask):
 def load_face_net(proto, model):
     return cv2.dnn.readNetFromCaffe(proto, model)
 
-def detect_faces(frame, net, conf=0.5):
+def detect_faces(frame, net, conf=0.6):
     h, w = frame.shape[:2]
     blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
     net.setInput(blob)
@@ -342,42 +320,6 @@ def pad_mask(arr, win):
 def segment_windows(nframes, win=WINDOW_SIZE, hop=HOP_SIZE):
     return [(s, min(s + win, nframes)) for s in range(0, max(nframes - win + 1, 1), hop)]
 
-def interpolate_corrupted_frames(frames):
-    """
-    Replace None or corrupted frames with interpolation of prev/next valid frames.
-    Args:
-        frames: list of frames (some are None)
-    Returns:
-        new_frames: list of same length, with all frames valid
-    """
-    n = len(frames)
-    valid_indices = [i for i, f in enumerate(frames) if f is not None]
-    if not valid_indices:
-        raise ValueError("No valid frames found in video.")
-    out_frames = list(frames)
-    for idx in range(n):
-        if out_frames[idx] is not None:
-            continue
-        prev_idx = idx - 1
-        while prev_idx >= 0 and out_frames[prev_idx] is None:
-            prev_idx -= 1
-        next_idx = idx + 1
-        while next_idx < n and out_frames[next_idx] is None:
-            next_idx += 1
-        prev_frame = out_frames[prev_idx] if prev_idx >= 0 else None
-        next_frame = out_frames[next_idx] if next_idx < n else None
-        if prev_frame is not None and next_frame is not None:
-            interp = cv2.addWeighted(prev_frame, 0.5, next_frame, 0.5, 0)
-            out_frames[idx] = interp
-        elif prev_frame is not None:
-            out_frames[idx] = prev_frame.copy()
-        elif next_frame is not None:
-            out_frames[idx] = next_frame.copy()
-        else:
-            h, w, c = frames[valid_indices[0]].shape
-            out_frames[idx] = np.zeros((h, w, c), dtype=frames[valid_indices[0]].dtype)
-    return out_frames
-
 # ========== Bounding Box Output & Graphing Drawing ==========
 def draw_output(frame, face_box, prediction, confidence, track_id):
     x, y, w, h = face_box
@@ -442,7 +384,6 @@ def plot_rppg_rois(roi_signals_dict, track_id, video_tag, save_dir="static/resul
 
 # ========== Main Inference Function ==========
 def run_detection(video_path, video_tag, output_path='static/results/physio_deep_output.mp4', method="single"):
-    import collections
     output_path = f'static/results/physio_deep_output_{video_tag}.mp4'
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cap = cv2.VideoCapture(video_path)
@@ -452,8 +393,10 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     face_net = load_face_net(FACE_PROTO, FACE_MODEL)
-    model, model_cfg = create_inference_model(MODEL_PATH, MODEL_CFG)
-    window_size = model_cfg.get('window_size', 150)
+    model = load_model(MODEL_PATH)
+    window_size = WINDOW_SIZE
+
+    min_face_area_ratio=0.001 # Larger value = more restrictive face tracking 
 
     # First pass: collect all boxes per frame (for tracking)
     all_boxes = []
@@ -462,7 +405,14 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
         if not ret:
             break
         boxes = detect_faces(frame, net=face_net)
-        all_boxes.append(boxes)
+        filtered_boxes = []
+        frame_area = frame.shape[0] * frame.shape[1]
+        for box in boxes:
+            _, _, w, h = box
+            area = w * h
+            if area >= frame_area * min_face_area_ratio:
+                filtered_boxes.append(box)
+        all_boxes.append(filtered_boxes)
     cap.release()
 
     # Build tracks (face IDs)
@@ -522,7 +472,7 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
                     X_roi_combined = np.concatenate(all_roi_features, axis=-1)
                     X_mask = np.ones(window_size, dtype=np.float32)
                     prob = predict_single_window(model, X_roi_combined, X_mask)
-                    pred = 'FAKE' if prob > 0.460 else 'REAL'
+                    pred = 'FAKE' if prob > fake_threshold else 'REAL'
                 else:
                     prob = 0
                     pred = 'REAL'  # Default or "Unknown"
@@ -581,7 +531,7 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
         tid = face_result['track_id']
         face_result['roi_signal_plots'] = roi_signal_plot_paths.get(tid, {})
 
-    # Optionally, re-encode as H.264 faststart using ffmpeg
+    # re-encode as H.264 faststart using ffmpeg
     fixed_output_path = output_path.replace('.mp4', f'_fixed.mp4')
     converted_video = subprocess.run([
         'ffmpeg', '-y', '-i', output_path,
@@ -609,7 +559,3 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
 
     return face_results, output_path
 
-# Example usage:
-# results, vid = run_detection("input.mp4", video_tag="12345")
-# print(results)
-# print("Output video:", vid)

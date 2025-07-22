@@ -611,8 +611,9 @@
         padding: 2rem;
     }
 
-    .quiz-question {
-        font-size: 1.1rem;
+    .quiz-question,
+    .start-content p {
+        font-size: 1rem;
     }
 
     .results-actions {
@@ -622,6 +623,20 @@
     .retry-btn,
     .explore-btn {
         width: 100%;
+    }
+    .outcomes-card {
+        padding: 2rem 1rem;
+    }
+    .outcome-item span,
+    .quiz-options li {
+        font-size: 0.85rem;
+    }
+    .card-header h2,
+    .start-content h3 {
+        font-size: 1.5rem;
+    }
+    .start-icon {
+        font-size: 3rem;
     }
 }
 
@@ -646,4 +661,5 @@
     .quiz-options li {
         padding: 1rem;
     }
+    
 }

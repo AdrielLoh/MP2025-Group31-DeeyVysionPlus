@@ -587,27 +587,101 @@
 }
 
 /* Multi-Detection Specific */
-.method-label {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    font-weight: 500;
+/* Face Summary Styles for Multi-Detection */
+.face-summary {
+    margin-top: 2rem;
+}
+
+.face-summary h3 {
+    background: var(--secondary-gradient);
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+}
+
+.face-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.face-summary-card {
+    background: var(--dark-bg);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.face-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.face-id {
+    font-weight: 600;
+    background: var(--success-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.face-result {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.face-counts, .face-confidence {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+/* Enhanced error display */
+.error-message {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    color: #dc2626;
+    font-size: 0.9rem;
+}
+
+/* Multi-detection specific enhancements */
+.multi-detection-results .tab-navigation {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.multi-detection-results .tab-btn {
+    min-width: 120px;
+    font-size: 0.9rem;
+}
+
+.method-label {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+    display: inline-block;
 }
 
 .method-description {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
+    font-style: italic;
+    color: #6b7280;
     margin-top: 0.5rem;
-}
-
-/* Error States */
-.error-message {
-    font-size: 1.2rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin-top: 1rem;
+    font-size: 0.9rem;
 }
 
 /* Animations */

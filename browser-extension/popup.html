@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DeepVysion+ Extension</title>
+  <link rel="stylesheet" href="extension.css" />
+  <meta charset="UTF-8">
+</head>
+<body>
+  <div class="dvx-card">
+    <div class="dvx-title"><a href="http://localhost:5000">DeepVysion+</a></div>
+    <div class="dvx-desc">Detect deepfakes instantly from YouTube, video, or audio. Select your methods below.</div>
+    <div class="dvx-field">
+      <label>Upload video/audio</label>
+      <input type="file" id="fileInput" accept="video/*">
+    </div>
+    <div class="dvx-field">
+      <label>Or paste YouTube/Video URL <span style="color:#fa709a">(max 30s)</span></label>
+      <input type="text" id="videoUrl" placeholder="https://youtube.com/..." />
+    </div>
+    <div class="dvx-methods">
+      <label><input type="checkbox" class="method" value="deep_learning" checked> Deep Learning</label>
+      <label><input type="checkbox" class="method" value="physiological"> Physiological</label>
+      <label><input type="checkbox" class="method" value="visual_artifacts"> Visual Artifacts</label>
+      <label><input type="checkbox" class="method" value="body_posture"> Body Posture</label>
+      <label><input type="checkbox" class="method" value="audio"> Audio</label>
+    </div>
+    <button id="detectBtn" class="dvx-btn">Detect</button>
+    <div class="status" id="status"></div>
+    <div id="result"></div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
