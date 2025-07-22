@@ -53,7 +53,7 @@ def predict_single_window(model, roi_features, window_mask):
 def load_face_net(proto, model):
     return cv2.dnn.readNetFromCaffe(proto, model)
 
-def detect_faces(frame, net, conf=0.5):
+def detect_faces(frame, net, conf=0.6):
     h, w = frame.shape[:2]
     blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
     net.setInput(blob)
@@ -531,7 +531,7 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
         tid = face_result['track_id']
         face_result['roi_signal_plots'] = roi_signal_plot_paths.get(tid, {})
 
-    # Optionally, re-encode as H.264 faststart using ffmpeg
+    # re-encode as H.264 faststart using ffmpeg
     fixed_output_path = output_path.replace('.mp4', f'_fixed.mp4')
     converted_video = subprocess.run([
         'ffmpeg', '-y', '-i', output_path,

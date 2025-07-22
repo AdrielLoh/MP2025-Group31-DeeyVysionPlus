@@ -2199,6 +2199,12 @@ footer::after {
 }
 
 /* Responsive design for challenge page */
+@media (max-width: 1024px) {
+    /* Disable fighting game on small devices */
+    #fight-challenge-section {
+        display: none; 
+    }
+}
 @media (max-width: 768px) {
     .challenge-introduction {
         padding: 2rem 1rem;

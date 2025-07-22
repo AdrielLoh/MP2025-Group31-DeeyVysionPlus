@@ -44,7 +44,7 @@ def load_npz_batches(npz_dir):
     y = np.concatenate(all_labels, axis=0)      # [N,]
     return X, M, V, y
 
-def robust_normalize(X, mask=None, abs_max=20.0):  # very loose for debug
+def robust_normalize(X, mask=None, abs_max=20.0):
     X_new = []
     mask_new = []
     idx_keep = []
@@ -153,7 +153,7 @@ def build_rppg_model(
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
         loss='binary_crossentropy',
-        metrics=[tf.keras.metrics.AUC(name="auc"), tf.keras.metrics.BinaryAccuracy(name="acc")]
+        metrics=[tf.keras.metrics.AUC(name="auc"), tf.keras.metrics.BinaryAccuracy(name="accuracy")]
     )
     return model
 
@@ -185,7 +185,7 @@ def main(args):
     print("Val label distribution:", np.bincount(y_val.astype(int)))
 
     checkpoint_path = os.path.join(args.out_dir, 'best_model.keras')
-    initial_epoch = 19 # ===== CHANGEABLE =====
+    initial_epoch = 33 # ===== CHANGEABLE =====
     if args.eval_only:
         print("\nEVAL ONLY MODE: Loading model and evaluating on validation set...")
         model = tf.keras.models.load_model(checkpoint_path)
@@ -210,13 +210,13 @@ def main(args):
     callbacks = [
         tf.keras.callbacks.ModelCheckpoint(
             os.path.join(args.out_dir, 'best_model.keras'),
-            monitor='val_auc', save_best_only=True, mode='max', save_weights_only=False
+            monitor='val_auc', mode="max", save_best_only=True, save_weights_only=False
         ),
         tf.keras.callbacks.ReduceLROnPlateau(
-            monitor='val_auc', factor=0.5, patience=5, verbose=1, mode='max'
+            monitor='val_loss', factor=0.5, patience=5, min_lr=1e-7, verbose=1
         ),
         tf.keras.callbacks.EarlyStopping(
-            monitor='val_auc', patience=10, mode='max', restore_best_weights=True, verbose=1
+            monitor='val_auc', patience=7, mode="max", restore_best_weights=True, verbose=1
         )
     ]
     # Training
@@ -234,7 +234,6 @@ def main(args):
 def do_evaluation(model, X_val, M_val, y_val, args):
     print("Evaluating on validation set...")
     y_pred_proba = model.predict([X_val, M_val], batch_size=args.batch_size)
-    from sklearn.metrics import roc_curve, roc_auc_score, accuracy_score, classification_report, confusion_matrix
     fpr, tpr, thresholds = roc_curve(y_val, y_pred_proba)
     j_scores = tpr - fpr
     best_idx = np.argmax(j_scores)
@@ -257,19 +256,20 @@ def do_evaluation(model, X_val, M_val, y_val, args):
         f.write("\nConfusion Matrix:\n")
         f.write(str(confusion_matrix(y_val, y_pred)))
     print("Evaluation and model checkpoint saved.")
+    model.save(os.path.join(args.out_dir, "physio_deep_v2_evaluated.keras"))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, help="Directory of .npz window batches", default="/mnt/c/model_training/physio_DL_no_roi")
     parser.add_argument('--out_dir', type=str, help="Directory for output, models, metrics", default="model_training_stuff/physio_model_deeplearning/deep_learning_version_2/model")
     parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--batch_size', type=int, default=16)
-    parser.add_argument('--lr', type=float, default=0.00005)
+    parser.add_argument('--batch_size', type=int, default=32) # 16
+    parser.add_argument('--lr', type=float, default=0.000025) # 0.00005
     parser.add_argument('--dropout', type=float, default=0.2)
-    parser.add_argument('--dense_units', type=int, default=128)
+    parser.add_argument('--dense_units', type=int, default=256) # 128
     parser.add_argument('--conv_filters', nargs=3, type=int, default=[32,64,128]) # 16. 32. 64
     parser.add_argument('--kernel_sizes', nargs=3, type=int, default=[1,7,11])
-    parser.add_argument('--tcn_dilations', nargs='+', type=int, default=[1,2,4,8])
+    parser.add_argument('--tcn_dilations', nargs='+', type=int, default=[1,2,4,8,16])
     parser.add_argument('--val_ratio', type=float, default=0.2)
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--eval_only', action='store_true', help='Only evaluate saved model, do not train')

@@ -11,12 +11,11 @@ import yt_dlp
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
 from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
-from detection_scripts.physiological_signal_script import run_detection
-# from detection_scripts.physiological_dl_2 import run_detection
+from detection_scripts.physiological_signal_script import run_detection as run_dl_detection
 from detection_scripts.audio_analysis_script import predict_audio
 from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
 from detection_scripts.legacy.body_posture_script import detect_body_posture, body_posture_live_detection
-from detection_scripts.physiological_signal_ml import run_detection as run_physio_ml
+from detection_scripts.physiological_signal_ml import run_detection as run_ml_detection
 
 app = Flask(__name__)
 
@@ -258,11 +257,10 @@ def physiological_signal_try():
 
         # === Call the respective detection function ===
         if detection_method == "machine":
-            # Import if not already at top: from physiological_signal_ml import run_detection as run_physio_ml
-            face_results, output_video = run_physio_ml(video_path_for_processing, video_tag=video_tag)
+            face_results, output_video = run_ml_detection(video_path_for_processing, video_tag=video_tag)
         else:
             # Default: deep learning
-            face_results, output_video = run_detection(video_path_for_processing, video_tag=video_tag)
+            face_results, output_video = run_dl_detection(video_path_for_processing, video_tag=video_tag)
 
         if os.path.exists(filename):
             os.remove(filename)
@@ -296,7 +294,7 @@ def physiological_signal_try():
 def start_real_time_detection():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
-    face_results, output_video  = run_detection(0, is_webcam=True)
+    face_results, output_video  = run_dl_detection(0, is_webcam=True)
     return render_template('result.html', analysis_type='physiological', face_results=face_results, output_video=output_video)
 
 @app.route('/visual_artifacts_detection')
@@ -579,7 +577,7 @@ def multi_detection():
             elif method == "deep_learning":
                 result = deep_learning_static_detection(filename, output_folder, unique_tag=method_tag, method="multi")
             elif method == "physiological":
-                result = run_physio_ml(filename, video_tag=method_tag, method="multi")
+                result = run_ml_detection(filename, video_tag=method_tag, method="multi")
             elif method == "body_posture":
                 result = detect_body_posture(filename, unique_tag=method_tag)
             elif method == "visual_artifacts":

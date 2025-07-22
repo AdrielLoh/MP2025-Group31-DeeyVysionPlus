@@ -246,7 +246,7 @@ def preprocess_and_cache_balanced(real_samples, fake_samples, scaler, output_dir
         
         # ===== Process each file in the batch =====
         def try_processing(batch):
-            with multiprocessing.Pool(processes=8) as pool:
+            with multiprocessing.Pool(processes=4) as pool:
                 results = pool.map(process_single_file, [(fp, lbl, scaler) for fp, lbl in batch])
             flat_results = []
             for r in results:

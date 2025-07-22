@@ -23,6 +23,7 @@ def load_batches(batch_dir):
         return np.empty((0, 9)), np.empty((0,))
 
 # --- User: Set your directories here ---
+# ===== EDIT SUCH THAT TRAIN / VAL SPLIT IS DONE AUTOMATICALLY USING SCIKIT =====
 train_dir_real = 'D:/model_training/cache/batches/train/real'
 train_dir_fake = 'D:/model_training/cache/batches/train/fake'
 val_dir_real = 'D:/model_training/cache/batches/val/real'

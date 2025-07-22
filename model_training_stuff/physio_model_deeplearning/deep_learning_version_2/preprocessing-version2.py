@@ -344,33 +344,114 @@ def pad_mask(arr, win):
     arr = np.concatenate([arr, np.zeros(max(pad, 0))])
     return arr[:win].astype(np.float32), mask[:win].astype(np.float32)
 
-def augment_signal(sig, aug=None, strength=0.1, mask=None):
-    """Apply data augmentation to signals"""
-    if aug is None or sig.size == 0:
-        return sig.astype(np.float32)
+# ===== AUGMENTATION FUNCTIONS =====
+AUGMENTATION = {
+    "enabled": True,
+    "p_brightness": 0.25,
+    "p_contrast": 0.25,
+    "p_noise": 0.25,
+    "p_color_shift": 0.25,
+    "p_motion_blur": 0.25,
+    "p_jpeg": 0.25,
+    "p_gamma": 0.25,
+    "p_occlusion": 0.1,
+    "p_crop": 0.05,
+    "brightness": 0.10,
+    "contrast": 0.10,
+    "gaussian_noise": 5,
+    "color_shift": 10,
+    "motion_blur_max_ksize": 5,
+    "jpeg_min_quality": 60,
+    "jpeg_max_quality": 95,
+    "gamma_min": 0.7,
+    "gamma_max": 1.3,
+    "occlusion_max_frac": 0.18,
+    "crop_max_frac": 0.13,
+}
+
+def safe_clip(arr, min_val=0, max_val=255):
+    return np.clip(arr, min_val, max_val)
+
+def augment_brightness(roi, cfg):
+    try:
+        factor = 1.0 + np.random.uniform(-cfg["brightness"], cfg["brightness"])
+        return safe_clip(roi * factor)
+    except Exception:
+        return roi
+
+def augment_contrast(roi, cfg):
+    try:
+        if roi.size == 0:
+            return roi
+        mean = np.mean(roi, axis=(0, 1), keepdims=True)
+        factor = 1.0 + np.random.uniform(-cfg["contrast"], cfg["contrast"])
+        return safe_clip((roi - mean) * factor + mean)
+    except Exception:
+        return roi
+
+def augment_gaussian_noise(roi, cfg):
+    try:
+        noise = np.random.normal(0, cfg["gaussian_noise"], roi.shape)
+        return safe_clip(roi + noise)
+    except Exception:
+        return roi
+
+def augment_color_shift(roi, cfg):
+    try:
+        if len(roi.shape) != 3 or roi.shape[2] != 3:
+            return roi
+        shift = np.random.randint(-cfg["color_shift"], cfg["color_shift"] + 1, size=(1, 1, 3))
+        return safe_clip(roi + shift)
+    except Exception:
+        return roi
+
+def augment_motion_blur(roi, cfg):
+    try:
+        if roi.size == 0:
+            return roi
+        
+        ksize = 3 if cfg["motion_blur_max_ksize"] < 5 else np.random.choice([3, 5])
+        kernel = np.zeros((ksize, ksize), dtype=np.float32)
+        if np.random.rand() < 0.5:
+            kernel[ksize//2, :] = 1.0
+        else:
+            kernel[:, ksize//2] = 1.0
+        kernel /= ksize
+        
+        roi_uint8 = safe_clip(roi).astype(np.uint8)
+        blurred = cv2.filter2D(roi_uint8, -1, kernel)
+        return blurred.astype(np.float64)
+    except Exception:
+        return roi
+
+def augment_frame(roi, aug_cfg):
+    """Apply random augmentations to frame"""
+    if not aug_cfg or not aug_cfg.get("enabled", False) or roi.size == 0:
+        return safe_clip(roi).astype(np.uint8)
     
-    real_idx = mask > 0.5 if mask is not None else np.ones(sig.shape[0], bool)
-    
-    if aug == 'noise':
-        sig[real_idx] += np.random.randn(real_idx.sum()) * strength * sig[real_idx].std()
-    elif aug == 'amplitude':
-        sig[real_idx] *= (1 + strength * np.sin(np.linspace(0, 2*np.pi, real_idx.sum())))
-    elif aug == 'frequency':
-        x = np.arange(real_idx.sum())
-        shift = 1 + strength * np.random.uniform(-1, 1)
-        sig[real_idx] = np.interp(x, x * shift, sig[real_idx], left=0, right=0)
-    elif aug == 'phase':
-        shift = int(strength * real_idx.sum() * np.random.rand())
-        sig[real_idx] = np.roll(sig[real_idx], shift)
-    elif aug == 'dropout' and real_idx.sum() > 5:
-        l = max(1, int(strength * 0.25 * real_idx.sum()))
-        i = np.random.randint(0, real_idx.sum() - l + 1)
-        sig[real_idx][i:i+l] = 0
-    elif aug == 'outlier' and real_idx.sum() > 5:
-        idx = np.random.choice(real_idx.sum(), size=1)
-        sig[real_idx][idx] += 8 * sig[real_idx].std()
-    
-    return sig.astype(np.float32)
+    try:
+        roi = roi.astype(np.float64)
+        
+        augmentations = []
+        
+        if np.random.rand() < aug_cfg["p_brightness"]:
+            augmentations.append(lambda x: augment_brightness(x, aug_cfg))
+        if np.random.rand() < aug_cfg["p_contrast"]:
+            augmentations.append(lambda x: augment_contrast(x, aug_cfg))
+        if np.random.rand() < aug_cfg["p_noise"]:
+            augmentations.append(lambda x: augment_gaussian_noise(x, aug_cfg))
+        if np.random.rand() < aug_cfg["p_color_shift"]:
+            augmentations.append(lambda x: augment_color_shift(x, aug_cfg))
+        if np.random.rand() < aug_cfg["p_motion_blur"]:
+            augmentations.append(lambda x: augment_motion_blur(x, aug_cfg))
+        
+        np.random.shuffle(augmentations)
+        for func in augmentations:
+            roi = func(roi)
+        
+        return safe_clip(roi).astype(np.uint8)
+    except Exception:
+        return safe_clip(roi).astype(np.uint8)
 
 def extract_window_face_rppg_signals(frames, boxes, start, end, fps=30, augment=True, augment_chance=0.5):
     rgb_signals = []

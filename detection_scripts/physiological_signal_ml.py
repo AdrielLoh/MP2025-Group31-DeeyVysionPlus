@@ -18,7 +18,7 @@ FACE_PROTO = 'models/weights-prototxt.txt'
 FACE_MODEL = 'models/res_ssd_300Dim.caffeModel'
 face_net = cv2.dnn.readNetFromCaffe(FACE_PROTO, FACE_MODEL)
 
-def detect_faces_dnn(frame, conf_threshold=0.5):
+def detect_faces_dnn(frame, conf_threshold=0.6):
     h, w = frame.shape[:2]
     blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
     face_net.setInput(blob)

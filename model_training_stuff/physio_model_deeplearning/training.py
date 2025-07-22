@@ -483,7 +483,7 @@ def main():
             n_roi_features=n_roi_features,
             shuffle=True,
             infinite=True,
-            augment=True
+            augment=False
         ),
         output_signature=output_signature
     ).repeat().prefetch(2)
@@ -508,8 +508,8 @@ def main():
 
     best_cfg = {
         'blocks': 6,
-        'filters': 64, # 48
-        'dense_dim': 128,
+        'filters': 128, # 48
+        'dense_dim': 256,
         'lr': 0.0001,
         'batch': config.batch_size,
         'dropout': 0.2,
@@ -556,7 +556,7 @@ def main():
             )
 
         callbacks_list = [
-            callbacks.EarlyStopping(monitor="val_loss", patience=5, mode="max", restore_best_weights=True),
+            callbacks.EarlyStopping(monitor="val_auroc", patience=7, mode="max", restore_best_weights=True),
             callbacks.ModelCheckpoint(
                 f"{config.model_dir}/checkpoint_best_model.keras",
                 save_best_only=True,
@@ -566,8 +566,8 @@ def main():
             ),
             callbacks.ReduceLROnPlateau(
                 monitor="val_loss",
-                factor=0.6,
-                patience=3,
+                factor=0.5,
+                patience=5,
                 min_lr=1e-7,
                 verbose=1
             ),

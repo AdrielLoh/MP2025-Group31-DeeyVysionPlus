@@ -14,8 +14,8 @@ TRAIN_ARGS = [
     "--data_dir", "/root/model_training/cache/batches/physio-deep-v1/for-training",
     "--model_dir", "/root/model_training/physiological-model/deep-learning-1-1",
     "--log_dir", "/root/model_training/physiological-model/deep-learning-1-1/logs",
-    "--epochs", "50",
-    "--batch_size", "8"
+    "--epochs", "100",
+    "--batch_size", "32"
 ]
 
 attempt = 0

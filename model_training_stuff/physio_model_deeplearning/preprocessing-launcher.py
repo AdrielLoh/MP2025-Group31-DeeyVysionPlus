@@ -1,9 +1,9 @@
 import subprocess
 import signal 
 import sys
-def run_preprocessing(input_folder, output_folder, label, augment_chance, batch_size=40, max_workers=8):
+def run_preprocessing(input_folder, output_folder, label, augment_chance, batch_size=40, max_workers=4):
     cmd = [
-        "python", "model_training_stuff/physio_model_deeplearning/deep_learning_version_2/preprocessing-version2.py",
+        "python", "model_training_stuff/physio_model_XGBoost/preprocessing_scripts_v2/main_preprocessing.py",
         "--input", input_folder,
         "--output", output_folder,
         "--label", label,
@@ -37,29 +37,30 @@ if __name__ == "__main__":
     # Edit these paths as needed:
     fake_input = "E:/deepfake_training_datasets/Physio_Model/TRAINING/fake"
     real_input = "E:/deepfake_training_datasets/Physio_Model/TRAINING/real"
-    real_input_2 = "F:/MP-Training-Datasets/real-celebvhq/35666"
+    # real_input_2 = "F:/MP-Training-Datasets/real-celebvhq/35666"
+    real_input_2 = "E:/deepfake_training_datasets/Physio_Model/VALIDATION/real-semi-frontal"
     real_input_3 = "E:/deepfake_training_datasets/Physio_Model/TRAINING/real-semi-frontal"
-    output_dir = "C:/model_training/physio_DL_no_roi"
+    output_dir = "C:/model_training/physio_ml_22-7"
 
     # Run fake first (0.35 aug chance)
-    # run_preprocessing(
-    #     input_folder=fake_input,
-    #     output_folder=output_dir,
-    #     label="fake",
-    #     augment_chance=0.35,
-    #     batch_size=100,
-    #     max_workers=8
-    # )
+    run_preprocessing(
+        input_folder=fake_input,
+        output_folder=output_dir,
+        label="fake",
+        augment_chance=0.35,
+        batch_size=100,
+        max_workers=4
+    )
 
     # Run real next (0.65 aug chance)
-    # run_preprocessing(
-    #     input_folder=real_input,
-    #     output_folder=output_dir,
-    #     label="real",
-    #     augment_chance=0.65,
-    #     batch_size=100,
-    #     max_workers=8
-    # )
+    run_preprocessing(
+        input_folder=real_input,
+        output_folder=output_dir,
+        label="real",
+        augment_chance=0.55,
+        batch_size=100,
+        max_workers=4
+    )
 
     run_preprocessing(
         input_folder=real_input_3,
@@ -73,7 +74,7 @@ if __name__ == "__main__":
         input_folder=real_input_2,
         output_folder=output_dir,
         label="real",
-        augment_chance=0,
+        augment_chance=0.5,
         batch_size=100,
         max_workers=4
     )
