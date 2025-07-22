@@ -49,7 +49,7 @@
                 <div class="result-card audio-result">
                     <div class="result-header">
                         <div class="result-status">
-                            <h2 class="status-text" style="color: {% if result == 'Bonafide' %}#10b981{% elif result == 'Spoof' %}#ef4444{% else %}#f59e0b{% endif %};">
+                            <h2 class="status-text" style="color:{% if result == 'Bonafide' %}#10b981{% elif result == 'Spoof' %}#ef4444{% else %}#f59e0b{% endif %};">
                                 {{ result }}
                             </h2>
                             <div class="confidence-badge">
@@ -419,37 +419,78 @@
                         </div>
                     {% endif %}
                 {% endif %}
-
+            <!-- Body Posture Analysis -->
             {% elif analysis_type in ['body_posture', 'body_posture_live'] %}
-                <!-- Body Posture Detection Results -->
-                <div class="result-card posture-result">
-                    <div class="result-header">
-                        <div class="result-status">
-                            <h2 class="status-text" style="color: {% if result == 'Real' %}#10b981{% elif result == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
-                                {% if result == 'Real' %}Authentic{% elif result == 'Fake' %}Likely Deepfake{% else %}Inconclusive{% endif %}
-                            </h2>
-                            {% if analysis_type == 'body_posture' %}
-                            <div class="confidence-badge">
-                                <span class="confidence-label">Deepfake Probability:</span>
-                                <span class="confidence-value">{{ confidence }}%</span>
+                {% if results.error %}
+                    <div class="result-card error-result">
+                        <div class="result-header">
+                            <div class="result-status">
+                                <h2 class="status-text" style="color: #f59e0b;">No Faces Detected</h2>
+                                <p class="error-message">Unable to detect faces in the provided video. Please try with a clearer video containing visible faces (minimum 5 seconds recommended).</p>
                             </div>
-                            {% else %}
-                            <div class="metrics-grid">
-                                <div class="metric-item">
-                                    <span class="metric-label">Real Frames:</span>
-                                    <span class="metric-value">{{ real_count }}</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">Fake Frames:</span>
-                                    <span class="metric-value">{{ fake_count }}</span>
-                                </div>
-                            </div>
-                            {% endif %}
+                            <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
+                                <span>←</span> Try Again
+                            </button>
                         </div>
-                        <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
-                            <span>←</span> Return to Analysis
-                        </button>
                     </div>
+                {% endif %}
+                {% if analysis_type == 'body_posture' %}
+                    <div class="face-detection-results">
+                        <div class="face-tabs">
+                            <div class="tab-navigation">
+                                {% for person in results %}
+                                    <button class="tab-btn{% if loop.first %} active{% endif %}" data-tab="face-{{ person.person_id }}">
+                                        Person #{{ person.person_id }}
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% for person in results %}
+                    <div class="result-card body-posture-result tab-panel{% if loop.first %} active{% endif %}" id="face-{{ person.person_id }}">
+                        <div class="result-header">
+                            <div class="result-status">
+                                <h2>{{ person.result }}</h2>>
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <span class="metric-label">Result Confidence:</span>
+                                        <span class="metric-value">{{ person.result_confidence }}</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Person Track Length:</span>
+                                        <span class="metric-value">{{ person.track_length }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
+                                <span>←</span> Return to Analysis
+                            </button>
+                        </div>
+
+                        <div class="analysis-carousel">
+                            <div class="carousel-header">
+                                <h3>Physiological Analysis Charts</h3>
+                                <div class="carousel-controls">
+                                    <button class="carousel-btn prev" data-carousel="carousel-{{ person.person_id }}">‹</button>
+                                    <button class="carousel-btn next" data-carousel="carousel-{{ person.person_id }}">›</button>
+                                </div>
+                            </div>
+                            <div class="carousel-container" id="carousel-{{ person.person_id }}">
+                                <div class="carousel-track">
+                                    <div class="carousel-slide active">
+                                        <img src="{{ person.figure_location }}" alt="what" class="analysis-chart">
+                                        <p class="chart-description">Person Figure</p>
+                                    </div>
+                                    <div class="carousel-slide active">
+                                        <img src="{{ person.overall_figure }}" alt="what2" class="analysis-chart">
+                                        <p class="chart-description">Overall Figure</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
 
                     {% if analysis_type == 'body_posture_live' %}
                     <div class="analysis-charts">
@@ -462,6 +503,7 @@
                     </div>
                     {% endif %}
                 </div>
+                {% endif %}
 
             {% elif analysis_type == 'multi_detection' %}
                 <!-- Multi-Detection Results -->

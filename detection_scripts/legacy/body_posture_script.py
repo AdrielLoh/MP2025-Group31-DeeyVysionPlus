@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 # Define paths for storing processed files
 PROCESSED_FOLDER = "static/processed/"
 FEATURES_FOLDER = "static/features/"
-MODEL_PATH_STATIC = 'models/body_posture.keras'  
-MODEL_PATH_LIVE = 'models/body_posture_live.keras'
+MODEL_PATH_STATIC = 'models/legacy/body_posture.keras'  
+MODEL_PATH_LIVE = 'models/legacy/body_posture_live.keras'
 
 
 # Load the face detection model
