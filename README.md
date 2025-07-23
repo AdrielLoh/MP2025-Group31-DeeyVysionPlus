@@ -36,8 +36,14 @@
 
 #### **2) Microsoft Visual C++ Redistributable**
 1. Download and setup using this link: [https://aka.ms/vs/17/release/vc_redist.x86.exe]
----
 
+#### **3) Microsoft Visual C++ Build Tools >= v14.0**
+1. Download the installer using this link: [https://visualstudio.microsoft.com/visual-cpp-build-tools/]
+2. Run the installer and select the following option (keep default sub-options):
+   <img width="1280" height="639" alt="image" src="https://github.com/user-attachments/assets/2d483876-87d9-44a5-9683-7893cd0bde3c" />
+3. Install and exit after complete
+
+---
 
 ### Windows Applications to install
 These applications are for live demonstration of the project by letting you create your own deepfakes.
