@@ -40,8 +40,9 @@
 #### **3) Microsoft Visual C++ Build Tools >= v14.0**
 1. Download the installer using this link: [https://visualstudio.microsoft.com/visual-cpp-build-tools/]
 2. Run the installer and select the following option (keep default sub-options):
+   
    <img width="1280" height="639" alt="image" src="https://github.com/user-attachments/assets/2d483876-87d9-44a5-9683-7893cd0bde3c" />
-3. Install and exit after complete
+4. Install and exit after complete
 
 ---
 
@@ -54,10 +55,16 @@ These applications are for live demonstration of the project by letting you crea
 3) DeepFace Live
   [https://mega.nz/folder/m10iELBK#Y0H6BflF9C4k_clYofC7yA/file/bs9FlKrS]
 
-To start the project:
-1) run python app.py 
-2) start DeepFace Live, and turn on all the settings available
-3) start OBS and start virtual camera
+---
+
+### To start the project:
+1) `cd` to the root directory of this project
+2) Ensure you are using your intended virtual environemnt / python interpreter
+3) run the command `python app.py`
+
+**If require live deepfake generation:**
+4) start DeepFace Live, and turn on all the settings available
+5) start OBS and start virtual camera
 
 ---
 
