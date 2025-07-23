@@ -450,6 +450,46 @@
                     </div>
                 {% endif %}
                 {% if analysis_type == 'body_posture' %}
+                    <div class="result-card body-posture-result tab-panel active">
+                        <div class="result-header">
+                            <div class="result-status">
+                                <h2 class="status-text" style="color: #1e93d6">
+                                    Overall Results
+                                </h2>
+                                <div class="metrics-grid">
+                                    <div class="metric-item">
+                                        <span class="metric-label">Person Count:</span>
+                                        <span class="metric-value">{{ overall_result.person_count }}</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Overall keypoint Instability:</span>
+                                        <span class="metric-value">{{ overall_result.overall_instability }}</span>
+                                    </div>
+                                </div>
+                                <div class="analysis-carousel">
+                                    <div class="carousel-header">
+                                        <h3>Overall Body Posture Analysis Charts</h3>
+                                        <div class="carousel-controls">
+                                            <button class="carousel-btn prev" data-carousel="carousel-overall">‹</button>
+                                            <button class="carousel-btn next" data-carousel="carousel-overall">›</button>
+                                        </div>
+                                    </div>
+                                    <div class="carousel-container" id="carousel-overall">
+                                        <div class="carousel-track">
+                                            <div class="carousel-slide active">
+                                                <img src="{{ overall_result.overall_figure }}" alt="what" class="analysis-chart">
+                                                <p class="chart-description">Person Figure</p>
+                                            </div>
+                                            <div class="carousel-slide active">
+                                                <img src="{{ overall_result.overall_figure }}" alt="what2" class="analysis-chart">
+                                                <p class="chart-description">Overall Figure</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="face-detection-results">
                         <div class="face-tabs">
                             <div class="tab-navigation">
@@ -460,52 +500,66 @@
                                 {% endfor %}
                             </div>
                         </div>
-                    </div>
 
-                    {% for person in results %}
-                    <div class="result-card body-posture-result tab-panel{% if loop.first %} active{% endif %}" id="face-{{ person.person_id }}">
-                        <div class="result-header">
-                            <div class="result-status">
-                                <h2>{{ person.result }}</h2>>
-                                <div class="metrics-grid">
-                                    <div class="metric-item">
-                                        <span class="metric-label">Result Confidence:</span>
-                                        <span class="metric-value">{{ person.result_confidence }}</span>
-                                    </div>
-                                    <div class="metric-item">
-                                        <span class="metric-label">Person Track Length:</span>
-                                        <span class="metric-value">{{ person.track_length }}</span>
+                        {% for person in results %}
+                        <div class="result-card body-posture-result tab-panel{% if loop.first %} active{% endif %}" id="face-{{ person.person_id }}">
+                            <div class="result-header">
+                                <div class="result-status">
+                                    <h2 class="status-text" style="color: {% if person.result == 'Real' %}#10b981{% elif person.result == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                        {% if person.result == 'Real' %}Realistic{% elif person.result == 'Fake' %}Unrealistic{% elif person.result == 'Invalid' %}Video too short{% else %}Inconclusive{% endif %}
+                                    </h2>
+                                    <div class="metrics-grid">
+                                        <div class="metric-item">
+                                            <span class="metric-label">Result Confidence:</span>
+                                            <span class="metric-value">{{ person.result_confidence }}</span>
+                                        </div>
+                                        <div class="metric-item">
+                                            <span class="metric-label">Person Track Length:</span>
+                                            <span class="metric-value">{{ person.track_length }}</span>
+                                        </div>
                                     </div>
                                 </div>
+                                <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
+                                    <span>←</span> Return to Analysis
+                                </button>
                             </div>
-                            <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
-                                <span>←</span> Return to Analysis
-                            </button>
-                        </div>
 
-                        <div class="analysis-carousel">
-                            <div class="carousel-header">
-                                <h3>Physiological Analysis Charts</h3>
-                                <div class="carousel-controls">
-                                    <button class="carousel-btn prev" data-carousel="carousel-{{ person.person_id }}">‹</button>
-                                    <button class="carousel-btn next" data-carousel="carousel-{{ person.person_id }}">›</button>
+                            <div class="analysis-carousel">
+                                <div class="carousel-header">
+                                    <h3>Body Posture Analysis Charts</h3>
+                                    <div class="carousel-controls">
+                                        <button class="carousel-btn prev" data-carousel="carousel-{{ person.person_id }}">‹</button>
+                                        <button class="carousel-btn next" data-carousel="carousel-{{ person.person_id }}">›</button>
+                                    </div>
+                                </div>
+                                <div class="carousel-container" id="carousel-{{ person.person_id }}">
+                                    <div class="carousel-track">
+                                        <div class="carousel-slide active">
+                                            <img src="{{ person.figure_location[0] }}" alt="joint visibility" class="analysis-chart">
+                                            <p class="chart-description">Joint Visibility</p>
+                                        </div>
+                                        <div class="carousel-slide">
+                                            <img src="{{ person.figure_location[1] }}" alt="joint confidence" class="analysis-chart">
+                                            <p class="chart-description">Joint Confidence</p>
+                                        </div>
+                                        <div class="carousel-slide">
+                                            <img src="{{ person.figure_location[2] }}" alt="joint instability" class="analysis-chart">
+                                            <p class="chart-description">Joint Instability</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="carousel-container" id="carousel-{{ person.person_id }}">
-                                <div class="carousel-track">
-                                    <div class="carousel-slide active">
-                                        <img src="{{ person.figure_location }}" alt="what" class="analysis-chart">
-                                        <p class="chart-description">Person Figure</p>
-                                    </div>
-                                    <div class="carousel-slide active">
-                                        <img src="{{ person.overall_figure }}" alt="what2" class="analysis-chart">
-                                        <p class="chart-description">Overall Figure</p>
-                                    </div>
-                                </div>
+                            <div class="video-analysis">
+                                <h3>Analyzed Video</h3>
+                                <video class="analysis-video" controls muted>
+                                    {{ person.video_location }}
+                                    <source src="{{ person.video_location }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
 
                     {% if analysis_type == 'body_posture_live' %}
                     <div class="analysis-charts">

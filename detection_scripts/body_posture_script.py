@@ -169,17 +169,49 @@ class PersonTracker:
                 del self.track_frames[id2]
                 del self.last_keypoints[id2]
 
-        # remove tracks with less than 5 keypoints
+        # remove tracks with less than 20 keypoints
         for pid in list(self.tracks.keys()):
             keypoints = self.tracks[pid]
-            if len(keypoints) < 5:
+            if len(keypoints) < 20:
                 del self.tracks[pid]
                 del self.track_frames[pid]
                 del self.last_keypoints[pid]
-        
-        return self.tracks, self.track_frames
 
-    
+        # reindex
+        self.reindex_tracks()
+
+
+    def reindex_tracks(self):
+        old_ids = sorted(self.tracks.keys())
+        id_mapping = {old_id : new_id for new_id, old_id in enumerate(old_ids)}
+
+        # reindex these attributes
+        attributes = [
+            "tracks", "track_frames", "last_keypoints", # original class attributes
+            "visible_joints", "joint_visibility", "joint_confidence", "joint_instability", # retrieved stat attributes
+            "person_instability", "track_lengths", "figure_location",
+            "video_location" # plotted video attribute
+        ]
+
+        # replace attributes
+        new_data = {}
+        for attribute_name in attributes:
+            if hasattr(self, attribute_name):
+                # get attribute values
+                old_attribute = getattr(self, attribute_name)
+                new_attribute = {}
+                for old_id, new_id in id_mapping.items():
+                    if old_id in old_attribute:
+                        new_attribute[new_id] = old_attribute[old_id]
+                new_data[attribute_name] = new_attribute
+
+                # replace the attribute
+                setattr(self, attribute_name, new_attribute)
+        
+        # reset next_id lol
+        self.next_id = len(id_mapping)
+
+
 # Model Classifier
 class PoseClassifier(nn.Module):
     def __init__(self, input_size=34, hidden_size=256, num_layers=2, num_classes=2):
@@ -300,9 +332,11 @@ def plot_keypoints_video(video_path, tracker, results_folder=RESULTS_FOLDER):
     # prepare writers and frame to keypoint map
     writers = {}
     frame_keypoint_map = {} # frame_number : {person_id: keypoints}
+    tracker.video_location = {}
     for person_id in tracker.tracks.keys():
         # create writers for each person
         output_path = os.path.join(results_folder, f"{filename}_person_{person_id}.mp4")
+        tracker.video_location[person_id] = output_path
 
         writers[person_id] = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
 
@@ -353,7 +387,7 @@ def plot_keypoints_video(video_path, tracker, results_folder=RESULTS_FOLDER):
                     
                 # write to video
                 writers[person_id].write(person_frame)
-            frame_num += 1
+        frame_num += 1
     
     # finish and cleanup
     cap.release()
@@ -370,9 +404,14 @@ def get_plot_keypoints(tracker, save_location=RESULTS_FOLDER):
     tracker.joint_visiblity = {} # person_id : list of average visibility of each joint (percentage of frames where joint is visible)
     tracker.joint_confidence = {} # person_id : list of average confidence of each joint
     tracker.joint_instability = {} # person_id : list of instability of each visible joint (std dev)
+    tracker.person_instability = {} # person_id : overall instability
     tracker.track_lengths = {} # person_id : length of track
     tracker.figure_location = {} # person_id : figure location
     tracker.overall_figure = "" # overall figure location
+
+    joint_names = ['Nose', 'LEye', 'REye', 'LEar', 'REar', 'LShoulder', 'RShoulder',
+        'LElbow', 'RElbow', 'LWrist', 'RWrist', 'LHip', 'RHip', 'LKnee',
+        'RKnee', 'LAnkle', 'RAnkle']
 
     # calculate per person
     for person_id, keypoints in tracker.tracks.items():
@@ -403,39 +442,54 @@ def get_plot_keypoints(tracker, save_location=RESULTS_FOLDER):
                 tracker.joint_visiblity[person_id].append(0)
                 tracker.joint_confidence[person_id].append(0)
                 tracker.joint_instability[person_id].append(0)
+        tracker.person_instability[person_id] = np.mean([val for val in tracker.joint_instability[person_id] if val > 0])
 
         # plot person graphs
-        joint_names = ['Nose', 'LEye', 'REye', 'LEar', 'REar', 'LShoulder', 'RShoulder',
-                    'LElbow', 'RElbow', 'LWrist', 'RWrist', 'LHip', 'RHip', 'LKnee',
-                    'RKnee', 'LAnkle', 'RAnkle']
-        plt.figure(figsize=(14, 5))
+        figure_paths = []
 
         # joint visibility
-        plt.subplot(1, 3, 1)
-        plt.bar(joint_names, tracker.joint_visiblity[person_id])
-        plt.title("Joint Visibility")
+        fig, ax = plt.subplots()
+        ax.bar(joint_names, tracker.joint_visiblity[person_id])
+        ax.set_title("Joint Visibility")
         plt.xticks(rotation=45)
+        fig.tight_layout()
+
+        vis_path = os.path.join(save_location, f'person_{person_id}_visibility.png')
+        plt.savefig(vis_path)
+        plt.close(fig)
+        figure_paths.append(vis_path)
 
 
-        # confidence per joint
-        plt.subplot(1, 3, 2)
-        plt.bar(joint_names, tracker.joint_confidence[person_id])
-        plt.title("Joint Confidence")
+        # joint confidence
+        fig, ax = plt.subplots()
+        ax.bar(joint_names, tracker.joint_confidence[person_id])
+        ax.set_title("Joint Confidence")
         plt.xticks(rotation=45)
+        fig.tight_layout()
+
+        conf_path = os.path.join(save_location, f'person_{person_id}_confidence.png')
+        plt.savefig(conf_path)
+        plt.close(fig)
+        figure_paths.append(conf_path)
 
 
-        # stability per joint
-        plt.subplot(1, 3, 3)
-        plt.bar(joint_names, tracker.joint_instability[person_id])
-        plt.title("Joint Stability")
+        # joint stability
+        fig, ax = plt.subplots()
+        ax.bar(joint_names, tracker.joint_instability[person_id])
+        ax.set_title("Joint Stability")
         plt.xticks(rotation=45)
+        fig.tight_layout()
 
-        # save plots
-        plt.tight_layout()
-        plt.savefig(os.path.join(save_location, f'person_{person_id}.png'))
-        plt.clf()
-        plt.close()
-        tracker.figure_location[person_id] = os.path.join(save_location, f'person_{person_id}.png')
+        stab_path = os.path.join(save_location, f'person_{person_id}_stability.png')
+        plt.savefig(stab_path)
+        plt.close(fig)
+        figure_paths.append(stab_path)
+
+        # Store the paths in tracker
+        tracker.figure_location[person_id] = figure_paths
+
+    # get overall stats
+    tracker.overall_instability = np.mean([val for val in tracker.joint_instability[person_id] if val > 0])
     
     # plot cross-person graphs
     person_ids = list(tracker.visible_joints.keys())
@@ -524,20 +578,18 @@ def predict_deepfake(normalized_arr):
 # === Full Video Processing Pipeline ===
 def detect_body_posture(video_path):
     # Step 1: Extract Keypoints
-    keypoints_tracker = extract_keypoints(video_path)
-    keypoints_dict, frames = keypoints_tracker.merge()
-    if keypoints_dict is None:
-        return {"error": "Failed to extract keypoints"}
+    tracker = extract_keypoints(video_path)
+    tracker.merge()
     
     # Step 1.1: Plot Keypoints on Video
-    keypoints_tracker = plot_keypoints_video(video_path, keypoints_tracker)
+    tracker = plot_keypoints_video(video_path, tracker)
 
     # Step 1.2: Retrieve Keypoint Stats
-    tracker = get_plot_keypoints(keypoints_tracker)
+    tracker = get_plot_keypoints(tracker)
 
     # Step 2: Preprocess Extracted Keypoints    
     normalized_dict = {}
-    for person_id, seq in keypoints_dict.items():
+    for person_id, seq in tracker.tracks.items():
         norm_seq = normalize_keypoints(seq)
         normalized_dict[person_id] = norm_seq 
     if not normalized_dict:
@@ -548,17 +600,22 @@ def detect_body_posture(video_path):
 
     # Step 4: Return Results
     results = []
+    overall_result = {
+        "person_count" : len(tracker.tracks),
+        "overall_instability" : tracker.overall_instability,
+        "overall_figure" : tracker.overall_figure
+    }
     for person_id in tracker.tracks.keys():
         result = {
             "person_id" : person_id,
             "result" : prediction_results["results"][person_id],
             "result_confidence" : prediction_results["confidences"][person_id],
-            "track_length" : keypoints_tracker.track_lengths[person_id],
-            "joint_visiblity" : keypoints_tracker.joint_visiblity[person_id],
-            "joint_confidence" : keypoints_tracker.joint_confidence[person_id],
-            "joint_instability" : keypoints_tracker.joint_instability[person_id],
-            "figure_location" : keypoints_tracker.figure_location[person_id],
-            "overall_figure" : keypoints_tracker.overall_figure
+            "track_length" : tracker.track_lengths[person_id],
+            "joint_visiblity" : tracker.joint_visiblity[person_id],
+            "video_location" : tracker.video_location[person_id],
+            "figure_location" : tracker.figure_location[person_id],
+            "overall_figure" : tracker.overall_figure
         }
         results.append(result)
-    return results
+
+    return results, overall_result

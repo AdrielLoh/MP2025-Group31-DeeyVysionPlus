@@ -16,7 +16,6 @@ from detection_scripts.audio_analysis_script import predict_audio
 from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
 from detection_scripts.legacy.body_posture_script import body_posture_live_detection
 from detection_scripts.body_posture_script import detect_body_posture
-from detection_scripts.legacy.body_posture_script import detect_body_posture, body_posture_live_detection
 from detection_scripts.physiological_signal_ml import run_detection as run_ml_detection
 
 app = Flask(__name__)
@@ -562,13 +561,13 @@ def body_posture_detect():
 
             # Call video processing function
             from detection_scripts.body_posture_script import PersonTracker
-            results = detect_body_posture(filename)
+            results, overall_result = detect_body_posture(filename)
 
             if "error" in results:
                 print("error")
                 return render_template('result.html', analysis_type='body_posture', results=results["error"])
 
-            return render_template('result.html', analysis_type='body_posture', results=results)
+            return render_template('result.html', analysis_type='body_posture', results=results, overall_result=overall_result)
 
     return render_template('body_posture_analysis.html')
 
