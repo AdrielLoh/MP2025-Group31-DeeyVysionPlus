@@ -169,8 +169,32 @@ def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=10
                 del active_tracks[tid]
     return tracks
 
-# ========== rPPG and Signal Extraction ==========
+def letterbox_resize(frame, target_size=(640, 360), pad_color=0):
+    """
+    Resize image to fit within target_size, padding to maintain aspect ratio.
+    Returns: padded_image, scaling_factor, padding_offsets
+    """
+    h, w = frame.shape[:2]
+    tw, th = target_size
 
+    # Compute scaling factor (fit to the smallest side)
+    scale = min(tw / w, th / h)
+    new_w, new_h = int(w * scale), int(h * scale)
+    resized = cv2.resize(frame, (new_w, new_h))
+
+    # Compute padding
+    pad_w = tw - new_w
+    pad_h = th - new_h
+    top = pad_h // 2
+    bottom = pad_h - top
+    left = pad_w // 2
+    right = pad_w - left
+
+    # Pad to target size
+    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, borderType=cv2.BORDER_CONSTANT, value=pad_color)
+    return padded, scale, (left, top)
+
+# ========== rPPG and Signal Extraction ==========
 _thread_local = {}
 def get_facemesh():
     if "mp_face_mesh" not in _thread_local:
@@ -404,15 +428,21 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
         ret, frame = cap.read()
         if not ret:
             break
-        boxes = detect_faces(frame, net=face_net)
-        filtered_boxes = []
+        padded_frame, scale, (pad_left, pad_top) = letterbox_resize(frame, target_size=(640, 360), pad_color=0)
+        boxes = detect_faces(padded_frame, net=face_net)
+        # Map boxes back to original frame coordinates
+        mapped_boxes = []
         frame_area = frame.shape[0] * frame.shape[1]
-        for box in boxes:
-            _, _, w, h = box
-            area = w * h
+        for x, y, w, h in boxes:
+            # Remove padding, scale back to original
+            x_orig = int((x - pad_left) / scale)
+            y_orig = int((y - pad_top) / scale)
+            w_orig = int(w / scale)
+            h_orig = int(h / scale)
+            area = w_orig * h_orig
             if area >= frame_area * min_face_area_ratio:
-                filtered_boxes.append(box)
-        all_boxes.append(filtered_boxes)
+                mapped_boxes.append((x_orig, y_orig, w_orig, h_orig))
+        all_boxes.append(mapped_boxes)
     cap.release()
 
     # Build tracks (face IDs)

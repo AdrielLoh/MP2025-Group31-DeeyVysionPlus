@@ -5,11 +5,11 @@ import joblib
 from scipy.signal import detrend, butter, filtfilt, periodogram
 import scipy.stats
 import matplotlib.pyplot as plt
-import uuid
 import time
 import subprocess
 from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
+import mediapipe as mp
 
 # Model and face detection setup
 clf = joblib.load('models/physio_detection_xgboost_best.pkl')
@@ -129,6 +129,93 @@ def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=10
             if active_tracks[tid][2] > max_lost:
                 del active_tracks[tid]
     return tracks
+
+def letterbox_resize(frame, target_size=(640, 360), pad_color=0):
+    """
+    Resize image to fit within target_size, padding to maintain aspect ratio.
+    Returns: padded_image, scaling_factor, padding_offsets
+    """
+    h, w = frame.shape[:2]
+    tw, th = target_size
+
+    # Compute scaling factor (fit to the smallest side)
+    scale = min(tw / w, th / h)
+    new_w, new_h = int(w * scale), int(h * scale)
+    resized = cv2.resize(frame, (new_w, new_h))
+
+    # Compute padding
+    pad_w = tw - new_w
+    pad_h = th - new_h
+    top = pad_h // 2
+    bottom = pad_h - top
+    left = pad_w // 2
+    right = pad_w - left
+
+    # Pad to target size
+    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, borderType=cv2.BORDER_CONSTANT, value=pad_color)
+    return padded, scale, (left, top)
+
+def get_skin_mask_mediapipe(frame, box, face_mesh, return_landmarks=False):
+    x, y, w, h = box
+    x, y = max(x, 0), max(y, 0)
+    x2 = min(x + w, frame.shape[1])
+    y2 = min(y + h, frame.shape[0])
+    face_roi = frame[y:y2, x:x2]
+    face_roi_rgb = cv2.cvtColor(face_roi, cv2.COLOR_BGR2RGB)
+    results = face_mesh.process(face_roi_rgb)
+    mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+    landmarks_pts = []
+    if results.multi_face_landmarks:
+        for face_landmarks in results.multi_face_landmarks:
+            points = []
+            for lm in face_landmarks.landmark:
+                px = int(lm.x * w) + x
+                py = int(lm.y * h) + y
+                points.append([px, py])
+            points = np.array(points, dtype=np.int32)
+            hull = cv2.convexHull(points)
+            cv2.fillConvexPoly(mask, hull, 1)
+            landmarks_pts = points  # The full set for this face
+        if return_landmarks:
+            return mask.astype(bool), True, landmarks_pts
+        else:
+            return mask.astype(bool), True
+    else:
+        # Fallback to bounding box
+        mask[y:y2, x:x2] = 1
+        if return_landmarks:
+            return mask.astype(bool), False, []
+        else:
+            return mask.astype(bool), False
+        
+def align_face_by_eyes_and_nose(frame, landmarks_pts, box, output_size=(96, 112)):
+    # Mediapipe landmark indices
+    LEFT_EYE_IDX = 263
+    RIGHT_EYE_IDX = 33
+    NOSE_TIP_IDX = 1
+
+    # Get the 2D coordinates
+    left_eye = landmarks_pts[LEFT_EYE_IDX]
+    right_eye = landmarks_pts[RIGHT_EYE_IDX]
+    nose_tip = landmarks_pts[NOSE_TIP_IDX]
+
+    # Target positions for aligned output
+    eye_y = output_size[1] // 3
+    nose_y = output_size[1] // 2
+    eye_x_offset = output_size[0] // 4
+
+    left_eye_dst = [output_size[0] - eye_x_offset, eye_y]
+    right_eye_dst = [eye_x_offset, eye_y]
+    nose_dst = [output_size[0] // 2, nose_y]
+
+    # Source and destination points for affine transform
+    src_pts = np.array([right_eye, left_eye, nose_tip], dtype=np.float32)
+    dst_pts = np.array([right_eye_dst, left_eye_dst, nose_dst], dtype=np.float32)
+
+    # Compute affine transform (3-point)
+    M = cv2.getAffineTransform(src_pts, dst_pts)
+    aligned = cv2.warpAffine(frame, M, output_size)
+    return aligned, M
 
 def butter_bandpass_filter(signal, fs, lowcut=0.7, highcut=4.0, order=3):
     nyq = 0.5 * fs
@@ -403,6 +490,12 @@ def get_video_fps(cap):
     return fps
 
 def run_detection(video_path, video_tag, output_path=f'static/results/physio_output.mp4', method="single"):
+    face_mesh = mp.solutions.face_mesh.FaceMesh(
+        static_image_mode=True,
+        max_num_faces=1,
+        refine_landmarks=False,
+        min_detection_confidence=0.5
+    )
     output_path = f'static/results/physio_output_{video_tag}.mp4'
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cap = cv2.VideoCapture(video_path)
@@ -423,9 +516,21 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
         ret, frame = cap.read()
         if not ret:
             break
-        boxes = detect_faces_dnn(frame)
-        all_boxes.append(boxes)
-        frames.append(frame)
+        # 1. Letterbox the frame
+        padded_frame, scale, (pad_left, pad_top) = letterbox_resize(frame, target_size=(640, 360), pad_color=0)
+        boxes = detect_faces_dnn(padded_frame)
+        # 2. Map detected boxes back to original frame coordinates
+        orig_boxes = []
+        for x, y, w, h in boxes:
+            # Remove padding, scale back to original
+            x_orig = int((x - pad_left) / scale)
+            y_orig = int((y - pad_top) / scale)
+            w_orig = int(w / scale)
+            h_orig = int(h / scale)
+            orig_boxes.append((x_orig, y_orig, w_orig, h_orig))
+        all_boxes.append(orig_boxes)
+        frames.append(frame)  # keep original frame for overlay/output
+
     cap.release()
     # Track faces after collecting all boxes
     tracks = robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=100)
@@ -443,12 +548,31 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
                     if clamped is None:
                         continue
                     x, y, w, h = clamped
-                    roi = frame[y:y+h, x:x+w]
-                    if roi.size == 0:
+                    # 1. Get convex hull mask for face
+                    mask, used_hull, landmarks_pts = get_skin_mask_mediapipe(frame, (x, y, w, h), face_mesh, return_landmarks=True)
+                    if mask.sum() == 0 or len(landmarks_pts) < 468:
                         continue
-                    b, g, r = cv2.split(cv2.resize(roi, (64, 64)))
-                    rgb_mean = [np.mean(r), np.mean(g), np.mean(b)]
+                    # 2. Extract RGB means from aligned face, or fallback to unaligned if alignment fails
+                    try:
+                        aligned_face, M = align_face_by_eyes_and_nose(frame, landmarks_pts, (x, y, w, h))
+                        aligned_mask = cv2.warpAffine(mask.astype(np.uint8), M, (aligned_face.shape[1], aligned_face.shape[0])) > 0
+                        b, g, r = cv2.split(aligned_face)
+                        r_mean = np.mean(r[aligned_mask])
+                        g_mean = np.mean(g[aligned_mask])
+                        b_mean = np.mean(b[aligned_mask])
+                    except Exception as e:
+                        # fallback to unaligned mask
+                        roi = frame[y:y+h, x:x+w]
+                        local_mask = mask[y:y+h, x:x+w]
+                        if roi.size == 0 or local_mask.sum() == 0:
+                            continue
+                        b, g, r = cv2.split(roi)
+                        r_mean = np.mean(r[local_mask])
+                        g_mean = np.mean(g[local_mask])
+                        b_mean = np.mean(b[local_mask])
+                    rgb_mean = [r_mean, g_mean, b_mean]
                     face_rgb_history[track_id].append(rgb_mean)
+
                     rgb_window = np.array(face_rgb_history[track_id][-150:])
                     if rgb_window.shape[0] < 10:
                         continue
