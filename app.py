@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import os
 import logging
 import subprocess
@@ -25,6 +25,10 @@ upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
 app.config['UPLOAD_FOLDER'] = upload_folder
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 
+# ===== TOGGLE 'True' FOR DEMO MODE 'False' FOR NORMAL MODE =====
+# Demo mode disables all detection POST endpoints to prevent DoS. Only to be used when hosted website for a large audience to try
+DEMO_MODE = False
+
 # Create the directory if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
@@ -35,6 +39,7 @@ ALLOWED_MIME_TYPES = {'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/
                       'audio/flac', 'audio/x-flac'}
 MAX_VIDEO_DURATION = 30 # For URL downloads only 
 
+# ===== HELPER FUNCTIONS =====
 def allowed_file(filename, mimetype):
     ext = os.path.splitext(filename)[1].lower()
     return ext in ALLOWED_EXTENSIONS and mimetype in ALLOWED_MIME_TYPES
@@ -103,6 +108,10 @@ def download_video(video_tag, video_url):
     except Exception as e:
         return f"Failed to download video from URL: {e}"
 
+def detection_disabled_response():
+    return render_template('detection_disabled.html'), 403
+
+# ===== ENDPOINTS =====
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -208,6 +217,8 @@ def visual_artifacts_try():
 @app.route('/deep_learning_based_detection', methods=['GET', 'POST'])
 def deep_learning_based_detection():
     if request.method == 'POST':
+        if DEMO_MODE:
+            return detection_disabled_response()
         file = request.files.get('file')
         if file:
             filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
@@ -225,6 +236,8 @@ def physiological_signal_try():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
+        if DEMO_MODE:
+            return detection_disabled_response()
         file = request.files.get('file')
         detection_method = request.form.get('detection_method', 'deep')
         video_url = request.form.get('video_url', '').strip()
@@ -293,6 +306,8 @@ def physiological_signal_try():
 
 @app.route('/start_real_time_detection', methods=['POST'])
 def start_real_time_detection():
+    if DEMO_MODE:
+        return detection_disabled_response()
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
     face_results, output_video  = run_dl_detection(0, is_webcam=True)
@@ -300,6 +315,9 @@ def start_real_time_detection():
 
 @app.route('/start_visual_artifacts_detection', methods=['POST'])
 def start_visual_artifacts_detection():
+    if DEMO_MODE:
+        return detection_disabled_response()
+    
     file = request.files.get('video')
     if not file or file.filename == '':
         return "No video uploaded", 400
@@ -349,6 +367,8 @@ def audio_analysis_try_page():
 @app.route('/deep_learning_static', methods=['GET', 'POST'])
 def deep_learning_static():
     if request.method == "POST":
+        if DEMO_MODE:
+            return detection_disabled_response()
         file = request.files.get('file')
         video_url = request.form.get('video_url', '').strip()
         video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
@@ -406,6 +426,8 @@ def visual_artifacts_static():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
+        if DEMO_MODE:
+            return detection_disabled_response()
         file = request.files.get('file')
         video_url = request.form.get('video_url', '').strip()
         video_tag = uuid.uuid4().hex  # unique
@@ -470,6 +492,9 @@ def visual_artifacts_static():
 @app.route('/audio_analysis', methods=['GET', 'POST'])
 def audio_analysis():
     if request.method == 'POST':
+        if DEMO_MODE:
+            return detection_disabled_response()
+        
         file = request.files.get('file')
         output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
         os.makedirs(output_folder, exist_ok=True)
@@ -511,6 +536,8 @@ def audio_analysis():
     
 @app.route('/delete_files', methods=['POST'])
 def delete_files():
+    if DEMO_MODE:
+        return detection_disabled_response()
     try:
         upload_folder = app.config['UPLOAD_FOLDER']
         for folder_name in os.listdir(upload_folder):
@@ -539,6 +566,8 @@ def body_posture_try():
 @app.route('/body_posture_detect', methods=['GET', 'POST'])
 def body_posture_detect():
     if request.method == 'POST':
+        if DEMO_MODE:
+            return detection_disabled_response()
         output_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'results')
         os.makedirs(output_folder, exist_ok=True)
         file = request.files.get('file')
@@ -578,6 +607,8 @@ def multi_detect():
 
 @app.route('/multi_detection', methods=['POST'])
 def multi_detection():
+    if DEMO_MODE:
+        return detection_disabled_response()
     file = request.files.get("file")
     video_url = request.form.get('video_url', '').strip()
     video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named
