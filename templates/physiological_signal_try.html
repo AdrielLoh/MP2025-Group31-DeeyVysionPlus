@@ -34,12 +34,14 @@
             const tabs = document.querySelectorAll('.model-tab');
             const input = document.getElementById('detectionMethodInput');
             const input2 = document.getElementById('detectionMethodInput2');
+            const input3 = document.getElementById('detectionMethodInput3');
             tabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                     input.value = tab.getAttribute('data-method');
                     input2.value = tab.getAttribute('data-method');
+                    input3.value = tab.getAttribute('data-method');
                 });
             });
         });
@@ -106,6 +108,7 @@
             <!-- Hidden input to submit which method is selected -->
             <input type="hidden" name="detection_method" id="detectionMethodInput" value="machine" form="upload-form">
             <input type="hidden" name="detection_method" id="detectionMethodInput2" value="machine" form="webcamUploadForm">
+            <input type="hidden" name="detection_method" id="detectionMethodInput3" value="machine" form="dvurl-form">
         </div>
 
         <div class="detection-methods">
@@ -128,7 +131,7 @@
                         </p>
                     </div>
                 </div>
-                <form id="dvurl-form" class="dvurl-form" method="POST" autocomplete="off" style="display: flex; flex-direction: column; gap: 2rem;">
+                <form id="dvurl-form" name="dvurl-form" class="dvurl-form" method="POST" autocomplete="off" style="display: flex; flex-direction: column; gap: 2rem;">
                     <div class="dvurl-input-container">
                         <input type="url" name="video_url" id="dvurl-input" class="dvurl-input" 
                             placeholder="Paste video URL (e.g. https://...)" 

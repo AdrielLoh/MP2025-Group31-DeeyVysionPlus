@@ -179,9 +179,19 @@
                             <h3>The video needs to be at least 3 seconds for effective physiological features</h3>
                             {% endif %}
 
+                            {% if face.result != 'Invalid' %}
+                            <div class="video-analysis">
+                                <h3>Analyzed Video</h3>
+                                <video class="analysis-video" controls autoplay loop muted>
+                                    <source src="{{ output_video }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            {% endif %}
+
                             <div class="analysis-carousel">
                                 <div class="carousel-header">
-                                    <h3>Physiological Analysis Charts</h3>
+                                    <h3 style="color: var(--warning-gradient)">Physiological Analysis Charts</h3>
                                     <div class="carousel-controls">
                                         <button class="carousel-btn prev" data-carousel="carousel-{{ face.track_id }}">‹</button>
                                         <button class="carousel-btn next" data-carousel="carousel-{{ face.track_id }}">›</button>
@@ -260,16 +270,6 @@
                                 </div>
                                 {% endif %}
                             </div>
-                            
-                            {% if face.result != 'Invalid' %}
-                            <div class="video-analysis">
-                                <h3>Analyzed Video</h3>
-                                <video class="analysis-video" controls muted>
-                                    <source src="{{ output_video }}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                            </div>
-                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -369,9 +369,16 @@
                                         <span>←</span> Return to Analysis
                                     </button>
                                 </div>
+                                <div class="video-analysis">
+                                    <h3>Analyzed Video</h3>
+                                    <video class="analysis-video" controls autoplay loop muted>
+                                        <source src="{{ url_for('static', filename=video_with_boxes) }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
                                 <div class="analysis-carousel">
                                     <div class="carousel-header">
-                                        <h3>Visual Artifact Analysis</h3>
+                                        <h3 style="color: var(--warning-gradient)">Visual Artifact Analysis</h3>
                                         <div class="carousel-controls">
                                             <button class="carousel-btn prev" data-carousel="carousel-{{ face.track_id }}">‹</button>
                                             <button class="carousel-btn next" data-carousel="carousel-{{ face.track_id }}">›</button>
@@ -387,13 +394,6 @@
                                             {% endfor %}
                                         </div>
                                     </div>
-                                </div>
-                                <div class="video-analysis">
-                                    <h3>Analyzed Video</h3>
-                                    <video class="analysis-video" controls autoplay loop muted>
-                                        <source src="{{ url_for('static', filename=video_with_boxes) }}" type="video/mp4">
-                                        Your browser does not support the video tag.
-                                    </video>
                                 </div>
                             </div>
                             {% endfor %}
@@ -468,7 +468,7 @@
                                 </div>
                                 <div class="analysis-carousel">
                                     <div class="carousel-header">
-                                        <h3>Overall Body Posture Analysis Charts</h3>
+                                        <h3 style="color: var(--warning-gradient)">Overall Body Posture Analysis Charts</h3>
                                         <div class="carousel-controls">
                                             <button class="carousel-btn prev" data-carousel="carousel-overall">‹</button>
                                             <button class="carousel-btn next" data-carousel="carousel-overall">›</button>
@@ -523,10 +523,17 @@
                                     <span>←</span> Return to Analysis
                                 </button>
                             </div>
-
+                            <div class="video-analysis">
+                                <h3>Analyzed Video</h3>
+                                <video class="analysis-video" controls autoplay loop muted>
+                                    {{ person.video_location }}
+                                    <source src="{{ person.video_location }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
                             <div class="analysis-carousel">
                                 <div class="carousel-header">
-                                    <h3>Body Posture Analysis Charts</h3>
+                                    <h3 style="color: var(--warning-gradient)">Body Posture Analysis Charts</h3>
                                     <div class="carousel-controls">
                                         <button class="carousel-btn prev" data-carousel="carousel-{{ person.person_id }}">‹</button>
                                         <button class="carousel-btn next" data-carousel="carousel-{{ person.person_id }}">›</button>
@@ -549,14 +556,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="video-analysis">
-                                <h3>Analyzed Video</h3>
-                                <video class="analysis-video" controls muted>
-                                    {{ person.video_location }}
-                                    <source src="{{ person.video_location }}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -564,7 +563,7 @@
                     {% if analysis_type == 'body_posture_live' %}
                     <div class="analysis-charts">
                         <div class="chart-item">
-                            <h3>Posture Analysis</h3>
+                            <h3 style="color: var(--warning-gradient)">Posture Analysis</h3>
                             <div class="chart-container">
                                 <img src="{{ url_for('static', filename='results/frames_real_vs_fake.png') }}" alt="Posture Analysis" class="analysis-chart">
                             </div>
@@ -733,7 +732,7 @@
                             {% if data.output_video %}
                             <div class="video-analysis">
                                 <h3>Analyzed Video</h3>
-                                <video class="analysis-video" controls muted>
+                                <video class="analysis-video" controls autoplay loop muted>
                                     <source src="{{ data.output_video }}" type="video/mp4">
                                     Your browser does not support the video tag.
                                 </video>
