@@ -20,10 +20,13 @@ logger = logging.getLogger(__name__)
 
 # Suppress warnings
 warnings.filterwarnings('ignore')
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 # ===== Seeding ======
-np.random.seed(42)
-random.seed(42)
+# np.random.seed(43) # 42
+# random.seed(43) # 42
+ 
+MIN_FRAMES = 120
 
 # --- Augmentation Config ---
 AUGMENTATION = {
@@ -31,10 +34,10 @@ AUGMENTATION = {
     # Probabilities
     "p_brightness": 0.25,
     "p_contrast": 0.25,
-    "p_noise": 0.25,
+    "p_noise": 0.28,
     "p_color_shift": 0.25,
-    "p_motion_blur": 0.25,
-    "p_jpeg": 0.2,
+    "p_motion_blur": 0.2,
+    "p_jpeg": 0.22,
     "p_gamma": 0.15,
     "p_occlusion": 0.1,
     "p_crop": 0.05,
@@ -216,46 +219,36 @@ def augment_random_crop(roi, cfg):
         logger.warning(f"Random crop augmentation failed: {e}")
         return roi
 
-def augment_frame(roi, aug_cfg):
-    """Apply random augmentations to frame"""
-    if not aug_cfg or not aug_cfg.get("enabled", False) or roi.size == 0:
-        return safe_clip(roi).astype(np.uint8)
+def choose_window_augmentations(aug_cfg):
+    """Randomly select a set of augmentations and order for the whole window"""
+    augmentations = []
+    if np.random.rand() < aug_cfg["p_brightness"]:
+        augmentations.append(lambda x: augment_brightness(x, aug_cfg))
+    if np.random.rand() < aug_cfg["p_contrast"]:
+        augmentations.append(lambda x: augment_contrast(x, aug_cfg))
+    if np.random.rand() < aug_cfg["p_noise"]:
+        augmentations.append(lambda x: augment_gaussian_noise(x, aug_cfg))
+    if np.random.rand() < aug_cfg["p_color_shift"]:
+        augmentations.append(lambda x: augment_color_shift(x, aug_cfg))
+    if np.random.rand() < aug_cfg["p_motion_blur"]:
+        augmentations.append(lambda x: augment_motion_blur(x, aug_cfg))
+    if np.random.rand() < aug_cfg["p_jpeg"]:
+        augmentations.append(lambda x: augment_jpeg_compression(x, aug_cfg))
+    if np.random.rand() < aug_cfg["p_gamma"]:
+        augmentations.append(lambda x: augment_gamma(x, aug_cfg))
+    if np.random.rand() < aug_cfg["p_occlusion"]:
+        augmentations.append(lambda x: augment_occlusion(x, aug_cfg))
+    # Temporarily disabled cropping
+    # if np.random.rand() < aug_cfg["p_crop"]:
+    #     augmentations.append(lambda x: augment_random_crop(x, aug_cfg))
+    np.random.shuffle(augmentations)
     
-    try:
-        # Convert to float for processing
-        roi = roi.astype(np.float64)
-        
-        # Apply augmentations randomly
-        augmentations = []
-        
-        if np.random.rand() < aug_cfg["p_brightness"]:
-            augmentations.append(lambda x: augment_brightness(x, aug_cfg))
-        if np.random.rand() < aug_cfg["p_contrast"]:
-            augmentations.append(lambda x: augment_contrast(x, aug_cfg))
-        if np.random.rand() < aug_cfg["p_noise"]:
-            augmentations.append(lambda x: augment_gaussian_noise(x, aug_cfg))
-        if np.random.rand() < aug_cfg["p_color_shift"]:
-            augmentations.append(lambda x: augment_color_shift(x, aug_cfg))
-        if np.random.rand() < aug_cfg["p_motion_blur"]:
-            augmentations.append(lambda x: augment_motion_blur(x, aug_cfg))
-        if np.random.rand() < aug_cfg["p_jpeg"]:
-            augmentations.append(lambda x: augment_jpeg_compression(x, aug_cfg))
-        if np.random.rand() < aug_cfg["p_gamma"]:
-            augmentations.append(lambda x: augment_gamma(x, aug_cfg))
-        if np.random.rand() < aug_cfg["p_occlusion"]:
-            augmentations.append(lambda x: augment_occlusion(x, aug_cfg))
-        if np.random.rand() < aug_cfg["p_crop"]:
-            augmentations.append(lambda x: augment_random_crop(x, aug_cfg))
-        
-        # Shuffle and apply augmentations
-        np.random.shuffle(augmentations)
-        for func in augmentations:
-            roi = func(roi)
-        
-        return safe_clip(roi).astype(np.uint8)
-    except Exception as e:
-        logger.warning(f"Frame augmentation failed: {e}")
-        return safe_clip(roi).astype(np.uint8)
+    return augmentations
+
+def apply_augmentations(roi, augmentations):
+    for func in augmentations:
+        roi = func(roi)
+    return roi
 
 # === rPPG multi-method and extended feature extraction ===
 def safe_normalize(arr, axis=None, epsilon=1e-8):
@@ -402,10 +395,73 @@ def butter_bandpass_filter(signal, fs, lowcut=0.7, highcut=4.0, order=3):
         logger.warning(f"Bandpass filter failed: {e}")
         return signal
 
-def compute_rppg_features_multi(rgb_signal, fs):
-    """Compute rPPG features using multiple methods with NaN-aware operations (v2 recipe)"""
+
+def validate_rppg_features_simple(features, method_hr_bpm_values, method_snr_values):
+    """
+    NaN-aware sanity checks for rPPG features - only check clear garbage indicators
+    
+    Returns:
+        is_valid (bool): Whether features pass basic sanity checks
+        failure_reason (str): Single reason for failure (for debugging)
+    """
     try:
-        if rgb_signal.size == 0 or rgb_signal.shape[0] < 100:
+        # 1. Basic feature validity
+        if features is None or len(features) == 0:
+            return False, "Empty features"
+        if np.any(np.isnan(features)) or np.any(np.isinf(features)):
+            return False, "NaN/Inf in features"
+        
+        # 2. Check for NaN/Inf in features (this should not happen after proper processing)
+        if np.any(np.isnan(features)) or np.any(np.isinf(features)):
+            nan_count = np.sum(np.isnan(features))
+            inf_count = np.sum(np.isinf(features))
+            return False, f"NaN/Inf in features (NaN: {nan_count}, Inf: {inf_count})"
+        
+        # 3. At least one method should detect reasonable HR (using NaN-aware operations)
+        hr_values = np.array(method_hr_bpm_values)
+        # Remove NaN values before checking validity
+        hr_values_clean = hr_values[~np.isnan(hr_values)]
+        if len(hr_values_clean) == 0:
+            return False, "All HR values are NaN"
+        
+        valid_hr_count = np.sum((hr_values_clean >= 30) & (hr_values_clean <= 210) & (hr_values_clean > 0))
+        if valid_hr_count == 0:
+            return False, f"No valid HR detected (range: {np.min(hr_values_clean):.1f}-{np.max(hr_values_clean):.1f})"
+        
+        # 4. At least one method should have decent SNR (using NaN-aware operations)
+        snr_values = np.array(method_snr_values)
+        # Remove NaN values before checking validity
+        snr_values_clean = snr_values[~np.isnan(snr_values)]
+        if len(snr_values_clean) == 0:
+            return False, "All SNR values are NaN"
+        
+        # 5. Features shouldn't be all zeros (dead signal) - use NaN-aware operations
+        feature_abs_sum = np.nansum(np.abs(features))
+        if feature_abs_sum < 1e-6:
+            return False, "Zero features"
+        
+        # 6. Features should have some variance (not all identical) - use NaN-aware operations
+        feature_std = np.nanstd(features)
+        if feature_std < 1e-6:
+            return False, "No feature variance"
+        
+        # 7. Check that we don't have too many extreme outliers in features
+        finite_features = features[np.isfinite(features)]
+        if len(finite_features) < len(features) * 0.7:
+            return False, f"Too many non-finite features ({len(finite_features)}/{len(features)})"
+        
+        return True, "Valid"
+        
+    except Exception as e:
+        return False, f"Validation error: {str(e)}"
+    
+def compute_rppg_features_multi(rgb_signal, fs):
+    """
+    Compute rPPG features using multiple methods with simple sanity checks
+    """
+    try:
+        if rgb_signal.size == 0 or rgb_signal.shape[0] < MIN_FRAMES:
+            logger.warning("RGB signal too short or empty")
             return np.zeros(114, dtype=np.float32), 0, np.zeros(rgb_signal.shape[0]), np.array([]), np.array([])
         
         f, pxx = np.array([]), np.array([])
@@ -442,15 +498,19 @@ def compute_rppg_features_multi(rgb_signal, fs):
 
         # Feature collection
         all_features = []
-        rppg_signals = []  # To keep filtered signals for correlation
+        rppg_signals = []
         mean_bpm = 0
+        method_hr_bpm_values = []  # For sanity checking
+        method_snr_values = []     # For sanity checking
+        
         # Per-method feature extraction
         for method in method_names:
             rppg_sig = rppg_methods[method]
             rppg_signals.append(rppg_sig)
             if len(rppg_sig) <= 21 or np.all(np.isnan(rppg_sig)):
-                # 30 features for missing signal
                 all_features.extend([0]*29)
+                method_hr_bpm_values.append(0)
+                method_snr_values.append(0)
                 continue
 
             # Bandpass filter
@@ -490,6 +550,10 @@ def compute_rppg_features_multi(rgb_signal, fs):
                 hr_freq = hr_bpm = hr_power = snr = 0
                 band_powers = [0]*6
 
+            # Store for sanity checking
+            method_hr_bpm_values.append(hr_bpm)
+            method_snr_values.append(snr)
+
             # Signal shape/stats
             ac_peak = compute_autocorrelation(sig_filt)
             ent = compute_entropy(sig_filt)
@@ -501,13 +565,12 @@ def compute_rppg_features_multi(rgb_signal, fs):
             rms = np.sqrt(np.nanmean(sig_filt**2))
             coeff_var = std / (mean + 1e-8) if abs(mean) > 1e-8 else 0
             tkeo = np.nanmean(np.square(sig_filt[1:-1]) - sig_filt[:-2]*sig_filt[2:]) if len(sig_filt) > 2 else 0
+            
             # Sample entropy and spectral flatness
             try:
                 samp_ent = sample_entropy(sig_filt)
-                # Manual spectral flatness calculation
                 if len(sig_clean) > 10:
                     _, psd = periodogram(sig_clean, fs)
-                    # Spectral flatness = geometric mean / arithmetic mean
                     if len(psd) > 0 and np.all(psd > 0):
                         geometric_mean = np.exp(np.mean(np.log(psd + 1e-12)))
                         arithmetic_mean = np.mean(psd)
@@ -540,14 +603,12 @@ def compute_rppg_features_multi(rgb_signal, fs):
 
         # Inter-method correlations (6 features)
         corr_features = []
-        # Re-filter for all three signals for fair correlation (after same processing as above)
         signals_for_corr = []
         for method in method_names:
             rppg_sig = rppg_methods[method]
             sig_filt = butter_bandpass_filter(rppg_sig, fs)
             signals_for_corr.append(sig_filt)
 
-        # Helper to calculate valid pairwise correlation ignoring NaNs
         def nan_corr(a, b, method="pearson"):
             valid = ~np.isnan(a) & ~np.isnan(b)
             if np.sum(valid) < 8:
@@ -558,32 +619,28 @@ def compute_rppg_features_multi(rgb_signal, fs):
                 return scipy.stats.spearmanr(a[valid], b[valid])[0]
             return 0
 
-        # CHROM–GREEN
         corr_features.append(nan_corr(signals_for_corr[0], signals_for_corr[2], "pearson"))
-        # CHROM–POS
         corr_features.append(nan_corr(signals_for_corr[0], signals_for_corr[1], "pearson"))
-        # POS–GREEN
         corr_features.append(nan_corr(signals_for_corr[1], signals_for_corr[2], "pearson"))
-        # Spearman
         corr_features.append(nan_corr(signals_for_corr[0], signals_for_corr[2], "spearman"))
         corr_features.append(nan_corr(signals_for_corr[0], signals_for_corr[1], "spearman"))
         corr_features.append(nan_corr(signals_for_corr[1], signals_for_corr[2], "spearman"))
 
-        # === Temporal/Aggregated Features  ===
-        # Gather per-method stats for aggregation
+        all_features.extend(corr_features)
+
+        # === Temporal/Aggregated Features ===
         hr_bpm_arr = []
         snr_arr = []
         band_ratio_arr = []
         hr_valid_arr = []
         
-        # Extract features from each method safely
-        for method_idx in range(3):  # CHROM, POS, GREEN
+        for method_idx in range(3):
             start_idx = method_idx * 29
-            if start_idx + 28 < len(all_features):  # Ensure have enough features
-                hr_bpm_arr.append(all_features[start_idx + 6])      # hr_bpm is 7th feature
-                snr_arr.append(all_features[start_idx + 8])         # snr is 9th feature  
-                band_ratio_arr.append(all_features[start_idx + 19]) # band_ratio is 20th feature
-                hr_valid_arr.append(all_features[start_idx + 28])   # hr_valid is 29th feature
+            if start_idx + 28 < len(all_features):
+                hr_bpm_arr.append(all_features[start_idx + 6])
+                snr_arr.append(all_features[start_idx + 8])
+                band_ratio_arr.append(all_features[start_idx + 19])
+                hr_valid_arr.append(all_features[start_idx + 28])
             else:
                 hr_bpm_arr.extend([np.nan])
                 snr_arr.extend([np.nan])
@@ -595,7 +652,7 @@ def compute_rppg_features_multi(rgb_signal, fs):
         band_ratio_arr = np.array(band_ratio_arr)
         hr_valid_arr = np.array(hr_valid_arr)
 
-        # Compute dropouts (valid to invalid transitions)
+        # Compute dropouts
         hr_valid_bool = hr_valid_arr > 0
         num_dropouts = 0
         if np.any(~np.isnan(hr_bpm_arr)):
@@ -609,7 +666,7 @@ def compute_rppg_features_multi(rgb_signal, fs):
 
         prop_valid_hr = np.sum(hr_valid_bool) / len(hr_valid_bool) if len(hr_valid_bool) > 0 else 0
 
-        # Temporal statistics (all NaN-safe)
+        # Temporal statistics
         hr_std = np.nanstd(hr_bpm_arr)
         hr_delta = np.nanmean(np.abs(np.diff(hr_bpm_arr)))
         hr_min = np.nanmin(hr_bpm_arr)
@@ -621,30 +678,37 @@ def compute_rppg_features_multi(rgb_signal, fs):
         band_ratio_mean = np.nanmean(band_ratio_arr)
 
         temporal_feats = [
-            hr_std,
-            hr_delta,
-            hr_min,
-            hr_max,
-            num_dropouts,
-            prop_valid_hr,
-            snr_std,
-            snr_min,
-            snr_max,
-            band_ratio_std,
-            band_ratio_mean
+            hr_std, hr_delta, hr_min, hr_max, num_dropouts, prop_valid_hr,
+            snr_std, snr_min, snr_max, band_ratio_std, band_ratio_mean
         ]
 
         all_features.extend(temporal_feats)
 
-        # Proportion of NaNs in the input window (across all RGB channels)
+        # Additional features
         prop_nan_window = np.isnan(rgb_signal).sum() / np.prod(rgb_signal.shape)
-        all_features.append(prop_nan_window)
+        prop_low_snr_methods = np.mean(snr_arr < 1)
+        all_features.extend([prop_nan_window, prop_low_snr_methods])
 
-        # Proportion of methods (out of 3) with SNR < 1
-        prop_low_snr_methods = np.mean(snr_arr < 1)  # Threshold can be tuned
-        all_features.append(prop_low_snr_methods)
-
-        return (np.array(all_features, dtype=np.float32), mean_bpm/3, rppg_methods["CHROM"], f if 'f' in locals() else np.array([]), pxx if 'pxx' in locals() else np.array([]))
+        # Convert to numpy array
+        features_array = np.array(all_features, dtype=np.float32)
+        
+        # ===== SIMPLE SANITY CHECKS =====
+        is_valid, failure_reason = validate_rppg_features_simple(
+            features_array, method_hr_bpm_values, method_snr_values
+        )
+        
+        if not is_valid:
+            logger.warning(f"rPPG features rejected: {failure_reason}")
+            # Return zeros for invalid features
+            return np.zeros(114, dtype=np.float32), 0, np.zeros(rgb_signal.shape[0]), np.array([]), np.array([])
+        
+        return (
+            features_array, 
+            mean_bpm/3, 
+            rppg_methods["CHROM"], 
+            f if 'f' in locals() else np.array([]), 
+            pxx if 'pxx' in locals() else np.array([])
+        )
 
     except Exception as e:
         logger.error(f"rPPG feature computation failed: {e}")
@@ -779,6 +843,32 @@ def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=10
                 del active_tracks[tid]
     return tracks
 
+def letterbox_resize(frame, target_size=(640, 360), pad_color=0):
+    """
+    Resize image to fit within target_size, padding to maintain aspect ratio.
+    Returns: padded_image, scaling_factor, padding_offsets
+    """
+    h, w = frame.shape[:2]
+    tw, th = target_size
+
+    # Compute scaling factor (fit to the smallest side)
+    scale = min(tw / w, th / h)
+    new_w, new_h = int(w * scale), int(h * scale)
+    resized = cv2.resize(frame, (new_w, new_h))
+
+    # Compute padding
+    pad_w = tw - new_w
+    pad_h = th - new_h
+    top = pad_h // 2
+    bottom = pad_h - top
+    left = pad_w // 2
+    right = pad_w - left
+
+    # Pad to target size
+    padded = cv2.copyMakeBorder(resized, top, bottom, left, right,
+                               borderType=cv2.BORDER_CONSTANT, value=pad_color)
+    return padded, scale, (left, top)
+
 def create_facemesh():
     return mp.solutions.face_mesh.FaceMesh(
         static_image_mode=True,
@@ -911,7 +1001,7 @@ def preprocess_video_worker(args):
                 break
             
             # Resize frame
-            frame = cv2.resize(frame, (640, 360))
+            frame, scale, (pad_left, pad_top) = letterbox_resize(frame, (640, 360))
             
             # Detect faces
             boxes = detect_faces_dnn(frame, face_net)
@@ -923,13 +1013,12 @@ def preprocess_video_worker(args):
         if cap is not None:
             cap.release()
         
-        if len(frames) < 100:
-            logger.warning(f"Video {os.path.basename(video_path)} too short: {len(frames)} frames < {100}")
+        if len(frames) < MIN_FRAMES:
+            logger.warning(f"Video {os.path.basename(video_path)} too short: {len(frames)} frames < {MIN_FRAMES}")
             return (None, 0, os.path.basename(video_path), 0, len(frames))
 
         # Track faces
         tracks = robust_track_faces(all_boxes)
-        logger.info(f"DEBUG: {os.path.basename(video_path)} - Found {len(tracks)} tracks")
 
         if not tracks or len(tracks) < 1:
             logger.warning(f"No valid face tracks found in {os.path.basename(video_path)}")
@@ -975,11 +1064,14 @@ def preprocess_video_worker(args):
                     else:
                         rgb_windows = np.empty((0, window_size, 3))
                         window_lengths = []
-                    logger.info(f"DEBUG: Created {len(rgb_windows)} windows for track {track_id}")
                 
                 for win_idx, win in enumerate(rgb_windows):
                     if win.size > 0:
                         is_aug = AUGMENTATION and AUGMENTATION.get("enabled", False) and random.random() < aug_chance
+                        if is_aug:
+                            chosen_augs = choose_window_augmentations(AUGMENTATION)
+                        else:
+                            chosen_augs = []
                         # Get frame indices for this window
                         frame_indices = range(win_idx * hop_size, win_idx * hop_size + window_size)
                         window_face_areas = [face_areas[idx] if idx < len(face_areas) else 0 for idx in frame_indices]
@@ -997,8 +1089,8 @@ def preprocess_video_worker(args):
                                 if x2 > x and y2 > y:
                                     mask = per_frame_skin_masks[idx]
                                     roi = frames[idx][y:y2, x:x2]
-                                    if is_aug:
-                                        roi = augment_frame(roi, AUGMENTATION)
+                                    if is_aug and chosen_augs:
+                                        roi = apply_augmentations(roi, chosen_augs)
                                     if mask is not None and roi.size > 0 and len(roi.shape) == 3 and roi.shape[2] == 3:
                                         masked_pixels = mask[y:y2, x:x2]
                                         if np.any(masked_pixels):
@@ -1021,8 +1113,7 @@ def preprocess_video_worker(args):
                         win_arr = np.array(window_rgb, dtype=np.float32)
                         # Compute valid frame ratio
                         valid_ratio = np.sum(~np.isnan(win_arr[:,0])) / window_size
-                        logger.info(f"DEBUG: Window {win_idx} valid_ratio={valid_ratio:.3f}")
-                        if valid_ratio < 0.67:
+                        if valid_ratio < 0.8:
                             continue
                         # Add window_length as a feature
                         window_length_feat = window_lengths[win_idx] if win_idx < len(window_lengths) else window_size
@@ -1036,15 +1127,13 @@ def preprocess_video_worker(args):
                             # Window length as feature
                             rppg_feat = np.concatenate([rppg_feat, [window_length_feat]])
                             rppg_features_all_tracks.append(rppg_feat)
-
-                logger.info(f"DEBUG: Track {track_id} contributed {len(rppg_features_all_tracks)} samples")
             except Exception as e:
                 logger.warning(f"Track processing failed for track {track_id} in {os.path.basename(video_path)}: {e}")
                 continue
 
         if rppg_features_all_tracks:
             rppg_features_all_tracks = np.stack(rppg_features_all_tracks, axis=0)
-            logger.info(f"DEBUG - Processing done for {os.path.basename(video_path)}")
+            logger.info(f"DEBUG - Processing successfully done for {os.path.basename(video_path)}")
             return (
                 rppg_features_all_tracks,
                 rppg_features_all_tracks.shape[0],
@@ -1064,9 +1153,9 @@ def preprocess_video_worker(args):
             cap.release()
         gc.collect()
 
-def cache_batches_parallel(video_dir, label, class_idx, batch_size=128, cache_dir='cache/batches/train',
-                          window_size=150, hop_size=75, max_workers=None, start_batch_idx=0, aug_chance=0.5):
-    """Process videos in parallel and cache batches"""
+# ===== This the main function =====
+def cache_batches_parallel(video_dir, label, class_idx, batch_size=128, cache_dir='cache/batches/train', window_size=150, hop_size=75, max_workers=None, start_batch_idx=0, aug_chance=0.5):
+    """Process videos in parallel and cache batches with immediate saving and memory optimization"""
     try:
         # Validate inputs
         if not os.path.exists(video_dir):
@@ -1100,143 +1189,178 @@ def cache_batches_parallel(video_dir, label, class_idx, batch_size=128, cache_di
         
         logger.info(f"Found {len(file_list)} video files for {label}")
         
-        # Initialize batch storage
-        X_feat, y = [], []
+        # Initialize batch storage with minimal memory footprint
+        current_batch_features = []
+        current_batch_labels = []
+        current_batch_videos = []
+        current_batch_size = 0
         batch_idx = start_batch_idx
+        
+        # Tracking variables
+        processed_count = 0
+        failed_count = 0
+        all_success_videos = []
+        failed_videos = []
+        
+        def save_current_batch():
+            """Helper function to save current batch and reset buffers"""
+            nonlocal current_batch_features, current_batch_labels, current_batch_videos
+            nonlocal current_batch_size, batch_idx
+            
+            if current_batch_size == 0:
+                return
+                
+            # Stack features and labels
+            try:
+                Xf = np.concatenate(current_batch_features, axis=0)
+                Y = np.concatenate(current_batch_labels, axis=0)
+                
+                # Save batch files
+                batch_path_x = os.path.join(cache_dir, f"{label}_Xrppg_batch_{batch_idx}.npy")
+                batch_path_y = os.path.join(cache_dir, f"{label}_y_batch_{batch_idx}.npy")
+                
+                np.save(batch_path_x, Xf)
+                np.save(batch_path_y, Y)
+                logger.info(f"Saved batch {batch_idx}: {Xf.shape[0]} samples from {len(current_batch_videos)} videos")
+                
+                # Log successful videos for this batch
+                log_file = os.path.join(cache_dir, f"success_{label}_batch_{batch_idx}.txt")
+                with open(log_file, "w") as f:
+                    for vidname in current_batch_videos:
+                        f.write(f"{vidname}\n")
+                
+                batch_idx += 1
+                
+                # Clear memory immediately
+                del Xf, Y
+                
+            except Exception as e:
+                logger.error(f"Failed to save batch {batch_idx}: {e}")
+            finally:
+                # Reset batch buffers
+                current_batch_features.clear()
+                current_batch_labels.clear()
+                current_batch_videos.clear()
+                current_batch_size = 0
+                gc.collect()  # Force garbage collection
         
         # Create worker tasks
         tasks = [(video_path, window_size, hop_size, aug_chance) for video_path in file_list]
         
         logger.info(f"Using 4 workers for {label} ({len(file_list)} videos)")
-        
-        # Process videos in parallel
-        processed_count = 0
-        failed_count = 0
-        successful_videos = []
-        failed_videos = []
-        all_success_videos = []
-        
-        with ProcessPoolExecutor(max_workers=4) as executor:
-            results = list(
-                tqdm(
-                    executor.map(preprocess_video_worker, tasks),
-                    total=len(tasks),
-                    desc=f"Processing {label}"
-                )
-            )
 
+        # Process in chunks to manage memory better
+        chunk_size = 500  # Process x num of videos at a time
+        # Process videos in parallel with immediate batch saving         
+        for chunk_start in range(0, len(tasks), chunk_size):
+            chunk_end = min(chunk_start + chunk_size, len(tasks))
+            chunk_tasks = tasks[chunk_start:chunk_end]
+            
+            logger.info(f"Processing chunk {chunk_start//chunk_size + 1}/{(len(tasks)-1)//chunk_size + 1}")
+            
+            # Process chunk
+            with ProcessPoolExecutor(max_workers=4) as executor:
+                results = list(
+                    tqdm(
+                        executor.map(preprocess_video_worker, chunk_tasks),
+                        total=len(chunk_tasks),
+                        desc=f"Processing {label} chunk"
+                    )
+                )
+            
+            # Process results immediately
             for feats, count, vname, _, n_frames in results:
                 if feats is None or count == 0:
                     logger.warning(f"{vname}: No valid features extracted (frames: {n_frames})")
                     failed_videos.append(vname)
                     failed_count += 1
                     continue
-
+                
                 processed_count += 1
-                X_feat.append(feats)
-                y.append(np.full((feats.shape[0],), class_idx, dtype=np.int32))
-                successful_videos.append(vname)  # Only add here, after processing success
                 all_success_videos.append(vname)
-
-                # Check if we have enough samples for a batch
-                total_samples = sum([arr.shape[0] for arr in X_feat])
-
-                while total_samples >= batch_size:
-                    Xf, Y = [], []
-                    collected = 0
+                
+                # Split features into samples and add to current batch
+                labels = np.full((feats.shape[0],), class_idx, dtype=np.int32)
+                
+                samples_to_add = feats.shape[0]
+                start_idx = 0
+                
+                while start_idx < samples_to_add:
+                    # Calculate how many samples we can add to current batch
+                    space_left = batch_size - current_batch_size
+                    samples_this_round = min(space_left, samples_to_add - start_idx)
+                    end_idx = start_idx + samples_this_round
+                    
+                    # Add samples to current batch
+                    current_batch_features.append(feats[start_idx:end_idx])
+                    current_batch_labels.append(labels[start_idx:end_idx])
+                    current_batch_videos.append(vname)  # Track which video contributed
+                    current_batch_size += samples_this_round
+                    
+                    # Save batch if it's full
+                    if current_batch_size >= batch_size:
+                        save_current_batch()
+                    
+                    start_idx = end_idx
+                
+                # Clean up features immediately after processing
+                del feats, labels
             
-                    # --- Collect samples for current batch ---
-                    idx_for_this_batch = []  # Indices of X_feat/y that are used in this batch
-
-                    count_tracker = 0
-                    for i, arr in enumerate(X_feat):
-                        needed = batch_size - count_tracker
-                        take = min(needed, arr.shape[0])
-                        count_tracker += take
-                        idx_for_this_batch.append((i, take))
-                        if count_tracker >= batch_size:
-                            break
-
-                    # Actually take the samples and record video names for this batch
-                    consumed = 0
-                    videos_in_this_batch = []
-                    for i, take in idx_for_this_batch:
-                        if i < len(successful_videos):
-                            videos_in_this_batch.append(successful_videos[i])
-                        Xf.append(X_feat[i][:take])
-                        Y.append(y[i][:take])
-                        consumed += take
-
-                    # Remove fully used entries and partially used ones
-                    for i, take in sorted(idx_for_this_batch, reverse=True):
-                        if take == X_feat[i].shape[0]:
-                            if i < len(X_feat):
-                                X_feat.pop(i)
-                            if i < len(y):
-                                y.pop(i)
-                            if i < len(successful_videos):
-                                successful_videos.pop(i)
-                        else:
-                            if i < len(X_feat):
-                                X_feat[i] = X_feat[i][take:]
-                            if i < len(y):
-                                y[i] = y[i][take:]
-
-                    # Stack and save batch
-                    Xf = np.concatenate(Xf, axis=0)
-                    Y = np.concatenate(Y, axis=0)
-
-                    batch_path_x = os.path.join(cache_dir, f"{label}_Xrppg_batch_{batch_idx}.npy")
-                    batch_path_y = os.path.join(cache_dir, f"{label}_y_batch_{batch_idx}.npy")
-
-                    np.save(batch_path_x, Xf)
-                    np.save(batch_path_y, Y)
-                    logger.info(f"Saved batch {batch_idx}: {Xf.shape[0]} samples")
-
-                    # --- Write successfully processed filenames for this batch ---
-                    log_file = os.path.join(cache_dir, f"success_{label}_batch_{batch_idx}.txt")
-                    with open(log_file, "w") as f:
-                        for vidname in videos_in_this_batch:
-                            f.write(f"{vidname}\n")
-
-                    batch_idx += 1
-                    total_samples -= batch_size
-
-        # Save remaining samples as final batch
-        if X_feat:
-            Xf = np.concatenate(X_feat, axis=0)
-            Y = np.concatenate(y, axis=0)
-            if len(Xf) > 0:
-                batch_path_x = os.path.join(cache_dir, f"{label}_Xrppg_batch_{batch_idx}.npy")
-                batch_path_y = os.path.join(cache_dir, f"{label}_y_batch_{batch_idx}.npy")
-                np.save(batch_path_x, Xf)
-                np.save(batch_path_y, Y)
-                logger.info(f"Saved final batch {batch_idx}: {Xf.shape[0]} samples")
-
-                # --- Write successful video filenames for this final batch ---
-                log_file = os.path.join(cache_dir, f"success_{label}_batch_{batch_idx}.txt")
-                with open(log_file, "w") as f:
-                    for vidname in successful_videos:
-                        f.write(f"{vidname}\n")
-
-        # Write ALL successful video filenames at the end (remove duplicates)
-        all_success_videos = sorted(list(set(all_success_videos))) # <== deduplicate and sort for good measure
+            # Clean up chunk results
+            del results
+            gc.collect()
+        
+        # Save any remaining samples as final batch
+        if current_batch_size > 0:
+            logger.info(f"Saving final partial batch with {current_batch_size} samples")
+            save_current_batch()
+        
+        # Write comprehensive logs
+        # All successful videos
+        all_success_videos = sorted(list(set(all_success_videos)))
         all_success_log = os.path.join(cache_dir, f"success_{label}_all.txt")
         with open(all_success_log, "w") as f:
             for vidname in all_success_videos:
                 f.write(f"{vidname}\n")
-
-        # --- Write failed video filenames at the end ---
-        failed_log = os.path.join(cache_dir, f"failed_{label}_videos.txt")
-        with open(failed_log, "w") as f:
-            for vidname in failed_videos:
-                f.write(f"{vidname}\n")
-
-        logger.info(f"Completed {label}: {processed_count} videos processed, {failed_count} failed")
+        
+        # Failed videos
+        if failed_videos:
+            failed_log = os.path.join(cache_dir, f"failed_{label}_videos.txt")
+            with open(failed_log, "w") as f:
+                for vidname in failed_videos:
+                    f.write(f"{vidname}\n")
+        
+        # Summary log
+        summary_log = os.path.join(cache_dir, f"summary_{label}.txt")
+        with open(summary_log, "w") as f:
+            f.write(f"Total videos processed: {processed_count}\n")
+            f.write(f"Total videos failed: {failed_count}\n")
+            f.write(f"Total batches created: {batch_idx - start_batch_idx}\n")
+            f.write(f"Batch size used: {batch_size}\n")
+            f.write(f"Window size: {window_size}\n")
+            f.write(f"Hop size: {hop_size}\n")
+            f.write(f"Augmentation chance: {aug_chance}\n")
+        
+        logger.info(f"Completed {label}: {processed_count} videos processed, {failed_count} failed, {batch_idx - start_batch_idx} batches created")
+        
+        # Final cleanup
+        current_batch_features.clear()
+        current_batch_labels.clear()
+        current_batch_videos.clear()
+        gc.collect()
+        
         return batch_idx
 
     except Exception as e:
         logger.error(f"Batch caching failed: {e}")
+        # Ensure cleanup even on error
+        try:
+            current_batch_features.clear()
+            current_batch_labels.clear()
+            current_batch_videos.clear()
+            gc.collect()
+        except:
+            pass
         raise
 
 def validate_paths():
@@ -1262,53 +1386,65 @@ if __name__ == "__main__":
     
     # Example usage - update paths according to your setup
     try:
-        real_final_batch = cache_batches_parallel(
-            video_dir="E:/deepfake_training_datasets/Physio_Model/TRAINING/real",
-            label='real',
-            class_idx=0,
-            batch_size=64,
-            cache_dir='C:/model_training/physio_ml/real',
-            window_size=150,
-            hop_size=75,
-            start_batch_idx=0,
-            aug_chance=0.65
-        )
-        
+        # real_final_batch = cache_batches_parallel(
+        #     video_dir="E:/deepfake_training_datasets/Physio_Model/TRAINING/real",
+        #     label='real',
+        #     class_idx=0,
+        #     batch_size=128,
+        #     cache_dir='C:/model_training/physio_ml/real',
+        #     window_size=150,
+        #     hop_size=75,
+        #     start_batch_idx=287, # ========== ALWAYS REMEMBER TO UPDATE BATCH INDEX BEFORE EACH SUBSEQUENT RUNS ==========
+        #     aug_chance=0.65
+        # )
+
+        # real_final_batch = cache_batches_parallel(
+        #     video_dir="E:/deepfake_training_datasets/Physio_Model/TRAINING/real-semi-frontal",
+        #     label='real',
+        #     class_idx=0,
+        #     batch_size=128,
+        #     cache_dir='C:/model_training/physio_ml/real',
+        #     window_size=150,
+        #     hop_size=75,
+        #     start_batch_idx=(real_final_batch + 1),
+        #     aug_chance=0.6
+        # )
+
         fake_final_batch = cache_batches_parallel(
             video_dir="E:/deepfake_training_datasets/Physio_Model/TRAINING/fake",
             label='fake',
             class_idx=1,
-            batch_size=64,
+            batch_size=128,
             cache_dir="C:/model_training/physio_ml/fake",
             window_size=150,
             hop_size=75,
-            start_batch_idx=0,
-            aug_chance=0.38
+            start_batch_idx=180, # ========== ALWAYS REMEMBER TO UPDATE BATCH INDEX BEFORE EACH SUBSEQUENT RUNS ==========
+            aug_chance=0.425
         )
 
-        real_final_batch = cache_batches_parallel(
-            video_dir="E:/deepfake_training_datasets/Physio_Model/TRAINING/real-semi-frontal",
-            label='real',
-            class_idx=0,
-            batch_size=64,
-            cache_dir='C:/model_training/physio_ml/real',
+        fake_final_batch = cache_batches_parallel(
+            video_dir="E:/deepfake_training_datasets/Physio_Model/TRAINING/fake-do-not-augment",
+            label='fake',
+            class_idx=1,
+            batch_size=128,
+            cache_dir="C:/model_training/physio_ml/fake",
             window_size=150,
             hop_size=75,
-            start_batch_idx=(real_final_batch + 1),
-            aug_chance=0.6
+            start_batch_idx=(fake_final_batch + 1),
+            aug_chance=0
         )
 
-        real_final_batch = cache_batches_parallel(
-            video_dir="F:/MP-Training-Datasets/real-celebvhq/35666",
-            label='real',
-            class_idx=0,
-            batch_size=64,
-            cache_dir='C:/model_training/physio_ml/real',
-            window_size=150,
-            hop_size=75,
-            start_batch_idx=(real_final_batch + 1),
-            aug_chance=0.4
-        )
+        # real_final_batch = cache_batches_parallel(
+        #     video_dir="F:/MP-Training-Datasets/real-celebvhq/35666",
+        #     label='real',
+        #     class_idx=0,
+        #     batch_size=128,
+        #     cache_dir='C:/model_training/physio_ml/real',
+        #     window_size=150,
+        #     hop_size=75,
+        #     start_batch_idx=(real_final_batch + 1),
+        #     aug_chance=0.4
+        # )
         
     except KeyboardInterrupt:
         logger.info("Processing interrupted by user")

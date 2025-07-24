@@ -227,7 +227,7 @@ class PoseClassifier(nn.Module):
 
 # Load model
 model=PoseClassifier().to(device)
-checkpoint = torch.load(MODEL_PATH_STATIC)
+checkpoint = torch.load(MODEL_PATH_STATIC, map_location=torch.device('cpu'))
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
     

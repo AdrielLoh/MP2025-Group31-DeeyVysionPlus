@@ -14,6 +14,17 @@ function getCameras() {
         });
     });
 }
+
+// Request permission as soon as possible
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+        getCameras(); // This will show real camera labels!
+        stream.getTracks().forEach(track => track.stop());
+    })
+    .catch(err => {
+        getCameras();
+        alert("Camera access denied. Live webcam features may not work.");
+    });
 getCameras();
 navigator.mediaDevices.ondevicechange = getCameras; // Refresh if cams plugged/unplugged
 
