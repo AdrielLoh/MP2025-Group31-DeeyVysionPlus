@@ -15,7 +15,16 @@ function getAudioSources() {
         });
     });
 }
-
+// Request permission as soon as possible
+navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+        getAudioSources(); // This will show real camera labels!
+        stream.getTracks().forEach(track => track.stop());
+    })
+    .catch(err => {
+        getAudioSources();
+        alert("Microphone access denied. Recording features will not work.");
+    });
 getAudioSources();
 navigator.mediaDevices.ondevicechange = getAudioSources;
 
