@@ -769,7 +769,7 @@ def multi_detection():
 
 if __name__ == '__main__':
     # --- Comment line below to go to development, uncomment to go to production ---
-    serve(app, host="0.0.0.0", port=5000)
+    # serve(app, host="0.0.0.0", port=5000)
 
     # --- Comment line below to go to production, uncomment to go to development ---
-    # app.run(debug=True)
+    app.run(debug=True)

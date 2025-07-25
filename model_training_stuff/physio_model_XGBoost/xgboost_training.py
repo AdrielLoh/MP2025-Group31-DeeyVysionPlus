@@ -9,8 +9,9 @@ import joblib
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import optuna
+import random
 
-np.random.seed(42)
+# np.random.seed(42)
 
 # --- Helper: Load batches and concatenate ---
 def load_batches(batch_dir):
@@ -26,45 +27,56 @@ def load_batches(batch_dir):
         return np.empty((0, 110)), np.empty((0,))
 
  # ===== Batch loading and stratified splitting =====
-# train_dir_real = 'C:/model_training/physio_ml/real'
-# train_dir_fake = 'C:/model_training/physio_ml/fake'
+train_dir_real = 'C:/model_training/physio_ml/real'
+train_dir_fake = 'C:/model_training/physio_ml/fake'
+
+print("[INFO] Loading batches...")
+X_real, y_real = load_batches(train_dir_real)
+X_fake, y_fake = load_batches(train_dir_fake)
+X_all = np.concatenate([X_real, X_fake], axis=0)
+y_all = np.concatenate([y_real, y_fake], axis=0)
+
+assert X_all.shape[1] == 110, f"Expected 110 features, got {X_all.shape[1]}"
+print(f"[INFO] Total samples: {X_all.shape[0]}")
+
+X_train, X_val, y_train, y_val = train_test_split(
+    X_all, y_all, test_size=0.20, stratify=y_all, random_state=random.randint(1, 10000)
+)
+print(f"[INFO] Train samples: {X_train.shape[0]}, Validation samples: {X_val.shape[0]}")
+print(f"Train class distribution: {np.bincount(y_train.astype(int))}")
+print(f"Val class distribution:   {np.bincount(y_val.astype(int))}")
+
+# # --- Manual Splitting ---
+# train_dir_real = 'C:/model_training/physio_ml/split/real'
+# train_dir_fake = 'C:/model_training/physio_ml/split/fake/validation'
+# val_dir_real = 'C:/model_training/physio_ml/split/real/validation'
+# val_dir_fake = 'C:/model_training/physio_ml/split/fake/validation'
 
 # print("[INFO] Loading batches...")
-# X_real, y_real = load_batches(train_dir_real)
-# X_fake, y_fake = load_batches(train_dir_fake)
-# X_all = np.concatenate([X_real, X_fake], axis=0)
-# y_all = np.concatenate([y_real, y_fake], axis=0)
+# X_real_train, y_real_train = load_batches(train_dir_real)
+# X_fake_train, y_fake_train = load_batches(train_dir_fake)
+# X_real_val, y_real_val = load_batches(val_dir_real)
+# X_fake_val, y_fake_val = load_batches(val_dir_fake)
 
-# assert X_all.shape[1] == 110, f"Expected 110 features, got {X_all.shape[1]}"
-# print(f"[INFO] Total samples: {X_all.shape[0]}")
+# X_train = np.concatenate([X_real_train, X_fake_train], axis=0)
+# y_train = np.concatenate([y_real_train, y_fake_train], axis=0)
+# X_val = np.concatenate([X_real_val, X_fake_val], axis=0)
+# y_val = np.concatenate([y_real_val, y_fake_val], axis=0)
 
-# X_train, X_val, y_train, y_val = train_test_split(
-#     X_all, y_all, test_size=0.20, stratify=y_all, random_state=42
-# )
-# print(f"[INFO] Train samples: {X_train.shape[0]}, Validation samples: {X_val.shape[0]}")
-# print(f"Train class distribution: {np.bincount(y_train.astype(int))}")
-# print(f"Val class distribution:   {np.bincount(y_val.astype(int))}")
+# print(f"[INFO] Training samples: {X_train.shape[0]}, Validation samples: {X_val.shape[0]}")
 
-# --- User: Set your directories here ---
-# ===== EDIT SUCH THAT TRAIN / VAL SPLIT IS DONE AUTOMATICALLY USING SCIKIT =====
-train_dir_real = 'C:/model_training/physio_ml/real'
-train_dir_fake = 'C:/model_training/physio_ml/fake/validation'
-val_dir_real = 'C:/model_training/physio_ml/real/validation'
-val_dir_fake = 'C:/model_training/physio_ml/fake/validation'
+# ===== Feature trimming to mitigate overfitting =====
+# Exclude the last 4 features
+X_train = X_train[:, :-4]
+X_val = X_val[:, :-4]
+# Exclude zero-importance features
+# zero_importance_indices = [6, 16, 17, 20, 21, 28, 30, 36, 42, 44, 45, 46, 47, 49, 50, 51, 57, 64, 74, 75, 78, 79, 86, 98, 105]
+# mask = np.ones(X_train.shape[1], dtype=bool)
+# mask[zero_importance_indices] = False
+# X_train = X_train[:, mask]
+# X_val = X_val[:, mask]
 
-# --- Load all batches ---
-print("[INFO] Loading batches...")
-X_real_train, y_real_train = load_batches(train_dir_real)
-X_fake_train, y_fake_train = load_batches(train_dir_fake)
-X_real_val, y_real_val = load_batches(val_dir_real)
-X_fake_val, y_fake_val = load_batches(val_dir_fake)
-
-X_train = np.concatenate([X_real_train, X_fake_train], axis=0)
-y_train = np.concatenate([y_real_train, y_fake_train], axis=0)
-X_val = np.concatenate([X_real_val, X_fake_val], axis=0)
-y_val = np.concatenate([y_real_val, y_fake_val], axis=0)
-
-print(f"[INFO] Training samples: {X_train.shape[0]}, Validation samples: {X_val.shape[0]}")
+print(f"[INFO] Feature shape after trimming: {X_train.shape}")
 
 # ===== Fitting a standard scaler for normalization =====
 print("[INFO] Normalizing features with StandardScaler...")
@@ -87,8 +99,8 @@ sample_weights = compute_sample_weight(class_weight=class_weight_dict, y=y_train
 # ===== Optuna Hyperparameter tuning =====
 def objective(trial):
     params = {
-        'n_estimators': trial.suggest_int('n_estimators', 200, 800),
-        'max_depth': trial.suggest_int('max_depth', 3, 10),
+        'n_estimators': trial.suggest_int('n_estimators', 200, 500),
+        'max_depth': trial.suggest_int('max_depth', 3, 6),
         'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.2, log=True),
         'subsample': trial.suggest_float('subsample', 0.7, 1.0),
         'colsample_bytree': trial.suggest_float('colsample_bytree', 0.7, 1.0),
@@ -98,7 +110,7 @@ def objective(trial):
         'scale_pos_weight': scale_pos_weight,
         'use_label_encoder': False,
         'eval_metric': 'logloss',
-        'random_state': 42,
+        'random_state': random.randint(1, 10000),
         'n_jobs': -1,
     }
     clf = XGBClassifier(**params)
@@ -125,10 +137,28 @@ best_params.update({
     'scale_pos_weight': scale_pos_weight,
     'use_label_encoder': False,
     'eval_metric': 'logloss',
-    'random_state': 42,
+    'random_state': random.randint(1, 10000),
     'n_jobs': -1
 })
 clf = XGBClassifier(**best_params)
+
+# ===== Manual tuning =====
+# clf = XGBClassifier(
+#     colsample_bytree=1.0,
+#     gamma=2,
+#     learning_rate=0.05,
+#     max_depth=5,
+#     n_estimators=500,
+#     subsample=0.9,
+#     scale_pos_weight=scale_pos_weight,
+#     reg_alpha = 2,
+#     reg_lambda = 3,
+#     use_label_encoder=False,
+#     eval_metric='logloss',
+#     random_state=random.randint(1, 10000),
+#     n_jobs=-1
+# )
+
 clf.fit(X_train, y_train, sample_weight=sample_weights)
 
 # --- Standard Validation ---

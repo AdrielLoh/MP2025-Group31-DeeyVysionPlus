@@ -863,35 +863,15 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
                     face_rgb_history[track_id].append(rgb_mean)
 
                     rgb_window = np.array(face_rgb_history[track_id][-150:])
-                    window_size = 150
-                    window_length_feat = rgb_window.shape[0]
-                    area_window = np.array(face_area_history[track_id][-window_size:])
-
-                    if area_window.size == 0:
-                        avg_face_area = 0
-                        med_face_area = 0
-                    else:
-                        avg_face_area = float(np.mean(area_window))
-                        med_face_area = float(np.median(area_window))
-
-                    # ===== Temporarily disable face area =====
-                    avg_face_area = 0
-                    med_face_area = 0
-
-                    # Valid frame ratio: non-NaN frames (R channel)
-                    valid_ratio = np.sum(~np.isnan(rgb_window[:, 0])) / window_size
-
                     features, hr_bpm, _, _, _ = compute_rppg_features_multi(rgb_window, fs=fps)
-                    features = np.concatenate([features, [valid_ratio, avg_face_area, med_face_area, window_length_feat]])
 
                     if features.shape[0] != FINAL_FEATURE_COUNT:
                         # Simple safety check
                         print(f"Warning: feature count mismatch: {features.shape[0]} != {FINAL_FEATURE_COUNT}")
-
                     features_scaled = scaler.transform([features])
                     prob = clf.predict_proba(features_scaled)[0][1]
 
-                    prediction = 'FAKE' if prob > 0.5 else 'REAL'
+                    prediction = 'FAKE' if prob > 0.3950 else 'REAL'
                     face_pred_history[track_id].append(prediction)
                     face_prob_history[track_id].append(prob)
                     face_hr_history[track_id].append(hr_bpm)
