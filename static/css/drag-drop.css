@@ -174,7 +174,7 @@ body {
 
 .game-header {
     background: var(--card-bg);
-    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--border-radius);
     padding: 1.5rem 2rem;
@@ -234,7 +234,7 @@ body {
     max-width: 400px;
     width: 100%;
     background: var(--card-bg);
-    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--border-radius);
     padding: 1.5rem;
@@ -282,7 +282,7 @@ body {
     cursor: pointer;
     transition: var(--transition);
     background: var(--card-bg);
-    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     color: var(--text-primary);
     min-width: 140px;
     box-shadow: var(--shadow-card);
@@ -321,7 +321,7 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     background: var(--card-bg);
-    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--border-radius);
     padding: 2rem;
@@ -374,7 +374,7 @@ body {
     max-width: 600px;
     width: 100%;
     background: var(--card-bg);
-    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
     padding: 3rem;

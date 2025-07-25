@@ -10,6 +10,7 @@ import subprocess
 from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
 import mediapipe as mp
+from antropy import sample_entropy
 
 # Model and face detection setup
 clf = joblib.load('models/physio_detection_xgboost_best.pkl')
@@ -17,6 +18,8 @@ scaler = joblib.load('models/physio_scaler.pkl')
 FACE_PROTO = 'models/weights-prototxt.txt'
 FACE_MODEL = 'models/res_ssd_300Dim.caffeModel'
 face_net = cv2.dnn.readNetFromCaffe(FACE_PROTO, FACE_MODEL)
+BASE_FEATURE_COUNT = 106
+FINAL_FEATURE_COUNT = 110  # 106 + 4
 
 def detect_faces_dnn(frame, conf_threshold=0.6):
     h, w = frame.shape[:2]
@@ -359,105 +362,387 @@ def plot_rppg_analysis(rppg_sig, f, pxx, real_count, fake_count, save_dir, track
     return (rppg_signal_plot_path, rppg_spectrum_plot_path, prediction_count_path, 
             hr_trace_plot_path, hr_dist_plot_path, band_power_plot_path)
 
-# --- rPPG multi-method and extended feature extraction ---
+# === rPPG multi-method and extended feature extraction ===
+def safe_normalize(arr, axis=None, epsilon=1e-8):
+    """Safely normalize array using NaN-aware operations"""
+    std = np.nanstd(arr, axis=axis)
+    return arr / (std + epsilon)
+
 def rppg_chrom(rgb):
-    S = rgb
-    h = (S[:, 1] - S[:, 0]) / (np.std(S[:, 1] - S[:, 0]) + 1e-8)
-    s = (S[:, 1] + S[:, 0] - 2 * S[:, 2]) / (np.std(S[:, 1] + S[:, 0] - 2 * S[:, 2]) + 1e-8)
-    return h + s
+    """CHROM method for rPPG using NaN-aware operations"""
+    try:
+        if rgb.size == 0 or rgb.shape[0] < 2:
+            return np.zeros(rgb.shape[0])
+        
+        S = rgb.copy()
+        h = safe_normalize(S[:, 1] - S[:, 0])
+        s = safe_normalize(S[:, 1] + S[:, 0] - 2 * S[:, 2])
+        return h + s
+    except Exception as e:
+        return np.zeros(rgb.shape[0])
 
 def rppg_pos(rgb):
-    S = rgb
-    S_mean = np.mean(S, axis=0)
-    S = S / (S_mean + 1e-8)
-    Xcomp = 3 * S[:, 0] - 2 * S[:, 1]
-    Ycomp = 1.5 * S[:, 0] + S[:, 1] - 1.5 * S[:, 2]
-    return Xcomp / (Ycomp + 1e-8)
+    """POS method for rPPG using NaN-aware operations"""
+    try:
+        if rgb.size == 0 or rgb.shape[0] < 2:
+            return np.zeros(rgb.shape[0])
+        
+        S = rgb.copy()
+        S_mean = np.nanmean(S, axis=0)
+        S_mean[S_mean == 0] = 1e-8
+        S = S / S_mean
+        
+        Xcomp = 3 * S[:, 0] - 2 * S[:, 1]
+        Ycomp = 1.5 * S[:, 0] + S[:, 1] - 1.5 * S[:, 2]
+        Ycomp[Ycomp == 0] = 1e-8
+        
+        return Xcomp / Ycomp
+    except Exception as e:
+        return np.zeros(rgb.shape[0])
 
 def rppg_green(rgb):
-    return rgb[:, 1]
+    """Green channel method for rPPG"""
+    try:
+        if rgb.size == 0:
+            return np.zeros(rgb.shape[0])
+        return rgb[:, 1]
+    except Exception as e:
+        return np.zeros(rgb.shape[0])
 
 def compute_band_powers(f, pxx, bands):
-    total_power = np.sum(pxx)
-    power_features = []
-    for low, high in bands:
-        mask = (f >= low) & (f <= high)
-        power = np.sum(pxx[mask])
-        ratio = power / (total_power + 1e-8)
-        power_features.extend([power, ratio])
-    return power_features
+    """Compute power in frequency bands using NaN-aware operations"""
+    try:
+        if len(f) == 0 or len(pxx) == 0:
+            return [0] * (len(bands) * 2)
+        
+        total_power = np.nansum(pxx)
+        if total_power == 0:
+            return [0] * (len(bands) * 2)
+        
+        power_features = []
+        for low, high in bands:
+            mask = (f >= low) & (f <= high)
+            power = np.nansum(pxx[mask])
+            ratio = power / total_power
+            power_features.extend([power, ratio])
+        return power_features
+    except Exception as e:
+        return [0] * (len(bands) * 2)
 
 def compute_autocorrelation(sig):
-    if len(sig) < 2:
+    """Compute autocorrelation using NaN-aware operations"""
+    try:
+        sig = sig[~np.isnan(sig)]
+        if len(sig) < 2:
+            return 0
+        sig_centered = sig - np.nanmean(sig)
+        if np.nanstd(sig_centered) == 0:
+            return 0
+        acf = np.correlate(sig_centered, sig_centered, mode='full')
+        acf = acf[acf.size // 2:]
+        if len(acf) <= 1 or acf[0] == 0:
+            return 0
+        peak_lag = np.nanargmax(acf[1:]) + 1
+        return acf[peak_lag] / acf[0]
+    except Exception as e:
         return 0
-    acf = np.correlate(sig - np.mean(sig), sig - np.mean(sig), mode='full')
-    acf = acf[acf.size // 2:]
-    peak_lag = np.argmax(acf[1:]) + 1 if len(acf) > 1 else 1
-    return acf[peak_lag] / (acf[0] + 1e-8) if acf[0] != 0 else 0
 
 def compute_entropy(sig):
-    hist, _ = np.histogram(sig, bins=32, density=True)
-    hist += 1e-8
-    return -np.sum(hist * np.log2(hist))
+    """Compute signal entropy using NaN-aware operations"""
+    try:
+        sig_clean = sig[~np.isnan(sig)]
+        if len(sig_clean) < 2:
+            return 0
+        
+        hist, _ = np.histogram(sig_clean, bins=32, density=True)
+        hist = hist + 1e-8
+        return -np.nansum(hist * np.log2(hist))
+    except Exception as e:
+        return 0
+
+def butter_bandpass_filter(signal, fs, lowcut=0.7, highcut=4.0, order=3):
+    """Apply butterworth bandpass filter with NaN handling"""
+    try:
+        if len(signal) <= 2 * order or fs <= 0:
+            return signal
+        
+        # Handle NaNs by interpolation or removal
+        signal_clean = signal.copy()
+        nan_mask = np.isnan(signal_clean)
+        if np.all(nan_mask):
+            return signal
+        if np.any(nan_mask):
+            # Simple interpolation for NaN values
+            valid_indices = np.where(~nan_mask)[0]
+            if len(valid_indices) < 2:
+                return signal
+            signal_clean[nan_mask] = np.interp(
+                np.where(nan_mask)[0], 
+                valid_indices, 
+                signal_clean[valid_indices]
+            )
+        nyq = 0.5 * fs
+        low = lowcut / nyq
+        high = highcut / nyq
+        # Ensure frequencies are within valid range
+        low = max(0.01, min(low, 0.99))
+        high = max(low + 0.01, min(high, 0.99))
+        b, a = butter(order, [low, high], btype='band')
+        filtered = filtfilt(b, a, signal_clean)
+        # Validate filtered signal before restoring NaN positions
+        if np.any(np.isinf(filtered)) or np.any(np.isnan(filtered[~nan_mask])):
+            return signal
+        # Put NaNs back in original positions
+        filtered[nan_mask] = np.nan
+        
+        return filtered
+    except Exception as e:
+        return signal
 
 def compute_rppg_features_multi(rgb_signal, fs):
-    rgb_detrend = detrend(rgb_signal, axis=0)
-    rgb_norm = (rgb_detrend - np.mean(rgb_detrend, axis=0)) / (np.std(rgb_detrend, axis=0) + 1e-8)
-    rppg_methods = {
-        "CHROM": rppg_chrom(rgb_norm),
-        "POS": rppg_pos(rgb_norm),
-        "GREEN": rppg_green(rgb_norm),
-    }
-    bands = [
-        (0.7, 2.5),
-        (0.2, 0.6),
-        (4.0, 8.0),
-    ]
-    all_features = []
-    bpm_list = []
-    rppg_sig_chrom = np.zeros(len(rgb_signal))
-    f = np.array([])
-    pxx = np.array([])
-    band_power_features = []
-    
-    for key, rppg_sig in rppg_methods.items():
-        if key == "CHROM":
-            rppg_sig_chrom = rppg_sig
-        if len(rppg_sig) <= 21:
-            all_features.extend([0]*19)
-            bpm_list.append(0)
-            continue
-        sig_filt = butter_bandpass_filter(rppg_sig, fs)
-        f_temp, pxx_temp = periodogram(sig_filt, fs)
-        valid = (f_temp >= 0.7) & (f_temp <= 4.0)
-        f_temp, pxx_temp = f_temp[valid], pxx_temp[valid]
-        if len(f_temp) == 0:
-            all_features.extend([0]*19)
-            bpm_list.append(0)
-            continue
-        peak_idx = np.argmax(pxx_temp)
-        hr_freq, hr_bpm, hr_power = f_temp[peak_idx], f_temp[peak_idx]*60, pxx_temp[peak_idx]
-        snr = hr_power / (np.sum(pxx_temp) - hr_power + 1e-8)
-        band_powers = compute_band_powers(f_temp, pxx_temp, bands)
-        autocorr_peak = compute_autocorrelation(sig_filt)
-        entropy = compute_entropy(sig_filt)
-        kurt = scipy.stats.kurtosis(sig_filt)
-        skew = scipy.stats.skew(sig_filt)
-        features = [
-            np.mean(sig_filt), np.std(sig_filt), np.max(sig_filt), np.min(sig_filt),
-            np.ptp(sig_filt), hr_freq, hr_bpm, hr_power, snr,
-            autocorr_peak, entropy, kurt, skew
-        ] + band_powers
-        all_features.extend(features)
-        bpm_list.append(hr_bpm)
-        if key == "CHROM" and len(f) == 0:
-            f = f_temp
-            pxx = pxx_temp
-            band_power_features = band_powers
-    
-    mean_bpm = np.mean([b for b in bpm_list if b > 0]) if bpm_list else 0
-    return np.array(all_features, dtype=np.float32), mean_bpm, rppg_sig_chrom, f, pxx, band_power_features
+    """
+    Compute rPPG features using multiple methods with simple sanity checks
+    """
+    try:
+        f, pxx = np.array([]), np.array([])
+        # NaN-aware detrending and normalization
+        rgb_detrend = rgb_signal.copy()
 
+        for i in range(rgb_signal.shape[1]):
+            channel = rgb_signal[:, i]
+            nan_idx = np.isnan(channel)
+            if np.any(~nan_idx):
+                mean_val = np.nanmean(channel)
+                channel_filled = channel.copy()
+                channel_filled[nan_idx] = mean_val
+                detrended = detrend(channel_filled)
+                detrended[nan_idx] = np.nan
+                rgb_detrend[:, i] = detrended
+            else:
+                rgb_detrend[:, i] = np.nan
+        rgb_norm = rgb_detrend.copy()
+        for i in range(rgb_norm.shape[1]):
+            std = np.nanstd(rgb_norm[:, i])
+            if std > 0:
+                rgb_norm[:, i] = (rgb_norm[:, i] - np.nanmean(rgb_norm[:, i])) / std
+
+        # Apply rPPG methods
+        rppg_methods = {
+            "CHROM": rppg_chrom(rgb_norm),
+            "POS": rppg_pos(rgb_norm),
+            "GREEN": rppg_green(rgb_norm),
+        }
+        method_names = ["CHROM", "POS", "GREEN"]
+
+        bands = [(0.7, 2.5), (0.2, 0.6), (4.0, 8.0)]
+
+        # Feature collection
+        all_features = []
+        rppg_signals = []
+        mean_bpm = 0
+        method_hr_bpm_values = []  # For sanity checking
+        method_snr_values = []     # For sanity checking
+        
+        # Per-method feature extraction
+        for method in method_names:
+            rppg_sig = rppg_methods[method]
+            rppg_signals.append(rppg_sig)
+            if len(rppg_sig) <= 21 or np.all(np.isnan(rppg_sig)):
+                all_features.extend([0]*29)
+                method_hr_bpm_values.append(0)
+                method_snr_values.append(0)
+                continue
+
+            # Bandpass filter
+            sig_filt = butter_bandpass_filter(rppg_sig, fs)
+            sig_clean = sig_filt[~np.isnan(sig_filt)]
+
+            # Basic stats
+            mean = np.nanmean(sig_filt)
+            std = np.nanstd(sig_filt)
+            maxval = np.nanmax(sig_filt)
+            minval = np.nanmin(sig_filt)
+            ptp = maxval - minval
+
+            # Frequency stats
+            try:
+                if len(sig_clean) > 10:
+                    f, pxx = periodogram(sig_clean, fs)
+                    valid = (f >= 0.7) & (f <= 4.0)
+                    f, pxx = f[valid], pxx[valid]
+                else:
+                    f, pxx = np.array([]), np.array([])
+                if len(f) == 0 or np.all(np.isnan(pxx)):
+                    hr_freq = 0
+                    hr_bpm = 0
+                    hr_power = 0
+                    snr = 0
+                    band_powers = [0]*6
+                else:
+                    peak_idx = np.nanargmax(pxx)
+                    hr_freq = f[peak_idx]
+                    hr_bpm = hr_freq * 60
+                    hr_power = pxx[peak_idx]
+                    total_power = np.nansum(pxx)
+                    snr = hr_power / (total_power - hr_power + 1e-8) if total_power > hr_power else 0
+                    band_powers = compute_band_powers(f, pxx, bands)
+            except Exception:
+                hr_freq = hr_bpm = hr_power = snr = 0
+                band_powers = [0]*6
+
+            # Store for sanity checking
+            method_hr_bpm_values.append(hr_bpm)
+            method_snr_values.append(snr)
+
+            # Signal shape/stats
+            ac_peak = compute_autocorrelation(sig_filt)
+            ent = compute_entropy(sig_filt)
+            try:
+                kurt = scipy.stats.kurtosis(sig_filt, nan_policy='omit')
+                skewness = scipy.stats.skew(sig_filt, nan_policy='omit')
+            except Exception:
+                kurt = skewness = 0
+            rms = np.sqrt(np.nanmean(sig_filt**2))
+            coeff_var = std / (mean + 1e-8) if abs(mean) > 1e-8 else 0
+            tkeo = np.nanmean(np.square(sig_filt[1:-1]) - sig_filt[:-2]*sig_filt[2:]) if len(sig_filt) > 2 else 0
+            
+            # Sample entropy and spectral flatness
+            try:
+                samp_ent = sample_entropy(sig_filt)
+                if len(sig_clean) > 10:
+                    _, psd = periodogram(sig_clean, fs)
+                    if len(psd) > 0 and np.all(psd > 0):
+                        geometric_mean = np.exp(np.mean(np.log(psd + 1e-12)))
+                        arithmetic_mean = np.mean(psd)
+                        spec_flat = geometric_mean / (arithmetic_mean + 1e-12)
+                    else:
+                        spec_flat = 0
+                else:
+                    spec_flat = 0
+            except Exception:
+                samp_ent = 0
+                spec_flat = 0
+
+            # Peak-to-noise ratio
+            peak2noise = (np.nanmax(np.abs(sig_filt)) / (np.nanstd(sig_filt) + 1e-8)) if np.nanstd(sig_filt) > 0 else 0
+            root_diff = np.nanmean(np.abs(np.diff(sig_filt)))
+            perc25 = np.nanpercentile(sig_filt, 25)
+            perc75 = np.nanpercentile(sig_filt, 75)
+            hr_valid = int(hr_bpm > 30 and hr_bpm < 180 and hr_power > 0 and not np.isnan(hr_bpm))
+
+            # Append features for this method
+            method_features = [
+                mean, std, maxval, minval, ptp,
+                hr_freq, hr_bpm, hr_power, snr,
+                ac_peak, ent, kurt, skewness, rms, coeff_var, tkeo, samp_ent, spec_flat,
+                band_powers[0], band_powers[1], band_powers[2], band_powers[3], band_powers[4], band_powers[5],
+                peak2noise, root_diff, perc25, perc75, hr_valid
+            ]
+            all_features.extend(method_features)
+            mean_bpm += hr_bpm if hr_valid else 0
+
+        # Inter-method correlations (6 features)
+        corr_features = []
+        signals_for_corr = []
+        for method in method_names:
+            rppg_sig = rppg_methods[method]
+            sig_filt = butter_bandpass_filter(rppg_sig, fs)
+            signals_for_corr.append(sig_filt)
+
+        def nan_corr(a, b, method="pearson"):
+            valid = ~np.isnan(a) & ~np.isnan(b)
+            if np.sum(valid) < 8:
+                return 0
+            if method == "pearson":
+                return np.corrcoef(a[valid], b[valid])[0,1]
+            elif method == "spearman":
+                return scipy.stats.spearmanr(a[valid], b[valid])[0]
+            return 0
+
+        corr_features.append(nan_corr(signals_for_corr[0], signals_for_corr[2], "pearson"))
+        corr_features.append(nan_corr(signals_for_corr[0], signals_for_corr[1], "pearson"))
+        corr_features.append(nan_corr(signals_for_corr[1], signals_for_corr[2], "pearson"))
+        corr_features.append(nan_corr(signals_for_corr[0], signals_for_corr[2], "spearman"))
+        corr_features.append(nan_corr(signals_for_corr[0], signals_for_corr[1], "spearman"))
+        corr_features.append(nan_corr(signals_for_corr[1], signals_for_corr[2], "spearman"))
+
+        all_features.extend(corr_features)
+
+        # === Temporal/Aggregated Features ===
+        hr_bpm_arr = []
+        snr_arr = []
+        band_ratio_arr = []
+        hr_valid_arr = []
+        
+        for method_idx in range(3):
+            start_idx = method_idx * 29
+            if start_idx + 28 < len(all_features):
+                hr_bpm_arr.append(all_features[start_idx + 6])
+                snr_arr.append(all_features[start_idx + 8])
+                band_ratio_arr.append(all_features[start_idx + 19])
+                hr_valid_arr.append(all_features[start_idx + 28])
+            else:
+                hr_bpm_arr.extend([np.nan])
+                snr_arr.extend([np.nan])
+                band_ratio_arr.extend([np.nan])
+                hr_valid_arr.extend([0])
+        
+        hr_bpm_arr = np.array(hr_bpm_arr)
+        snr_arr = np.array(snr_arr)
+        band_ratio_arr = np.array(band_ratio_arr)
+        hr_valid_arr = np.array(hr_valid_arr)
+
+        # Compute dropouts
+        hr_valid_bool = hr_valid_arr > 0
+        num_dropouts = 0
+        if np.any(~np.isnan(hr_bpm_arr)):
+            prev = hr_valid_bool[0]
+            for v in hr_valid_bool[1:]:
+                if prev and not v:
+                    num_dropouts += 1
+                prev = v
+        else:
+            num_dropouts = 0
+
+        prop_valid_hr = np.sum(hr_valid_bool) / len(hr_valid_bool) if len(hr_valid_bool) > 0 else 0
+
+        # Temporal statistics
+        hr_std = np.nanstd(hr_bpm_arr)
+        hr_delta = np.nanmean(np.abs(np.diff(hr_bpm_arr)))
+        hr_min = np.nanmin(hr_bpm_arr)
+        hr_max = np.nanmax(hr_bpm_arr)
+        snr_std = np.nanstd(snr_arr)
+        snr_min = np.nanmin(snr_arr)
+        snr_max = np.nanmax(snr_arr)
+        band_ratio_std = np.nanstd(band_ratio_arr)
+        band_ratio_mean = np.nanmean(band_ratio_arr)
+
+        temporal_feats = [
+            hr_std, hr_delta, hr_min, hr_max, num_dropouts, prop_valid_hr,
+            snr_std, snr_min, snr_max, band_ratio_std, band_ratio_mean
+        ]
+
+        all_features.extend(temporal_feats)
+
+        # Additional features
+        prop_nan_window = np.isnan(rgb_signal).sum() / np.prod(rgb_signal.shape)
+        prop_low_snr_methods = np.mean(snr_arr < 1)
+        all_features.extend([prop_nan_window, prop_low_snr_methods])
+
+        # Convert to numpy array
+        features_array = np.array(all_features, dtype=np.float32)
+        
+        return (
+            features_array, 
+            mean_bpm/3, 
+            rppg_methods["CHROM"], 
+            f if 'f' in locals() else np.array([]), 
+            pxx if 'pxx' in locals() else np.array([])
+        )
+
+    except Exception as e:
+        return np.zeros(BASE_FEATURE_COUNT, dtype=np.float32), 0, np.zeros(rgb_signal.shape[0]), np.array([]), np.array([])
+    
 def draw_output(frame, face_box, prediction, confidence, hr_bpm, time_stamp, track_id):
     x, y, w, h = face_box
     color = (0, 255, 0) if prediction == 'REAL' else (0, 0, 255)
@@ -539,6 +824,7 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
     face_pred_history = {tid: [] for tid in tracks}
     face_prob_history = {tid: [] for tid in tracks}
     face_hr_history = {tid: [] for tid in tracks}
+    face_area_history = {tid: [] for tid in tracks}
     for frame_idx, frame in enumerate(frames):
         for track_id, detections in tracks.items():
             # Find if this face was detected in this frame
@@ -552,6 +838,8 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
                     mask, used_hull, landmarks_pts = get_skin_mask_mediapipe(frame, (x, y, w, h), face_mesh, return_landmarks=True)
                     if mask.sum() == 0 or len(landmarks_pts) < 468:
                         continue
+                    face_area_history[track_id].append(mask.sum())
+
                     # 2. Extract RGB means from aligned face, or fallback to unaligned if alignment fails
                     try:
                         aligned_face, M = align_face_by_eyes_and_nose(frame, landmarks_pts, (x, y, w, h))
@@ -571,15 +859,39 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
                         g_mean = np.mean(g[local_mask])
                         b_mean = np.mean(b[local_mask])
                     rgb_mean = [r_mean, g_mean, b_mean]
+
                     face_rgb_history[track_id].append(rgb_mean)
 
                     rgb_window = np.array(face_rgb_history[track_id][-150:])
-                    if rgb_window.shape[0] < 10:
-                        continue
-                    features, hr_bpm, _, _, _, _ = compute_rppg_features_multi(rgb_window, fs=fps)
+                    window_size = 150
+                    window_length_feat = rgb_window.shape[0]
+                    area_window = np.array(face_area_history[track_id][-window_size:])
+
+                    if area_window.size == 0:
+                        avg_face_area = 0
+                        med_face_area = 0
+                    else:
+                        avg_face_area = float(np.mean(area_window))
+                        med_face_area = float(np.median(area_window))
+
+                    # ===== Temporarily disable face area =====
+                    avg_face_area = 0
+                    med_face_area = 0
+
+                    # Valid frame ratio: non-NaN frames (R channel)
+                    valid_ratio = np.sum(~np.isnan(rgb_window[:, 0])) / window_size
+
+                    features, hr_bpm, _, _, _ = compute_rppg_features_multi(rgb_window, fs=fps)
+                    features = np.concatenate([features, [valid_ratio, avg_face_area, med_face_area, window_length_feat]])
+
+                    if features.shape[0] != FINAL_FEATURE_COUNT:
+                        # Simple safety check
+                        print(f"Warning: feature count mismatch: {features.shape[0]} != {FINAL_FEATURE_COUNT}")
+
                     features_scaled = scaler.transform([features])
                     prob = clf.predict_proba(features_scaled)[0][1]
-                    prediction = 'FAKE' if prob > 0.4046 else 'REAL'
+
+                    prediction = 'FAKE' if prob > 0.5 else 'REAL'
                     face_pred_history[track_id].append(prediction)
                     face_prob_history[track_id].append(prob)
                     face_hr_history[track_id].append(hr_bpm)
@@ -614,14 +926,24 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
         avg_conf = round(avg_conf * 100)
         rgb_arr = np.array(face_rgb_history[track_id])
         if rgb_arr.shape[0] >= MIN_PREDICTIONS:
-            features, hr_bpm, rppg_sig, f, pxx, band_power_features = compute_rppg_features_multi(rgb_arr, fs=fps)
+            window_length_feat = rgb_arr.shape[0]
+            valid_ratio = np.sum(~np.isnan(rgb_arr[:, 0])) / 150
+            area_arr = np.array(face_area_history[track_id])
+            if area_arr.size == 0:
+                avg_face_area = 0
+                med_face_area = 0
+            else:
+                avg_face_area = float(np.mean(area_arr))
+                med_face_area = float(np.median(area_arr))
+            features, hr_bpm, rppg_sig, f, pxx = compute_rppg_features_multi(rgb_arr, fs=fps)
+            features = np.concatenate([features, [valid_ratio, avg_face_area, med_face_area, window_length_feat]])
             plots = plot_rppg_analysis(
                 rppg_sig, f, pxx, n_real, n_fake, 
                 save_dir=os.path.dirname(output_path), 
                 track_id=track_id,
                 uid=video_tag,
                 hr_history=face_hr_history[track_id],
-                band_power_features=band_power_features,
+                # band_power_features=band_power_features,
                 fps=fps
             )
             signal_plot, spectrum_plot, pred_count_plot, hr_trace_plot, hr_dist_plot, band_power_plot = plots
