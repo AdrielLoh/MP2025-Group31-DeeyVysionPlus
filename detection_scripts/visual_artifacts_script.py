@@ -12,6 +12,7 @@ from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
 import itertools
 import subprocess
+import json
 
 MODEL_PATH = "models/visual_artifacts_model.keras"
 PROTO_PATH = "models/weights-prototxt.txt"
@@ -115,11 +116,6 @@ def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=10
     return tracks
 
 def run_visual_artifacts_detection(*args, **kwargs):
-    import os
-    import cv2
-    import numpy as np
-    import matplotlib.pyplot as plt
-
     if len(args) > 0:
         video_path = args[0]
     else:
@@ -134,6 +130,13 @@ def run_visual_artifacts_detection(*args, **kwargs):
     else:
         output_dir = "./static/artifact_outputs"
     os.makedirs(output_dir, exist_ok=True)
+
+    # --- CACHING ---
+    cache_file = os.path.join(output_dir, "cached_results.json")
+    if os.path.exists(cache_file):
+        with open(cache_file, "r") as f:
+            cache = json.load(f)
+        return cache
 
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -254,6 +257,8 @@ def run_visual_artifacts_detection(*args, **kwargs):
     reencode_mp4_for_html5(video_temp, h264_overlay)
     # Now update rel_video_path accordingly
     rel_video_path = os.path.relpath(h264_overlay, "static").replace("\\", "/")
+    if os.path.exists(video_temp):
+        os.remove(video_temp)
     # Per-face analysis and charts
     face_results = []
     for tid, d in per_face_data.items():
@@ -376,6 +381,14 @@ def run_visual_artifacts_detection(*args, **kwargs):
 
     if not face_results:
         return {"success": False, "reason": "No faces detected in the video."}
+    
+    # --- SAVE TO CACHE ---
+    with open(cache_file, "w") as f:
+        json.dump({
+            "success": True,
+            "face_results": face_results,
+            "video_with_boxes": rel_video_path
+        }, f)
 
     return {
         "success": True,

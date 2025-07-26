@@ -46,7 +46,7 @@ document.getElementById("detectBtn").onclick = async () => {
         if (fileInput.files.length) formData.append("file", fileInput.files[0]);
         if (videoUrl) formData.append("video_url", videoUrl);
         if (methods[0] === "physiological")
-            formData.append("detection_method", "deep");
+            formData.append("detection_method", "machine");
     } else {
         endpoint = "/multi_detection";
         if (fileInput.files.length) formData.append("file", fileInput.files[0]);

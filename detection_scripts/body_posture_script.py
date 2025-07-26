@@ -8,10 +8,10 @@ from scipy.spatial import distance
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
+import json
 
 # Configuration
 PROCESSED_FOLDER = "static/processed/"
-RESULTS_FOLDER = "static/results/body_posture/"
 MODEL_PATH_STATIC = 'models/body_posture_model.pth'
 MODEL_PATH_LIVE = 'models/body_posture_live.keras'
 
@@ -20,7 +20,6 @@ print("Current device:", torch.cuda.get_device_name(0) if torch.cuda.is_availabl
 
 # Ensure directories exist
 os.makedirs(PROCESSED_FOLDER, exist_ok=True)
-os.makedirs(RESULTS_FOLDER, exist_ok=True)
 
 # this tracker tracks people by their keypoints using upper-body joints, if the joints are within max_distance, they are matched as the same person
 class PersonTracker:
@@ -319,7 +318,7 @@ def extract_keypoints(video_path, show_process=True):
 
 
 # === Step 1.1: Plot Keypoints on Video ===
-def plot_keypoints_video(video_path, tracker, results_folder=RESULTS_FOLDER):
+def plot_keypoints_video(video_path, tracker, results_folder):
     # prepare video + directory
     filename = os.path.splitext(os.path.basename(video_path))[0]
     os.makedirs(results_folder, exist_ok=True)
@@ -399,7 +398,7 @@ def plot_keypoints_video(video_path, tracker, results_folder=RESULTS_FOLDER):
 
 
 # === Step 1.2: Get and Plot Stats ===
-def get_plot_keypoints(tracker, save_location=RESULTS_FOLDER):
+def get_plot_keypoints(tracker, save_location):
     tracker.visible_joints = {} # person_id : list of visible joints
     tracker.joint_visiblity = {} # person_id : list of average visibility of each joint (percentage of frames where joint is visible)
     tracker.joint_confidence = {} # person_id : list of average confidence of each joint
@@ -576,16 +575,22 @@ def predict_deepfake(normalized_arr):
 
 
 # === Full Video Processing Pipeline ===
-def detect_body_posture(video_path):
+def detect_body_posture(video_path, output_dir):
+    cache_file = os.path.join(output_dir, "cached_results.json")
+    if os.path.exists(cache_file):
+        with open(cache_file, "r") as f:
+            cache = json.load(f)
+        return cache["results"], cache["overall_result"]
+    
     # Step 1: Extract Keypoints
     tracker = extract_keypoints(video_path)
     tracker.merge()
     
     # Step 1.1: Plot Keypoints on Video
-    tracker = plot_keypoints_video(video_path, tracker)
+    tracker = plot_keypoints_video(video_path, tracker, output_dir)
 
     # Step 1.2: Retrieve Keypoint Stats
-    tracker = get_plot_keypoints(tracker)
+    tracker = get_plot_keypoints(tracker, output_dir)
 
     # Step 2: Preprocess Extracted Keypoints    
     normalized_dict = {}
@@ -617,5 +622,10 @@ def detect_body_posture(video_path):
             "overall_figure" : tracker.overall_figure
         }
         results.append(result)
+
+    # Save results to cache before returning
+    os.makedirs(output_dir, exist_ok=True)
+    with open(cache_file, "w") as f:
+        json.dump({"results": results, "overall_result": overall_result}, f)
 
     return results, overall_result

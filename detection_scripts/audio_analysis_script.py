@@ -1,8 +1,3 @@
-# --- Updated Production Script with Additional Feature Visualizations ---
-# To do improvements:
-# Batch processing and prediction
-# Better error handling
-
 import os
 import librosa
 import numpy as np
@@ -13,7 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import logging
 from moviepy.video.io.VideoFileClip import VideoFileClip
-import uuid
+import json
 
 SAMPLE_RATE = 16000
 DURATION = 5
@@ -30,6 +25,16 @@ logging.basicConfig(level=logging.DEBUG)
 # Load model and scaler
 model = tf.keras.models.load_model(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
+
+def convert_to_python_type(obj):
+    if isinstance(obj, dict):
+        return {k: convert_to_python_type(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_python_type(v) for v in obj]
+    elif isinstance(obj, np.generic):
+        return obj.item()
+    else:
+        return obj
 
 def pad_or_truncate(feature, max_len):
     if feature.shape[1] < max_len:
@@ -75,6 +80,22 @@ def save_feature_plot(feature, title, file_path, y_axis='linear'):
         plt.close()
 
 def predict_audio(file_path, output_folder, unique_tag):
+    # ==== CHECK FOR CACHED RESULTS ====
+    cache_path = os.path.join(output_folder, "cached_results.json")
+    if os.path.exists(cache_path):
+        with open(cache_path, "r") as f:
+            cache = json.load(f)
+        # Return cached values in the original return format
+        return (
+            cache["prediction_class"],
+            cache["mel_spectrogram_path"],
+            cache["mfcc_path"],
+            cache["delta_path"],
+            cache["f0_path"],
+            cache["prediction_value"],
+            cache["uploaded_audio"]
+        )
+    
     if file_path.endswith('.wav') or file_path.endswith('.mp3') or file_path.endswith('.flac') or file_path.endswith('.opus'):
         y, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True, duration=DURATION)
         y = normalize_volume(y)
@@ -82,8 +103,7 @@ def predict_audio(file_path, output_folder, unique_tag):
     elif file_path.endswith('.mp4') or file_path.endswith('.mov'):
         video_clip = VideoFileClip(file_path)
         audio_clip = video_clip.audio
-        unique_tag = uuid.uuid4().hex
-        saved_audio = f"static/uploads/separated_audio_{unique_tag}.mp3"
+        saved_audio = os.path.join('static', 'uploads', f"separated_audio_{unique_tag}.mp3")
         file_path = saved_audio
         audio_clip.write_audiofile(saved_audio)
         audio_clip.close()
@@ -119,8 +139,17 @@ def predict_audio(file_path, output_folder, unique_tag):
         save_feature_plot(data, title, plot_path, y_axis=y_axis if y_axis else 'linear')
         relative_paths[filename] = os.path.relpath(plot_path, 'static').replace("\\", "/")
     
-    # Clean up uploads folder
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    # ==== SAVE TO CACHE BEFORE RETURNING ====
+    cache = {
+        "prediction_class": prediction_class,
+        "mel_spectrogram_path": relative_paths[f'mel_spectrogram_{unique_tag}.png'],
+        "mfcc_path": relative_paths[f'mfcc_{unique_tag}.png'],
+        "delta_path": relative_paths[f'delta_mfcc_{unique_tag}.png'],
+        "f0_path": relative_paths[f'f0_{unique_tag}.png'],
+        "prediction_value": pred_prob,
+        "uploaded_audio": file_path
+    }
+    with open(cache_path, "w") as f:
+        json.dump(convert_to_python_type(cache), f)
         
     return prediction_class, relative_paths[f'mel_spectrogram_{unique_tag}.png'], relative_paths[f'mfcc_{unique_tag}.png'], relative_paths[f'delta_mfcc_{unique_tag}.png'], relative_paths[f'f0_{unique_tag}.png'], pred_prob, file_path

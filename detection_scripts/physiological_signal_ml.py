@@ -11,6 +11,7 @@ from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
 import mediapipe as mp
 from antropy import sample_entropy
+import json
 
 # Model and face detection setup
 clf = joblib.load('models/physio_detection_xgboost_best.pkl')
@@ -774,15 +775,26 @@ def get_video_fps(cap):
         fps = 30
     return fps
 
-def run_detection(video_path, video_tag, output_path=f'static/results/physio_output.mp4', method="single"):
+def run_detection(video_path, video_tag, output_dir):
+    # === Check for cache results ===
+    result_path = os.path.join(output_dir, "cached_results.json")
+    if os.path.exists(result_path):
+        with open(result_path, "r") as f:
+            cached = json.load(f)
+        face_results = cached["face_results"]
+        output_path = cached.get("output_path")
+        return face_results, output_path
+    
     face_mesh = mp.solutions.face_mesh.FaceMesh(
         static_image_mode=True,
         max_num_faces=1,
         refine_landmarks=False,
         min_detection_confidence=0.5
     )
-    output_path = f'static/results/physio_output_{video_tag}.mp4'
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    output_path = os.path.join(output_dir, f'physio_output.mp4')
+    os.makedirs(output_dir, exist_ok=True)
+
     cap = cv2.VideoCapture(video_path)
     fps = get_video_fps(cap)
     width, height = int(cap.get(3)), int(cap.get(4))
@@ -871,7 +883,7 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
                     features_scaled = scaler.transform([features])
                     prob = clf.predict_proba(features_scaled)[0][1]
 
-                    prediction = 'FAKE' if prob > 0.3950 else 'REAL'
+                    prediction = 'FAKE' if prob > 0.4923 else 'REAL'
                     face_pred_history[track_id].append(prediction)
                     face_prob_history[track_id].append(prob)
                     face_hr_history[track_id].append(hr_bpm)
@@ -879,7 +891,7 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
         out.write(frame)
     out.release()
     time.sleep(0.2)  # Short pause to ensure file is closed
-    fixed_output_path = output_path.replace('.mp4', f'_fixed_{video_tag}.mp4')
+    fixed_output_path = output_path.replace('.mp4', f'_fixed.mp4')
     subprocess.run([
         'ffmpeg', '-y', '-i', output_path,
         '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
@@ -919,7 +931,7 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
             features = np.concatenate([features, [valid_ratio, avg_face_area, med_face_area, window_length_feat]])
             plots = plot_rppg_analysis(
                 rppg_sig, f, pxx, n_real, n_fake, 
-                save_dir=os.path.dirname(output_path), 
+                save_dir=output_dir, 
                 track_id=track_id,
                 uid=video_tag,
                 hr_history=face_hr_history[track_id],
@@ -949,9 +961,12 @@ def run_detection(video_path, video_tag, output_path=f'static/results/physio_out
             'band_power_plot': band_power_plot
         })
 
-        # Clean up uploads folder
-        if method != "multi":
-            if os.path.exists(video_path):
-                os.remove(video_path)
+        # ===== Cache results for future use to reduce computing =====
+        result_dict = {
+            "face_results": face_results,
+            "output_path": output_path
+        }
+        with open(result_path, "w") as f:
+            json.dump(result_dict, f)
 
     return face_results, output_path

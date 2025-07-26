@@ -383,7 +383,7 @@ def draw_rois_on_frame(frame, landmarks, alpha=0.36):
     cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
     return frame
 
-def plot_rppg_rois(roi_signals_dict, track_id, video_tag, save_dir="static/results"):
+def plot_rppg_rois(roi_signals_dict, track_id, video_tag, save_dir):
     """
     Plots 5 graphs (one for each ROI), each showing the CHROM, POS, ICA signals.
     Returns a dict: {roi_name: filepath}
@@ -407,9 +407,19 @@ def plot_rppg_rois(roi_signals_dict, track_id, video_tag, save_dir="static/resul
     return roi_plot_paths
 
 # ========== Main Inference Function ==========
-def run_detection(video_path, video_tag, output_path='static/results/physio_deep_output.mp4', method="single"):
-    output_path = f'static/results/physio_deep_output_{video_tag}.mp4'
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+def run_detection(video_path, video_tag, output_dir):
+    # === Check for cache results ===
+    result_path = os.path.join(output_dir, "cached_results.json")
+    if os.path.exists(result_path):
+        with open(result_path, "r") as f:
+            cached = json.load(f)
+        face_results = cached["face_results"]
+        output_path = cached.get("output_path")
+        return face_results, output_path
+    
+    output_path = os.path.join(output_dir, f'physio_output.mp4')
+    os.makedirs(output_dir, exist_ok=True)
+
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     width, height = int(cap.get(3)), int(cap.get(4))
@@ -545,7 +555,7 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
             pos   = apply_signal_preprocessing(rppg_pos(rgb), fs=fps)
             ica   = apply_signal_preprocessing(rppg_pca(rgb), fs=fps)
             roi_signals_dict_full[roi] = {'CHROM': chrom, 'POS': pos, 'ICA': ica}
-        roi_plot_paths = plot_rppg_rois(roi_signals_dict_full, track_id, video_tag)
+        roi_plot_paths = plot_rppg_rois(roi_signals_dict_full, track_id, video_tag, output_dir)
         roi_signal_plot_paths[track_id] = roi_plot_paths
 
         face_results.append({
@@ -575,10 +585,6 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
         os.remove(output_path)
     output_path = fixed_output_path
 
-    if method != "multi":
-        if os.path.exists(video_path):
-            os.remove(video_path)
-
     if "mp_face_mesh" in _thread_local:
         try:
             _thread_local["mp_face_mesh"].close()
@@ -586,6 +592,14 @@ def run_detection(video_path, video_tag, output_path='static/results/physio_deep
         except Exception as e:
             print("Warning: MediaPipe FaceMesh cleanup failed:", e)
     gc.collect()
+
+    # ===== Cache results for future use to reduce computing =====
+    result_dict = {
+        "face_results": face_results,
+        "output_path": output_path
+    }
+    with open(result_path, "w") as f:
+        json.dump(result_dict, f)
 
     return face_results, output_path
 

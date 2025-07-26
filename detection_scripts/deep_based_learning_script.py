@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from keras.api.models import load_model
+import json
 
 # Load the pre-trained deepfake detection model
 model = load_model('models/pattern_recognition.keras')
@@ -98,8 +99,20 @@ def live_detection(output_folder):
 
     return overall_result, real_frame_count, fake_frame_count
 
-def static_video_detection(video_path, output_folder, unique_tag, method="single"):
+def static_video_detection(video_path, output_folder, unique_tag):
     """Performs deepfake detection on an uploaded video."""
+    cache_file = os.path.join(output_folder, "cached_results.json")
+    if os.path.exists(cache_file):
+        with open(cache_file, "r") as f:
+            cache = json.load(f)
+        return (
+            cache["overall_result"],
+            cache["real_frame_count"],
+            cache["fake_frame_count"],
+            cache["rvf_plot"],
+            cache["conf_plot"]
+        )
+    
     cap = cv2.VideoCapture(video_path)
     real_frame_count = 0
     fake_frame_count = 0
@@ -146,10 +159,16 @@ def static_video_detection(video_path, output_folder, unique_tag, method="single
     # Generate and save graphs
     rvf_plot, conf_plot = plot_and_save_graphs(score_list, real_frame_count, fake_frame_count, output_folder, unique_tag)
     
-    # Clean up uploads folder
-    if method != "multi":
-        if os.path.exists(video_path):
-            os.remove(video_path)
+    # Save results to cache before returning
+    os.makedirs(output_folder, exist_ok=True)
+    with open(cache_file, "w") as f:
+        json.dump({
+            "overall_result": overall_result,
+            "real_frame_count": real_frame_count,
+            "fake_frame_count": fake_frame_count,
+            "rvf_plot": rvf_plot,
+            "conf_plot": conf_plot
+        }, f)
 
     return overall_result, real_frame_count, fake_frame_count, rvf_plot, conf_plot
 

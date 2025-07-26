@@ -1425,15 +1425,15 @@ if __name__ == "__main__":
         # )
 
         fake_final_batch = cache_batches_parallel(
-            video_dir="E:/deepfake_training_datasets/Physio_Model/TRAINING/fake-do-not-augment",
+            video_dir="E:/deepfake_training_datasets/Physio_Model/TRAINING/deeperforensics-fake-unedited",
             label='fake',
             class_idx=1,
             batch_size=128,
-            cache_dir="C:/model_training/physio_ml/fake/validation",
+            cache_dir="C:/model_training/physio_ml/fake",
             window_size=150,
             hop_size=75,
-            start_batch_idx=0,
-            aug_chance=0
+            start_batch_idx=335,
+            aug_chance=0.55
         )
 
         # real_final_batch = cache_batches_parallel(
