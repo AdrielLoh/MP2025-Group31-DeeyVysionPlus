@@ -225,12 +225,9 @@ def deep_learning_based_detection():
     if request.method == 'POST':
         if DEMO_MODE:
             return detection_disabled_response()
-        file = request.files.get('file')
-        if file:
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-            file.save(filename)
-            result = deep_learning_live_detection(filename)
-            return render_template('result.html', result=result, analysis_type='deep_learning')
+        # Pass POST logic to deep_learning_static (to avoid duplication)
+        return deep_learning_static()
+    # For GET: render the upload template directly
     return render_template('deep_learning_based_detection.html')
 
 @app.route('/physiological_signal_analysis', methods=['GET'])
@@ -337,6 +334,7 @@ def deep_learning_static():
     if request.method == "POST":
         if DEMO_MODE:
             return detection_disabled_response()
+        mp4_path = ""
         file = request.files.get('file')
         video_url = request.form.get('video_url', '').strip()
         video_tag = uuid.uuid4().hex # Making the uploaded videos uniquely named

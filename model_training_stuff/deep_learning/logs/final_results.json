@@ -1,0 +1,23 @@
+{
+  "test_loss": 0.4239291548728943,
+  "test_accuracy": 0.8502475023269653,
+  "test_auc": 0.9298484325408936,
+  "test_precision": 0.9143258333206177,
+  "test_recall": 0.7824519276618958,
+  "best_params": {
+    "model_type": "resnet",
+    "learning_rate": 0.0002318196174511988,
+    "dropout_rate": 0.26327871211250603
+  },
+  "config": {
+    "data_dir": "C:/deepvysion/preprocessed-1",
+    "model_dir": "C:/deepvysion/deepfake_models",
+    "log_dir": "C:/deepvysion/logs",
+    "epochs": 25,
+    "batch_size": 16,
+    "img_size": 128,
+    "optuna_trials": 10,
+    "skip_optuna": false
+  },
+  "total_training_time": 54326.615730047226
+}

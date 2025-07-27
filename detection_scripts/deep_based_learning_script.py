@@ -8,7 +8,7 @@ import collections
 import subprocess
 
 # Load the pre-trained deepfake detection model
-model = load_model('models/pattern_recognition.keras')
+model = load_model('models/deep_learning_model.keras')
 
 def detect_faces(frame, net, conf=0.6):
     h, w = frame.shape[:2]
