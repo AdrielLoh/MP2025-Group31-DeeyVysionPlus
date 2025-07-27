@@ -103,6 +103,65 @@
                     <div class="processing-text">Processing your video (it may take a few minutes)...</div>
                 </div>
             </form>
+            <br><hr><br>
+            <!-- Webcam Detection Method -->
+            <div class="detection-method webcam-method" id="webcamSection">
+                <div class="method-header">
+                    <div class="method-icon-try">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="method-text">
+                        <h2 class="method-title">Live Webcam Detection</h2>
+                        <p class="method-description">Use your webcam for real-time detection. Record a short video clip and analyze it instantly.</p>
+                    </div>
+                </div>
+                
+                <div class="webcam-controls">
+                    <div class="camera-selection">
+                        <label for="videoSource">Select Camera:</label>
+                        <select id="videoSource"></select>
+                    </div>
+                    
+                    <div class="webcam-preview-container">
+                        <video id="webcam-preview" width="600" autoplay muted style="display: none;"></video>
+                        <div class="preview-placeholder">
+                            <div class="camera-icon">📹</div>
+                            <p>Camera preview will appear here</p>
+                        </div>
+                    </div>
+                    
+                    <div class="webcam-buttons">
+                        <button id="startWebcamBtn" class="webcam-button start-btn">
+                            <span>Start Recording</span>
+                            <div class="record-indicator"></div>
+                        </button>
+                        <button id="stopWebcamBtn" class="webcam-button stop-btn" disabled>
+                            <span>Stop & Analyze</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="red">
+                                <rect x="6" y="6" width="12" height="12" stroke="red" stroke-width="2"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="webcamSpinner" class="webcam-loading">
+                        <div class="spinner-container">
+                            <div class="spinner"></div>
+                        </div>
+                        <div class="loading-text">
+                            <h4>Processing live video...</h4>
+                            <p>Please <b>do not</b> refresh or leave this page!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="webcamUploadForm" class="webcam-upload-form" method="POST" enctype="multipart/form-data" action="" style="display:none;">
+                    <input type="file" name="file" id="webcamFileInput" style="display: none;">
+                    <button type="submit" class="webcam-button webcam-upload-button">UPLOAD RECORDING</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -139,7 +198,43 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const webcamForm = document.getElementById("webcamUploadForm");
+    const webcamFileInput = document.getElementById("webcamFileInput");
+    const multiForm = document.getElementById("multiUploadForm");
+    const multiFileInput = document.getElementById("file");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+    const submitBtn = document.getElementById("submitButton");
+
+    // Intercept webcamUploadForm's default submission
+    webcamForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        if (!webcamFileInput.files.length) {
+            alert("No recorded video found.");
+            return;
+        }
+
+        // Inject webcam file into the original multi detection form
+        const dt = new DataTransfer();
+        dt.items.add(webcamFileInput.files[0]);
+        multiFileInput.files = dt.files;
+
+        // Trigger the original multiUploadForm submission
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Processing...";
+        loadingSpinner.style.display = "block";
+
+        multiForm.setAttribute("action", "/multi_detection");
+        multiForm.setAttribute("method", "POST");
+        multiForm.submit();
+    });
+});
+</script>
+
     <script src="../static/js/scripts.js"></script>
     <script src="../static/js/handle-upload.js"></script>
+    <script src="../static/js/live-webcam.js"></script>
 </body>
 </html>

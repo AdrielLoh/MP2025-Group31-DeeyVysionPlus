@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import logging
 from moviepy.video.io.VideoFileClip import VideoFileClip
 import json
+import shutil
+import soundfile as sf
+
 
 SAMPLE_RATE = 16000
 DURATION = 5
@@ -79,13 +82,12 @@ def save_feature_plot(feature, title, file_path, y_axis='linear'):
     finally:
         plt.close()
 
-def predict_audio(file_path, output_folder, unique_tag):
+def predict_audio(file_path, output_folder, unique_tag, window_duration=5, window_hop=2.5, use_cache=True):
     # ==== CHECK FOR CACHED RESULTS ====
     cache_path = os.path.join(output_folder, "cached_results.json")
-    if os.path.exists(cache_path):
+    if use_cache and os.path.exists(cache_path):
         with open(cache_path, "r") as f:
             cache = json.load(f)
-        # Return cached values in the original return format
         return (
             cache["prediction_class"],
             cache["mel_spectrogram_path"],
@@ -95,61 +97,112 @@ def predict_audio(file_path, output_folder, unique_tag):
             cache["prediction_value"],
             cache["uploaded_audio"]
         )
-    
-    if file_path.endswith('.wav') or file_path.endswith('.mp3') or file_path.endswith('.flac') or file_path.endswith('.opus'):
-        y, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True, duration=DURATION)
-        y = normalize_volume(y)
-        features, avg_energy, mel_db, mfcc, delta, f0, energy = extract_combined_features(y)
-    elif file_path.endswith('.mp4') or file_path.endswith('.mov'):
+
+    # Always convert to .wav and save in output_folder
+    processed_audio_path = os.path.join(output_folder, f"audio_{unique_tag}.wav")
+
+    if file_path.endswith(('.mp4', '.mov')):
+        # Extract audio from video, then convert to .wav
         video_clip = VideoFileClip(file_path)
         audio_clip = video_clip.audio
-        saved_audio = os.path.join('static', 'uploads', f"separated_audio_{unique_tag}.mp3")
-        file_path = saved_audio
-        audio_clip.write_audiofile(saved_audio)
+        temp_audio_path = os.path.join(output_folder, f"temp_audio_{unique_tag}.mp3")
+        audio_clip.write_audiofile(temp_audio_path, logger=None)
         audio_clip.close()
         video_clip.close()
-        y, sr = librosa.load(saved_audio, sr=SAMPLE_RATE, mono=True, duration=DURATION)
+        y, sr = librosa.load(temp_audio_path, sr=SAMPLE_RATE, mono=True)
         y = normalize_volume(y)
-        features, avg_energy, mel_db, mfcc, delta, f0, energy = extract_combined_features(y)
+        sf.write(processed_audio_path, y, sr)  # Save as wav
+        os.remove(temp_audio_path)  # Clean up temp audio
     else:
+        y, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True)
+        y = normalize_volume(y)
+        sf.write(processed_audio_path, y, sr)  # Save as wav
+    
+    if os.path.abspath(file_path) != os.path.abspath(processed_audio_path):
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            logging.warning(f"Could not delete original file: {file_path}: {e}")
+
+    actual_audio_path = processed_audio_path
+
+    if np.max(np.abs(y)) < SILENCE_THRESHOLD or len(y) < sr:
+        logging.warning("Audio too silent or too short. Skipping prediction.")
         return None, None
 
-    if avg_energy < SILENCE_THRESHOLD:
-        logging.warning("Audio too silent. Skipping prediction.")
+    window_length = int(window_duration * sr)
+    hop_length = int(window_hop * sr)
+    total_samples = len(y)
+    pred_probs = []
+    num_skipped = 0
+
+    for start in range(0, total_samples - window_length + 1, hop_length):
+        window_y = y[start : start + window_length]
+        features, avg_energy, mel_db, mfcc, delta, f0, energy = extract_combined_features(window_y)
+        if avg_energy < SILENCE_THRESHOLD:
+            num_skipped += 1
+            continue
+        scaled_features = scaler.transform(features.reshape(-1, features.shape[-1]))
+        input_data = scaled_features[..., np.newaxis][np.newaxis, ...]
+        pred_prob = model.predict(input_data).flatten()[0]
+        pred_probs.append(pred_prob)
+
+    if not pred_probs:
+        logging.warning("No valid windows found (all silent/short).")
         return None, None
 
-    features = scaler.transform(features.reshape(-1, features.shape[-1]))
-    input_data = features[..., np.newaxis][np.newaxis, ...]
-    pred_prob = model.predict(input_data).flatten()[0]
-    prediction_class = 1 if pred_prob >= 0.3306 else 0
-    # 8p2=0.3368, 9p1=0.2798, 9p2=0.3798, 9p2ft1=0.3656, 9p2ft2=0.3306
+    # === Aggregate result ===
+    mean_prob = float(np.mean(pred_probs))
+    num_fakes = int(np.sum([p >= 0.3306 for p in pred_probs]))
+    num_windows = len(pred_probs)
+    prediction_class = 1 if num_fakes > (num_windows // 2) else 0
 
-    # Save visualizations
+    # ==== Plot features for FULL audio ====
+    try:
+        mel_db_full = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=N_MELS)
+        mel_db_full = librosa.power_to_db(mel_db_full, ref=np.max)
+        mfcc_full = librosa.feature.mfcc(S=mel_db_full, n_mfcc=N_MFCC)
+        delta_full = librosa.feature.delta(mfcc_full)
+        f0_full, _, _ = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'))
+        f0_full = np.nan_to_num(f0_full)
+        rms_full = librosa.feature.rms(y=y)
+        energy_full = np.sum(rms_full, axis=0, keepdims=True)
+    except Exception as e:
+        logging.error(f"Error extracting global features for plotting: {e}")
+        mel_db_full, mfcc_full, delta_full, f0_full, energy_full = None, None, None, None, None
+
     plots = {
-        f'mel_spectrogram_{unique_tag}.png': (mel_db, 'Mel Spectrogram', 'mel'),
-        f'mfcc_{unique_tag}.png': (mfcc, 'MFCC', 'linear'),
-        f'delta_mfcc_{unique_tag}.png': (delta, 'Delta MFCC', 'linear'),
-        f'f0_{unique_tag}.png': (f0, 'Fundamental Frequency (F0)', None),
-        f'energy_{unique_tag}.png': (energy, 'Energy', None)
+        f'mel_spectrogram_{unique_tag}.png': (mel_db_full, 'Mel Spectrogram', 'mel'),
+        f'mfcc_{unique_tag}.png': (mfcc_full, 'MFCC', 'linear'),
+        f'delta_mfcc_{unique_tag}.png': (delta_full, 'Delta MFCC', 'linear'),
+        f'f0_{unique_tag}.png': (f0_full, 'Fundamental Frequency (F0)', None),
+        f'energy_{unique_tag}.png': (energy_full, 'Energy', None)
     }
-
     relative_paths = {}
     for filename, (data, title, y_axis) in plots.items():
         plot_path = os.path.join(output_folder, filename)
         save_feature_plot(data, title, plot_path, y_axis=y_axis if y_axis else 'linear')
         relative_paths[filename] = os.path.relpath(plot_path, 'static').replace("\\", "/")
-    
-    # ==== SAVE TO CACHE BEFORE RETURNING ====
+
+    # ==== Cache and return ====
     cache = {
-        "prediction_class": prediction_class,
+        "prediction_class": int(prediction_class),
         "mel_spectrogram_path": relative_paths[f'mel_spectrogram_{unique_tag}.png'],
         "mfcc_path": relative_paths[f'mfcc_{unique_tag}.png'],
         "delta_path": relative_paths[f'delta_mfcc_{unique_tag}.png'],
         "f0_path": relative_paths[f'f0_{unique_tag}.png'],
-        "prediction_value": pred_prob,
-        "uploaded_audio": file_path
+        "prediction_value": mean_prob,
+        "uploaded_audio": actual_audio_path
     }
     with open(cache_path, "w") as f:
         json.dump(convert_to_python_type(cache), f)
-        
-    return prediction_class, relative_paths[f'mel_spectrogram_{unique_tag}.png'], relative_paths[f'mfcc_{unique_tag}.png'], relative_paths[f'delta_mfcc_{unique_tag}.png'], relative_paths[f'f0_{unique_tag}.png'], pred_prob, file_path
+
+    return (
+        prediction_class,
+        relative_paths[f'mel_spectrogram_{unique_tag}.png'],
+        relative_paths[f'mfcc_{unique_tag}.png'],
+        relative_paths[f'delta_mfcc_{unique_tag}.png'],
+        relative_paths[f'f0_{unique_tag}.png'],
+        mean_prob,
+        actual_audio_path
+    )

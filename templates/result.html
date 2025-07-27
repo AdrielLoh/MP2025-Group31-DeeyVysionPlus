@@ -62,6 +62,19 @@
                         </button>
                     </div>
 
+                    {% if uploaded_audio %}
+                    <div class="audio-playback">
+                        <h3>Audio Sample</h3>
+                        <p class="audio-description">Listen to the analyzed audio file:</p>
+                        <div class="audio-container">
+                            <audio class="analysis-audio" controls preload="metadata">
+                                <source src="{{ uploaded_audio }}" type="audio/wav">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     {% if mel_spectrogram_path or mfcc_path or delta_path or f0_path %}
                     <div class="analysis-tabs">
                         <div class="tab-navigation">
@@ -277,45 +290,90 @@
 
             {% elif analysis_type in ['deep_learning', 'deep_learning_static'] %}
                 <!-- Deep Learning Detection Results -->
-                <div class="result-card deep-learning-result">
-                    <div class="result-header">
-                        <div class="result-status">
-                            <h2 class="status-text" style="color: {% if result == 'Real' %}#10b981{% elif result == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
-                                {% if result == 'Real' %}Authentic{% elif result == 'Fake' %}Likely Deepfake{% else %}Inconclusive{% endif %}
-                            </h2>
-                            <div class="metrics-grid">
-                                <div class="metric-item">
-                                    <span class="metric-label">Real Frames:</span>
-                                    <span class="metric-value">{{ real_count }}</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">Fake Frames:</span>
-                                    <span class="metric-value">{{ fake_count }}</span>
-                                </div>
+                {% if face_results|length == 0 %}
+                    <div class="result-card error-result">
+                        <div class="result-header">
+                            <div class="result-status">
+                                <h2 class="status-text" style="color: #f59e0b;">No Faces Detected</h2>
+                                <p class="error-message">Unable to detect faces in the provided video. Please try with a clearer video containing visible faces (minimum 5 seconds recommended).</p>
+                            </div>
+                            <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
+                                <span>←</span> Try Again
+                            </button>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="face-detection-results">
+                        <div class="face-tabs">
+                            <div class="tab-navigation">
+                                {% for face in face_results %}
+                                <button class="tab-btn{% if loop.first %} active{% endif %}" data-tab="face-{{ face.track_id }}">
+                                    Face #{{ face.track_id }}
+                                </button>
+                                {% endfor %}
                             </div>
                         </div>
-                        <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
-                            <span>←</span> Return to Analysis
-                        </button>
-                    </div>
 
-                    <div class="analysis-charts">
-                        <div class="chart-grid">
-                            <div class="chart-item">
-                                <h3>Frame Classification</h3>
-                                <div class="chart-container">
-                                    <img src="{{ rvf_plot }}" alt="Frames Real vs Fake" class="analysis-chart">
+                        {% for face in face_results %}
+                        <div class="result-card deep-learning-result tab-panel{% if loop.first %} active{% endif %}" id="face-{{ face.track_id }}">
+                            <div class="result-header">
+                                <div class="result-status">
+                                    <h2 class="status-text" style="color: {% if face.result == 'Real' %}#10b981{% elif face.result == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                        {% if face.result == 'Real' %}Authentic{% elif face.result == 'Fake' %}Likely Deepfake{% else %}Inconclusive{% endif %}
+                                    </h2>
+                                    <div class="metrics-grid">
+                                        <div class="metric-item">
+                                            <span class="metric-label">Real Frames:</span>
+                                            <span class="metric-value">{{ face.real_count }}</span>
+                                        </div>
+                                        <div class="metric-item">
+                                            <span class="metric-label">Fake Frames:</span>
+                                            <span class="metric-value">{{ face.fake_count }}</span>
+                                        </div>
+                                        <div class="metric-item">
+                                            <span class="metric-label">Chance of Deepfake:</span>
+                                            <span class="metric-value">{{ face.confidence }}%</span>
+                                        </div>
+                                    </div>
                                 </div>
+                                <button class="action-button back-btn" onclick="deleteFilesAndGoBack();">
+                                    <span>←</span> Return to Analysis
+                                </button>
                             </div>
-                            <div class="chart-item">
-                                <h3>Confidence Distribution</h3>
-                                <div class="chart-container">
-                                    <img src="{{ conf_plot }}" alt="Confidence Score" class="analysis-chart">
+
+                            <div class="video-analysis">
+                                <h3>Analyzed Video</h3>
+                                <video class="analysis-video" controls autoplay loop muted>
+                                    <source src="{{ output_video }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+
+                            <div class="analysis-carousel">
+                                <div class="carousel-header">
+                                    <h3 style="color: var(--warning-gradient)">Deep Learning Analysis Charts</h3>
+                                    <div class="carousel-controls">
+                                        <button class="carousel-btn prev" data-carousel="carousel-{{ face.track_id }}">‹</button>
+                                        <button class="carousel-btn next" data-carousel="carousel-{{ face.track_id }}">›</button>
+                                    </div>
+                                </div>
+                                <div class="carousel-container" id="carousel-{{ face.track_id }}">
+                                    <div class="carousel-track">
+                                        <div class="carousel-slide active">
+                                            <img src="{{ face.conf_plot }}" alt="Confidence Score Over Time" class="analysis-chart">
+                                            <p class="chart-description">Confidence score progression throughout the video</p>
+                                        </div>
+                                        <div class="carousel-slide">
+                                            <img src="{{ face.real_vs_fake_plot }}" alt="Real vs Fake Classification" class="analysis-chart">
+                                            <p class="chart-description">Frame-by-frame classification results</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                </div>
+                {% endif %}
 
             {% elif analysis_type in ['visual_artifacts', 'visual_artifact_static'] %}
                 <!-- Visual Artifacts Detection Results -->
@@ -602,23 +660,12 @@
                                 </h2>
                                 
                                 <!-- Show method-specific metrics -->
-                                {% if method == 'deep_learning' and data.real_count is defined %}
-                                    <div class="metrics-grid">
-                                        <div class="metric-item">
-                                            <span class="metric-label">Real Frames:</span>
-                                            <span class="metric-value">{{ data.real_count }}</span>
-                                        </div>
-                                        <div class="metric-item">
-                                            <span class="metric-label">Fake Frames:</span>
-                                            <span class="metric-value">{{ data.fake_count }}</span>
-                                        </div>
-                                    </div>
-                                {% elif method == 'body_posture' and data.confidence is defined %}
+                                {% if method == 'body_posture' and data.confidence is defined %}
                                     <div class="confidence-badge">
                                         <span class="confidence-label">Deepfake Probability:</span>
                                         <span class="confidence-value">{{ (data.confidence * 100) | round }}%</span>
                                     </div>
-                                {% elif method in ['physiological', 'visual_artifacts'] and data.face_results %}
+                                {% elif method in ['physiological', 'visual_artifacts', 'deep_learning', 'deep_learning_static'] and data.face_results %}
                                     <div class="metrics-grid">
                                         {% set total_real = data.face_results | selectattr('result', 'equalto', 'Real') | list | length %}
                                         {% set total_fake = data.face_results | selectattr('result', 'equalto', 'Fake') | list | length %}
@@ -651,29 +698,19 @@
                     </div>
 
                     {% if not data.get('error') %}
-                        <!-- Method-specific detailed results -->
-                        {% if method == 'deep_learning' and data.rvf_plot %}
-                            <div class="analysis-charts">
-                                <div class="chart-grid">
-                                    <div class="chart-item">
-                                        <h3>Frame Classification</h3>
-                                        <div class="chart-container">
-                                            <img src="{{ data.rvf_plot }}" alt="Frames Real vs Fake" class="analysis-chart">
-                                        </div>
-                                    </div>
-                                    {% if data.conf_plot %}
-                                    <div class="chart-item">
-                                        <h3>Confidence Distribution</h3>
-                                        <div class="chart-container">
-                                            <img src="{{ data.conf_plot }}" alt="Confidence Score" class="analysis-chart">
-                                        </div>
-                                    </div>
-                                    {% endif %}
+                        {% if method=='audio' %}
+                            {% if data.prediction_value is defined %}
+                            <div class="audio-playback">
+                                <h3>Audio Sample</h3>
+                                <p class="audio-description">Listen to the analyzed audio file:</p>
+                                <div class="audio-container">
+                                    <audio class="analysis-audio" controls preload="metadata">
+                                        <source src="{{ data.uploaded_audio }}" type="audio/wav">
+                                        Your browser does not support the audio element.
+                                    </audio>
                                 </div>
                             </div>
-                        {% endif %}
-
-                        {% if method=='audio' %}
+                            {% endif %}
                             <div class="analysis-charts">
                                 <div class="chart-grid">
                                     <div class="chart-item">
@@ -704,39 +741,39 @@
                             </div>
                         {% endif %}
 
-                        {% if method in ['physiological', 'visual_artifacts'] and data.face_results %}
+                        {% if method in ['physiological', 'visual_artifacts', 'deep_learning', 'deep_learning_static'] and data.face_results %}
                             <div class="face-summary">
                                 <h3>Face Detection Summary</h3>
                                 <div class="face-grid">
                                     {% for face in data.face_results %}
-                                    <div class="face-summary-card">
-                                        <div class="face-id">Face #{{ face.track_id }}</div>
-                                        <div class="face-result" style="color: {% if face.result == 'Real' %}#10b981{% elif face.result == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
-                                            {{ face.result }}
+                                        <div class="face-summary-card">
+                                            <div class="face-id">Face #{{ face.track_id }}</div>
+                                            <div class="face-result" style="color: {% if face.result == 'Real' %}#10b981{% elif face.result == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                                {{ face.result }}
+                                            </div>
+                                            {% if face.real_count is defined and face.fake_count is defined %}
+                                                <div class="face-counts">
+                                                    Real: {{ face.real_count }} | Fake: {{ face.fake_count }}
+                                                </div>
+                                            {% endif %}
+                                            {% if face.confidence is defined %}
+                                                <div class="face-confidence">
+                                                    Confidence: {{ face.confidence }}%
+                                                </div>
+                                            {% endif %}
                                         </div>
-                                        {% if face.real_count is defined and face.fake_count is defined %}
-                                        <div class="face-counts">
-                                            Real: {{ face.real_count }} | Fake: {{ face.fake_count }}
-                                        </div>
-                                        {% endif %}
-                                        {% if face.confidence is defined %}
-                                        <div class="face-confidence">
-                                            Confidence: {{ face.confidence }}%
-                                        </div>
-                                        {% endif %}
-                                    </div>
                                     {% endfor %}
                                 </div>
                             </div>
 
                             {% if data.output_video %}
-                            <div class="video-analysis">
-                                <h3>Analyzed Video</h3>
-                                <video class="analysis-video" controls autoplay loop muted>
-                                    <source src="{{ data.output_video }}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                            </div>
+                                <div class="video-analysis">
+                                    <h3>Analyzed Video</h3>
+                                    <video class="analysis-video" controls autoplay loop muted>
+                                        <source src="{{ data.output_video }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
                             {% endif %}
                         {% endif %}
                     {% endif %}

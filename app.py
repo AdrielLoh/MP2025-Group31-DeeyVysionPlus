@@ -10,15 +10,12 @@ import yt_dlp
 import hashlib
 
 logging.basicConfig(level=logging.DEBUG)
-from detection_scripts.deep_based_learning_script import live_detection as deep_learning_live_detection
 from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
 from detection_scripts.physiological_signal_script import run_detection as run_dl_detection
 from detection_scripts.audio_analysis_script import predict_audio
 from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
-from detection_scripts.legacy.body_posture_script import body_posture_live_detection
 from detection_scripts.body_posture_script import detect_body_posture
 from detection_scripts.physiological_signal_ml import run_detection as run_ml_detection
-from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection
 
 app = Flask(__name__)
 
@@ -372,7 +369,7 @@ def deep_learning_static():
 
         output_folder = os.path.join('static', 'results', 'deep_learning', video_hash)
         os.makedirs(output_folder, exist_ok=True)
-        result, real_count, fake_count, rvf_plot, conf_plot = deep_learning_static_detection(video_path_for_processing, output_folder, video_hash)
+        face_results, output_video = deep_learning_static_detection(video_path_for_processing, output_folder, video_hash)
         
         if video_path_for_processing and os.path.exists(video_path_for_processing):
             os.remove(video_path_for_processing)
@@ -380,22 +377,22 @@ def deep_learning_static():
             os.remove(mp4_path)
 
         if request.headers.get('Accept') == 'application/json':
+            # Calculate overall prediction from face results
+            real_faces = sum(1 for face in face_results if face.get('result') == 'Real')
+            fake_faces = sum(1 for face in face_results if face.get('result') == 'Fake')
+            overall_prediction = "Real" if real_faces > fake_faces else "Fake" if fake_faces > 0 else "Inconclusive"
+            
             return jsonify({
-                "prediction": result,
-                "real_count": real_count,
-                "fake_count": fake_count,
-                "rvf_plot": rvf_plot,
-                "conf_plot": conf_plot
+                "prediction": overall_prediction,
+                "face_results": face_results,
+                "output_video": output_video
             })
         else:
             return render_template(
                 'result.html', 
                 analysis_type='deep_learning_static', 
-                result=result, 
-                real_count=real_count, 
-                fake_count=fake_count, 
-                rvf_plot=rvf_plot, 
-                conf_plot=conf_plot
+                face_results=face_results,
+                output_video=output_video
             )
 
 @app.route('/visual_artifacts_static', methods=['GET', 'POST'])
@@ -667,6 +664,7 @@ def multi_detection():
                         "delta_path": delta_path,
                         "f0_path": f0_path,
                         "prediction_value": round(prediction_value * 100),
+                        "uploaded_audio": uploaded_audio,
                         "type": "audio"
                     }
                 else:
@@ -705,15 +703,21 @@ def multi_detection():
                 processed_results[method] = {"prediction": result}
         
         elif method == "deep_learning":
-            # Deep learning returns: (detection_result, real_count, fake_count, rvf_plot, conf_plot)
-            if isinstance(result, tuple) and len(result) >= 5:
-                detection_result, real_count, fake_count, rvf_plot, conf_plot = result
+            # Deep learning returns: (face_results, output_video)
+            if isinstance(result, tuple) and len(result) >= 2:
+                face_results, output_video = result
+                # Determine overall prediction from face results
+                if face_results:
+                    real_faces = sum(1 for face in face_results if face.get('result') == 'Real')
+                    fake_faces = sum(1 for face in face_results if face.get('result') == 'Fake')
+                    overall_prediction = "Real" if real_faces > fake_faces else "Fake" if fake_faces > 0 else "Inconclusive"
+                else:
+                    overall_prediction = "No faces detected"
+                
                 processed_results[method] = {
-                    "prediction": detection_result,
-                    "real_count": real_count,
-                    "fake_count": fake_count,
-                    "rvf_plot": rvf_plot,
-                    "conf_plot": conf_plot,
+                    "prediction": overall_prediction,
+                    "face_results": face_results,
+                    "output_video": output_video,
                     "type": "deep_learning"
                 }
             else:
@@ -795,7 +799,7 @@ def multi_detection():
 
 if __name__ == '__main__':
     # --- Comment line below to go to development, uncomment to go to production ---
-    # serve(app, host="0.0.0.0", port=5000)
+    serve(app, host="0.0.0.0", port=5000)
 
     # --- Comment line below to go to production, uncomment to go to development ---
-    app.run(debug=True)
+    # app.run(debug=True)

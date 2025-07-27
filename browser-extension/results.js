@@ -61,6 +61,14 @@ function renderResultCard(method, result) {
             color = "linear-gradient(90deg,#fa709a,#fee140)";
             icon = "🙍‍♂️";
             break;
+        case "audio":
+            label = "Audio Analysis";
+            color = "linear-gradient(90deg,#ff9a9e,#fecfef)";
+            icon = "🔊";
+            if (result.prediction_value !== undefined) {
+                details = `<div>Deepfake Probability: <b>${result.prediction_value}%</b></div>`;
+            }
+            break;
         default:
             label = method;
             color = "linear-gradient(90deg,#cecece,#888)";
@@ -73,6 +81,19 @@ function renderResultCard(method, result) {
         result.confidence !== undefined
             ? `<div>Confidence: <b>${result.confidence}%</b></div>`
             : "";
+
+    // Audio playback section
+    let audioPlayer = "";
+    if (method === "audio" && result.uploaded_audio) {
+        audioPlayer = `
+        <div style="margin-top:12px;padding:12px;background:rgba(0,0,0,0.2);border-radius:8px;">
+            <div style="font-weight:600;margin-bottom:8px;color:#fff;">🎵 Audio Sample</div>
+            <audio controls style="width:100%;height:40px;border-radius:6px;background:rgba(0,0,0,0.3);">
+                <source src="http://localhost:5000/${result.uploaded_audio}" type="audio/wav">
+                Your browser does not support the audio element.
+            </audio>
+        </div>`;
+    }
 
     // Face results table with confidence & time
     let faces = "";
@@ -116,11 +137,12 @@ function renderResultCard(method, result) {
             `;
         }
         return `
-            <div style="...">
+            <div style="border-radius: 1.1em; padding: 1em 1em 0.7em 1em; margin: 0 0 1.1em 0; color: #fff; box-shadow: var(--shadow-glow, 0 3px 12px rgba(120,119,198,0.19)); position: relative;">
                 <div style="font-size:1.2em;font-weight:700;margin-bottom:0.2em;">${icon} ${label}</div>
                 <div style="font-size:1.13em; margin-bottom:0.35em;"><b>Prediction:</b> ${prediction}</div>
                 ${confidence}
                 ${details}
+                ${audioPlayer}
                 ${faces}
                 ${video}
             </div>
@@ -166,6 +188,7 @@ function renderResultCard(method, result) {
             plots += `<img src="http://localhost:5000/static/${result.mel_spectrogram_path}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #764ba22a;">`;
         if (result.mfcc_path)
             plots += `<img src="http://localhost:5000/static/${result.mfcc_path}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #764ba22a;">`;
+        
         return `
             <div style=" 
                 border-radius: 1.1em; 
@@ -179,6 +202,7 @@ function renderResultCard(method, result) {
                 <div style="font-size:1.13em; margin-bottom:0.35em;"><b>Prediction:</b> ${prediction}</div>
                 ${confidence}
                 ${details}
+                ${audioPlayer}
                 ${faces}
                 ${video}
                 ${plots}

@@ -533,7 +533,6 @@
 
 /* Chart Grid */
 .chart-grid {
-    display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 2rem;
     margin: 2rem 0;
@@ -627,7 +626,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 1.2rem;
 }
 
 .face-result {
@@ -637,7 +636,6 @@
 }
 
 .face-counts, .face-confidence {
-    font-size: 0.85rem;
     color: var(--text-primary);
     margin-bottom: 0.25rem;
 }
@@ -661,7 +659,6 @@
 
 .multi-detection-results .tab-btn {
     min-width: 120px;
-    font-size: 0.9rem;
 }
 
 .method-label {
@@ -681,7 +678,49 @@
     font-style: italic;
     color: #6b7280;
     margin-top: 0.5rem;
+}
+
+.audio-playback {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.audio-playback h3 {
+    color: var(--warning-gradient);
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.audio-description {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1rem;
     font-size: 0.9rem;
+}
+
+.audio-container {
+    display: flex;
+    justify-content: center;
+}
+
+.analysis-audio {
+    width: 100%;
+    max-width: 500px;
+    height: 54px;
+    border-radius: 8px;
+    outline: none;
+}
+
+.analysis-audio::-webkit-media-controls-panel {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.analysis-audio::-webkit-media-controls-play-button,
+.analysis-audio::-webkit-media-controls-pause-button {
+    background-color: var(--primary-color);
+    border-radius: 50%;
 }
 
 /* Animations */
@@ -757,10 +796,6 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-    .chart-grid {
-        grid-template-columns: 1fr;
-    }
-    
     .metrics-grid {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     }

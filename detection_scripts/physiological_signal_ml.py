@@ -20,7 +20,6 @@ FACE_PROTO = 'models/weights-prototxt.txt'
 FACE_MODEL = 'models/res_ssd_300Dim.caffeModel'
 face_net = cv2.dnn.readNetFromCaffe(FACE_PROTO, FACE_MODEL)
 BASE_FEATURE_COUNT = 106
-FINAL_FEATURE_COUNT = 110  # 106 + 4
 
 def detect_faces_dnn(frame, conf_threshold=0.6):
     h, w = frame.shape[:2]
@@ -877,9 +876,6 @@ def run_detection(video_path, video_tag, output_dir):
                     rgb_window = np.array(face_rgb_history[track_id][-150:])
                     features, hr_bpm, _, _, _ = compute_rppg_features_multi(rgb_window, fs=fps)
 
-                    if features.shape[0] != FINAL_FEATURE_COUNT:
-                        # Simple safety check
-                        print(f"Warning: feature count mismatch: {features.shape[0]} != {FINAL_FEATURE_COUNT}")
                     features_scaled = scaler.transform([features])
                     prob = clf.predict_proba(features_scaled)[0][1]
 

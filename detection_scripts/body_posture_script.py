@@ -21,6 +21,20 @@ print("Current device:", torch.cuda.get_device_name(0) if torch.cuda.is_availabl
 # Ensure directories exist
 os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 
+def convert_to_python_type(obj):
+    if isinstance(obj, dict):
+        return {k: convert_to_python_type(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_python_type(v) for v in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_to_python_type(v) for v in obj)
+    elif isinstance(obj, (np.generic, np.ndarray)):
+        return obj.item() if obj.size == 1 else obj.tolist()
+    elif isinstance(obj, torch.Tensor):
+        return obj.item() if obj.numel() == 1 else obj.detach().cpu().tolist()
+    else:
+        return obj
+    
 # this tracker tracks people by their keypoints using upper-body joints, if the joints are within max_distance, they are matched as the same person
 class PersonTracker:
     def __init__(self, max_distance=30, matching_joints=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]):
@@ -626,6 +640,6 @@ def detect_body_posture(video_path, output_dir):
     # Save results to cache before returning
     os.makedirs(output_dir, exist_ok=True)
     with open(cache_file, "w") as f:
-        json.dump({"results": results, "overall_result": overall_result}, f)
+        json.dump(convert_to_python_type({"results": results, "overall_result": overall_result}), f)
 
     return results, overall_result

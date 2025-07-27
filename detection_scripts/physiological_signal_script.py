@@ -543,8 +543,11 @@ def run_detection(video_path, video_tag, output_dir):
         probs = [prob for _, prob in prediction_memory[track_id] if prob != 0]
         n_real = preds.count('REAL')
         n_fake = preds.count('FAKE')
-        result = 'Real' if n_real > n_fake else 'Fake'
         avg_conf = float(np.mean(probs)) if probs else 0.0
+        if avg_conf >= fake_threshold:
+            result = "Fake"
+        else:
+            result = 'Real' if n_real > n_fake else 'Fake'
 
         # rPPG signals for full video
         roi_signals_dict_full = {}
