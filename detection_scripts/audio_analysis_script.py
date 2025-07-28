@@ -117,12 +117,6 @@ def predict_audio(file_path, output_folder, unique_tag, window_duration=5, windo
         y, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True)
         y = normalize_volume(y)
         sf.write(processed_audio_path, y, sr)  # Save as wav
-    
-    if os.path.abspath(file_path) != os.path.abspath(processed_audio_path):
-        try:
-            os.remove(file_path)
-        except Exception as e:
-            logging.warning(f"Could not delete original file: {file_path}: {e}")
 
     actual_audio_path = processed_audio_path
 

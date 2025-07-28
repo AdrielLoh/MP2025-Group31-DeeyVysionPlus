@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection History</title>
+    <link href="../static/css/new_styles.css" rel="stylesheet">
+    <style>
+        /* Detection History Glassmorphism Styles - Unique Classes with suffix: hx9k2 */
+        .page-container-hx9k2 {
+            max-width: 90vw;
+            margin: 0 auto;
+            padding: 2rem;
+            margin-top: 10em;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .history-title-hx9k2 {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp-hx9k2 0.8s ease-out;
+        }
+
+        .loading-container-hx9k2 {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            margin: 2rem 0;
+        }
+
+        .loading-text-hx9k2 {
+            color: #cecece;
+            font-size: 1.1rem;
+            animation: pulse-hx9k2 2s ease-in-out infinite;
+        }
+
+        .table-wrapper-hx9k2 {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        .history-table-hx9k2 {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            background: transparent;
+        }
+
+        .table-header-hx9k2 {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #ffffff;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            position: relative;
+        }
+
+        .table-header-hx9k2::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .table-cell-hx9k2 {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cecece;
+            transition: all 0.3s ease;
+        }
+
+        .table-row-hx9k2 {
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .table-row-hx9k2:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(5px);
+        }
+
+        .table-row-hx9k2:hover .table-cell-hx9k2 {
+            color: #ffffff;
+        }
+
+        .detection-badge-hx9k2 {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0.2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .type-body-posture-hx9k2 { 
+            background: linear-gradient(135deg, rgba(30, 144, 255, 0.8) 0%, rgba(0, 119, 190, 0.8) 100%);
+            color: #ffffff;
+        }
+
+        .type-physiological-hx9k2 { 
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.8) 0%, rgba(123, 31, 162, 0.8) 100%);
+            color: #ffffff;
+        }
+
+        .type-audio-hx9k2 { 
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.8) 0%, rgba(22, 163, 74, 0.8) 100%);
+            color: #ffffff;
+        }
+
+        .type-multi-hx9k2 { 
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.8) 0%, rgba(234, 88, 12, 0.8) 100%);
+            color: #ffffff;
+        }
+
+        .type-visual-artifacts-hx9k2 { 
+            background: linear-gradient(135deg, rgba(170, 197, 34, 0.8) 0%, rgba(139, 163, 22, 0.8) 100%);
+            color: #ffffff;
+        }
+
+        .type-unknown-hx9k2 { 
+            background: linear-gradient(135deg, rgba(156, 163, 175, 0.8) 0%, rgba(107, 114, 128, 0.8) 100%);
+            color: #ffffff;
+        }
+
+        .detection-badge-hx9k2:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .timestamp-cell-hx9k2 {
+            white-space: nowrap;
+            font-weight: 600;
+            color: #d1d5db;
+            font-size: 1.15rem;
+        }
+
+        .no-data-container-hx9k2 {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            margin: 2rem 0;
+        }
+
+        .no-data-text-hx9k2 {
+            color: #9ca3af;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        .media-preview-hx9k2 {
+            max-width: 400px;
+            max-height: 2800px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .media-preview-hx9k2:hover {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .media-error-hx9k2 {
+            color: #ef4444;
+            font-size: 1rem;
+            font-style: italic;
+            padding: 0.5rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .no-media-hx9k2 {
+            color: #9ca3af;
+            font-size: 1rem;
+            font-style: italic;
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        /* Fixed table layout */
+        .history-table-hx9k2 {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            background: transparent;
+            table-layout: fixed; /* This enables fixed column widths */
+        }
+
+        /* Specific column widths */
+        .col-timestamp-hx9k2 {
+            width: 180px;
+        }
+
+        .col-filename-hx9k2 {
+            width: 250px;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+
+        .col-detection-hx9k2 {
+            width: 200px;
+        }
+
+        .col-media-hx9k2 {
+            width: 300px;
+        }
+
+        /* Enhanced filename cell styling */
+        .filename-cell-hx9k2 {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1rem;
+            line-height: 1.4;
+            max-height: none;
+            overflow: visible;
+        }
+
+        /* Detection type column styling */
+        .detection-cell-hx9k2 {
+            vertical-align: top;
+            line-height: 1.3;
+        }
+
+        /* Media column styling */
+        .media-cell-hx9k2 {
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .history-row-clickable {
+            transition: background-color 0.2s ease;
+        }
+
+        .history-row-clickable:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            cursor: pointer;
+        }
+
+        .history-table-hx9k2 tr.history-row-clickable:hover td {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp-hx9k2 {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-hx9k2 {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-container-hx9k2 {
+                padding: 1rem;
+                margin-top: 60px;
+            }
+            
+            .history-title-hx9k2 {
+                font-size: 2.2rem;
+            }
+            
+            .table-wrapper-hx9k2 {
+                padding: 1rem;
+            }
+            
+            .table-header-hx9k2,
+            .table-cell-hx9k2 {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+            
+            .detection-badge-hx9k2 {
+                font-size: 0.85rem;
+                padding: 0.2rem 0.6rem;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <div id="navbar-placeholder"></div>
+    </header>
+    <div class="page-container-hx9k2">
+        <h1 class="history-title-hx9k2">Detection History</h1>
+        <div id="loading" class="loading-container-hx9k2">
+            <div class="loading-text-hx9k2">Loading detection history...</div>
+        </div>
+        <div id="content" style="display: none;">
+            <div class="table-wrapper-hx9k2">
+                <table id="historyTable" class="history-table-hx9k2">
+                    <thead>
+                        <tr>
+                            <th class="table-header-hx9k2 col-timestamp-hx9k2">Date & Time</th>
+                            <th class="table-header-hx9k2 col-filename-hx9k2">Filename</th>
+                            <th class="table-header-hx9k2 col-detection-hx9k2">Detection Type</th>
+                            <th class="table-header-hx9k2 col-media-hx9k2">Media Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="no-data" class="no-data-container-hx9k2" style="display: none;">
+            <div class="no-data-text-hx9k2">No detection history found.</div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        function getMediaPath(uploadedPath) {
+            // Handle both absolute and relative paths
+            if (uploadedPath.includes('static/uploads/')) {
+                // Extract just the filename from the path
+                const filename = uploadedPath.split('/').pop() || uploadedPath.split('\\').pop();
+                return `/media/${filename}`;
+            }
+            // If it's already a relative path or just a filename
+            const filename = uploadedPath.split('/').pop() || uploadedPath.split('\\').pop();
+            return `/media/${filename}`;
+        }
+        async function loadDetectionHistory() {
+            try {
+                const response = await fetch('/api/detection-history');
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.length === 0) {
+                    document.getElementById('no-data').style.display = 'block';
+                    return;
+                }
+                
+                const tbody = document.getElementById('historyBody');
+                tbody.innerHTML = '';
+                
+                data.forEach(entry => {
+                    const row = document.createElement('tr');
+                    row.style.cursor = 'pointer';
+                    row.classList.add('history-row-clickable');
+
+                    // click event listener to switch to cached results
+                    row.addEventListener('click', function() {
+                        window.location.href = `/${entry.uuid}`;
+                    });
+                    
+                    // Format timestamp
+                    const date = new Date(entry.timestamp);
+                    const formattedDate = date.toLocaleString();
+                    
+                    // Create detection type badges
+                    let detectionTypesHtml = '';
+                    if (entry.detection_type === 'Multi Model') {
+                        detectionTypesHtml = '<span class="detection-badge-hx9k2 type-multi-hx9k2">Multi Model</span>';
+                        entry.detection_methods.forEach(method => {
+                            const className = `type-${method.replace(' ', '-').toLowerCase()}-hx9k2`;
+                            detectionTypesHtml += `<span class="detection-badge-hx9k2">${method}</span>`;
+                        });
+                    } else {
+                        const className = `type-${entry.detection_type.replace(' ', '-').toLowerCase()}-hx9k2`;
+                        detectionTypesHtml = `<span class="detection-badge-hx9k2 ${className}">${entry.detection_type}</span>`;
+                    }
+                    
+                    // Create media preview
+                    let mediaHtml = '';
+                    if (entry.uploaded_path && entry.media_type !== 'unknown') {
+                        // Convert absolute path to relative path for serving
+                        const mediaPath = getMediaPath(entry.uploaded_path);
+                        
+                        if (entry.media_type === 'video') {
+                            mediaHtml = `
+                                <video class="media-preview-hx9k2" controls muted preload="metadata">
+                                    <source src="${mediaPath}" type="video/mp4">
+                                    <div class="media-error-hx9k2">Video not supported</div>
+                                </video>
+                            `;
+                        } else if (entry.media_type === 'audio') {
+                            mediaHtml = `
+                                <audio class="media-preview-hx9k2" controls preload="metadata">
+                                    <source src="${mediaPath}">
+                                    <div class="media-error-hx9k2">Audio not supported</div>
+                                </audio>
+                            `;
+                        }
+                    } else {
+                        mediaHtml = '<div class="no-media-hx9k2">No media available</div>';
+                    }
+                    
+                    row.className = 'table-row-hx9k2';
+                    row.innerHTML = `
+                        <td class="table-cell-hx9k2 timestamp-cell-hx9k2 col-timestamp-hx9k2">${formattedDate}</td>
+                        <td class="table-cell-hx9k2 filename-cell-hx9k2 col-filename-hx9k2">${entry.filename}</td>
+                        <td class="table-cell-hx9k2 detection-cell-hx9k2 col-detection-hx9k2">${detectionTypesHtml}</td>
+                        <td class="table-cell-hx9k2 media-cell-hx9k2 col-media-hx9k2">${mediaHtml}</td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+                
+                document.getElementById('content').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading detection history:', error);
+                document.getElementById('loading').innerHTML = 'Error loading detection history.';
+            }
+        }
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadDetectionHistory);
+    </script>
+    <script src="../static/js/scripts.js"></script>
+</body>
+</html>

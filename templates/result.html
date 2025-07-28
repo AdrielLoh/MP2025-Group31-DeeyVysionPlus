@@ -699,18 +699,15 @@
 
                     {% if not data.get('error') %}
                         {% if method=='audio' %}
-                            {% if data.prediction_value is defined %}
                             <div class="audio-playback">
                                 <h3>Audio Sample</h3>
                                 <p class="audio-description">Listen to the analyzed audio file:</p>
                                 <div class="audio-container">
                                     <audio class="analysis-audio" controls preload="metadata">
                                         <source src="{{ data.uploaded_audio }}" type="audio/wav">
-                                        Your browser does not support the audio element.
                                     </audio>
                                 </div>
                             </div>
-                            {% endif %}
                             <div class="analysis-charts">
                                 <div class="chart-grid">
                                     <div class="chart-item">

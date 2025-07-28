@@ -1,40 +1,21 @@
 import os
-import json
 import shutil
+import re
 
-# === CONFIG ===
-metadata_path = "G:/deepfake_training_datasets/Physio_Model/Deepfake Detection Challenge/train_sample_videos/metadata.json" # Replace with your actual path
-video_folder = "G:/deepfake_training_datasets/Physio_Model/Deepfake Detection Challenge/train_sample_videos"     # Folder containing all the .mp4 videos
-real_folder = "G:/deepfake_training_datasets/Physio_Model/TESTING/real"      # Destination for real videos
-fake_folder = "G:/deepfake_training_datasets/Physio_Model/TESTING/fake"      # Destination for fake videos
+src_folder = 'E:/deepfake_training_datasets/Physio_Model/TRAINING/fake-do-not-augment'      # <- Change this to your folder path
+dst_folder = 'E:/deepfake_training_datasets/Physio_Model/TRAINING/deeperforensics-fake-unedited' # <- Change this to your dest path
 
-# === Create output folders if they don't exist
-os.makedirs(real_folder, exist_ok=True)
-os.makedirs(fake_folder, exist_ok=True)
+os.makedirs(dst_folder, exist_ok=True)
 
-# === Load metadata
-with open(metadata_path, "r") as f:
-    metadata = json.load(f)
+# Regex: deeperforensics_number_M###.mp4 or deeperforensics_number_W###.mp4
+pattern = re.compile(r'^(deeperforensics_\d+_(?:M|W)\d{3})\.mp4$', re.IGNORECASE)
 
-# === Move files based on label
-for filename, info in metadata.items():
-    label = info.get("label")
-    src_path = os.path.join(video_folder, filename)
+for filename in os.listdir(src_folder):
+    match = pattern.match(filename)
+    if match:
+        src_path = os.path.join(src_folder, filename)
+        dst_path = os.path.join(dst_folder, filename)
+        shutil.move(src_path, dst_path)
+        print(f"Moved: {filename}")
 
-    if not os.path.exists(src_path):
-        print(f"❌ File not found: {src_path}")
-        continue
-
-    if label == "REAL":
-        dest_path = os.path.join(real_folder, filename)
-    elif label == "FAKE":
-        dest_path = os.path.join(fake_folder, filename)
-    else:
-        print(f"⚠️ Unknown label for {filename}: {label}")
-        continue
-
-    # Move the file (use shutil.copy if you prefer copying)
-    shutil.move(src_path, dest_path)
-    print(f"Moved: {filename} → {dest_path}")
-
-print("✅ Done sorting videos.")
+print("Done!")
