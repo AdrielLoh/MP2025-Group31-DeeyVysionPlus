@@ -526,7 +526,7 @@
                                 </div>
                                 <div class="analysis-carousel">
                                     <div class="carousel-header">
-                                        <h3 style="color: var(--warning-gradient)">Overall Body Posture Analysis Charts</h3>
+                                        <h3 style="color: var(--warning-gradient)">Overall Body Posture Analysis</h3>
                                         <div class="carousel-controls">
                                             <button class="carousel-btn prev" data-carousel="carousel-overall">‹</button>
                                             <button class="carousel-btn next" data-carousel="carousel-overall">›</button>
@@ -535,12 +535,14 @@
                                     <div class="carousel-container" id="carousel-overall">
                                         <div class="carousel-track">
                                             <div class="carousel-slide active">
-                                                <img src="{{ overall_result.overall_figure }}" alt="what" class="analysis-chart">
-                                                <p class="chart-description">Person Figure</p>
-                                            </div>
-                                            <div class="carousel-slide active">
-                                                <img src="{{ overall_result.overall_figure }}" alt="what2" class="analysis-chart">
+                                                <img src="{{ overall_result.get('overall_figure') }}" alt="what" class="analysis-chart">
                                                 <p class="chart-description">Overall Figure</p>
+                                            </div>
+                                            <div class="carousel-slide">
+                                                <video class="analysis-video" controls autoplay loop muted>
+                                                    <source src="{{ overall_result.get('overall_video') }}" type="video/mp4">
+                                                    Your browser does not support the video tag.
+                                                </video>
                                             </div>
                                         </div>
                                     </div>
@@ -584,7 +586,6 @@
                             <div class="video-analysis">
                                 <h3>Analyzed Video</h3>
                                 <video class="analysis-video" controls autoplay loop muted>
-                                    {{ person.video_location }}
                                     <source src="{{ person.video_location }}" type="video/mp4">
                                     Your browser does not support the video tag.
                                 </video>

@@ -911,6 +911,7 @@ def body_posture_detect():
                 "person_count": overall_result.get("person_count"),
                 "overall_instability": overall_result.get("overall_instability"),
                 "overall_figure": overall_result.get("overall_figure"),
+                "overall_video" : overall_result.get("overall_video"),
                 "persons": results,
                 "prediction" : overall_result.get("prediction"),
                 "type": "body_posture"
@@ -1100,6 +1101,7 @@ def multi_detection():
                     "person_count": overall_result.get("person_count"),
                     "overall_instability": overall_result.get("overall_instability"),
                     "overall_figure": overall_result.get("overall_figure"),
+                    "overall_video" : overall_result.get("overall_video"),
                     "persons": results_list,
                     "prediction" : overall_result.get("prediction"),
                     "type": "body_posture"

@@ -130,8 +130,8 @@ function renderResultCard(method, result) {
             `;
         }
         let video = "";
-        if (result.output_video) {
-            let videoPath = result.output_video;
+        if (result.overall_video) {
+            let videoPath = result.overall_video;
             video = `
             <video src="http://localhost:5000/${videoPath}" controls style="width:97%;margin-top:11px;border-radius:13px;box-shadow:0 2px 12px #00f2fe2a;"></video>
             `;

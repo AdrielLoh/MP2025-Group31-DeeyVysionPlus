@@ -267,8 +267,8 @@ def preprocess_frame(frame):
 
 
 # === Step 1: Extract and Track Keypoints from Video ===
-def extract_keypoints(video_path, show_process=True):
-    predictor = openpifpaf.Predictor(checkpoint='resnet50')
+def extract_keypoints(video_path, show_process=False):
+    predictor = openpifpaf.Predictor(checkpoint='shufflenetv2k16')
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         print("Failed to open video")
@@ -347,24 +347,24 @@ def plot_keypoints_video(video_path, tracker, results_folder):
     tracker.video_location = {}
 
     #create overall writer
-    output_path = os.path.join(results_folder, f"{filename}_person_{person_id}.mp4")
-    tracker.video_location[person_id] = output_path
+    output_path = os.path.join(results_folder, f"overall.mp4")
+    tracker.overall_video = output_path
 
-    writers[person_id] = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
-
-    # map keypoints to frames
-    person_keypoints = tracker.tracks[person_id]
-    person_frames = tracker.track_frames[person_id]
-    for frame_id, keypoints in zip(person_frames, person_keypoints):
-        frame_keypoint_map.setdefault(frame_id, {})[person_id] = keypoints
+    overall_writer = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'avc1'), fps, (width, height))
 
     for person_id in tracker.tracks.keys():
         # create writers for each person
-        output_path = os.path.join(results_folder, f"{filename}_overall.mp4")
-        tracker.overall_video = output_path
+        output_path = os.path.join(results_folder, f"person_{person_id}.mp4")
+        tracker.video_location[person_id] = output_path
 
-        overall_writer = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
-    
+        writers[person_id] = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'avc1'), fps, (width, height))
+
+        # map keypoints to frames
+        person_keypoints = tracker.tracks[person_id]
+        person_frames = tracker.track_frames[person_id]
+        for frame_id, keypoints in zip(person_frames, person_keypoints):
+            frame_keypoint_map.setdefault(frame_id, {})[person_id] = keypoints
+
     # process video frames
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0) # set to first frame
     frame_num = 0
@@ -374,6 +374,7 @@ def plot_keypoints_video(video_path, tracker, results_folder):
         if not ret:
             break
         
+        overall_frame = frame.copy() # copy frame for overall
         if frame_num in frame_keypoint_map:
             for person_id, keypoints in frame_keypoint_map[frame_num].items():
                 person_frame = frame.copy() # copy current frame for this person
@@ -382,6 +383,7 @@ def plot_keypoints_video(video_path, tracker, results_folder):
                 for (x, y, v) in keypoints:
                     if v > 0.5:
                         cv2.circle(person_frame, (int(x), int(y)), 3, (0, 255, 0), -1)
+                        cv2.circle(overall_frame, (int(x), int(y)), 3, (0, 255, 0), -1)
 
                 # draw limb connections
                 connections = [
@@ -396,6 +398,7 @@ def plot_keypoints_video(video_path, tracker, results_folder):
                         pt1 = (int(keypoints[i][0]), int(keypoints[i][1]))
                         pt2 = (int(keypoints[j][0]), int(keypoints[j][1]))
                         cv2.line(person_frame, pt1, pt2, (255, 0, 0), 2)
+                        cv2.line(overall_frame, pt1, pt2, (255, 0, 0), 2)
 
                 # label the person (optional)
                 visible_pts = [kp[:2] for kp in keypoints if kp[2] > 0.5]
@@ -403,10 +406,12 @@ def plot_keypoints_video(video_path, tracker, results_folder):
                     cx, cy = np.mean(visible_pts, axis=0)
                     cv2.putText(person_frame, f"ID {person_id}", (int(cx), int(cy)-10),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                    cv2.putText(overall_frame, f"ID {person_id}", (int(cx), int(cy)-10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
                     
                 # write to video
                 writers[person_id].write(person_frame)
-                overall_writer.write(person_frame)
+        overall_writer.write(overall_frame)
         frame_num += 1
     
     # finish and cleanup
@@ -629,6 +634,7 @@ def detect_body_posture(video_path, output_dir):
     overall_conf = sum(prediction_results["confidences"].values()) / len(prediction_results["confidences"])
     overall_result = {
         "person_count" : len(tracker.tracks),
+        "overall_video" : tracker.overall_video,
         "overall_instability" : f"{round(tracker.overall_instability * 100, 1)}%",
         "overall_figure" : tracker.overall_figure,
         "prediction" : "Unrealistic" if fake_people > real_people else "Realistic",
