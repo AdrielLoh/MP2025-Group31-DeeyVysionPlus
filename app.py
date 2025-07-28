@@ -590,18 +590,22 @@ def body_posture_detect():
         os.makedirs(output_folder, exist_ok=True)
 
         # Call video processing function
-        results, overall_result = detect_body_posture(video_path_for_processing, output_folder)
-        
-        if video_path_for_processing and os.path.exists(video_path_for_processing):
-            os.remove(video_path_for_processing)
-        if mp4_path and os.path.exists(mp4_path):
-            os.remove(mp4_path)
+        from detection_scripts.body_posture_script import PersonTracker
+        results, overall_result = detect_body_posture(filename, output_folder)
 
-        if "error" in results:
-            print("error")
+        if request.headers.get('Accept') == 'application/json':
+            return jsonify({
+                "person_count": overall_result.get("person_count"),
+                "overall_instability": overall_result.get("overall_instability"),
+                "overall_figure": overall_result.get("overall_figure"),
+                "persons": results,
+                "prediction" : overall_result.get("prediction"),
+                "type": "body_posture"
+            })
+        elif "error" in results:
             return render_template('result.html', analysis_type='body_posture', results=results["error"])
-
-        return render_template('result.html', analysis_type='body_posture', results=results, overall_result=overall_result)
+        else:
+            return render_template('result.html', analysis_type='body_posture', results=results, overall_result=overall_result)
 
     return render_template('body_posture_analysis.html')
 
@@ -775,6 +779,7 @@ def multi_detection():
                     "overall_instability": overall_result.get("overall_instability"),
                     "overall_figure": overall_result.get("overall_figure"),
                     "persons": results_list,
+                    "prediction" : overall_result.get("prediction"),
                     "type": "body_posture"
                 }
             else:

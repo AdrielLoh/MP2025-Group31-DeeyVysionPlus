@@ -59,7 +59,7 @@ function renderResultCard(method, result) {
         case "body_posture":
             label = "Body Posture";
             color = "linear-gradient(90deg,#fa709a,#fee140)";
-            icon = "🙍‍♂️";
+            icon = "🤖";
             break;
         case "audio":
             label = "Audio Analysis";
@@ -139,7 +139,7 @@ function renderResultCard(method, result) {
         return `
             <div style="border-radius: 1.1em; padding: 1em 1em 0.7em 1em; margin: 0 0 1.1em 0; color: #fff; box-shadow: var(--shadow-glow, 0 3px 12px rgba(120,119,198,0.19)); position: relative;">
                 <div style="font-size:1.2em;font-weight:700;margin-bottom:0.2em;">${icon} ${label}</div>
-                <div style="font-size:1.13em; margin-bottom:0.35em;"><b>Prediction:</b> ${prediction}</div>
+                <div style="font-size:1.13em; margin-bottom:0.35em;"><b>Overall Prediction:</b> ${prediction}</div>
                 ${confidence}
                 ${details}
                 ${audioPlayer}

@@ -270,7 +270,6 @@ def preprocess_frame(frame):
 def extract_keypoints(video_path, show_process=True):
     predictor = openpifpaf.Predictor(checkpoint='resnet50')
     cap = cv2.VideoCapture(video_path)
-    print("Opening:", video_path + " Successful:", os.path.exists(video_path))
     if not cap.isOpened():
         print("Failed to open video")
     tracker = PersonTracker()
@@ -346,18 +345,25 @@ def plot_keypoints_video(video_path, tracker, results_folder):
     writers = {}
     frame_keypoint_map = {} # frame_number : {person_id: keypoints}
     tracker.video_location = {}
+
+    #create overall writer
+    output_path = os.path.join(results_folder, f"{filename}_person_{person_id}.mp4")
+    tracker.video_location[person_id] = output_path
+
+    writers[person_id] = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+
+    # map keypoints to frames
+    person_keypoints = tracker.tracks[person_id]
+    person_frames = tracker.track_frames[person_id]
+    for frame_id, keypoints in zip(person_frames, person_keypoints):
+        frame_keypoint_map.setdefault(frame_id, {})[person_id] = keypoints
+
     for person_id in tracker.tracks.keys():
         # create writers for each person
-        output_path = os.path.join(results_folder, f"{filename}_person_{person_id}.mp4")
-        tracker.video_location[person_id] = output_path
+        output_path = os.path.join(results_folder, f"{filename}_overall.mp4")
+        tracker.overall_video = output_path
 
-        writers[person_id] = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
-
-        # map keypoints to frames
-        person_keypoints = tracker.tracks[person_id]
-        person_frames = tracker.track_frames[person_id]
-        for frame_id, keypoints in zip(person_frames, person_keypoints):
-            frame_keypoint_map.setdefault(frame_id, {})[person_id] = keypoints
+        overall_writer = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
     
     # process video frames
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0) # set to first frame
@@ -400,13 +406,13 @@ def plot_keypoints_video(video_path, tracker, results_folder):
                     
                 # write to video
                 writers[person_id].write(person_frame)
+                overall_writer.write(person_frame)
         frame_num += 1
     
     # finish and cleanup
     cap.release()
     for writer in writers.values():
         writer.release()
-    print(f"Keypoint videos saved to {results_folder}")
 
     return tracker
 
@@ -618,22 +624,25 @@ def detect_body_posture(video_path, output_dir):
     prediction_results = predict_deepfake(normalized_dict)
 
     # Step 4: Return Results
-    results = []
+    real_people = sum(1 for person in prediction_results.keys() if prediction_results.get(person) == 'Real')
+    fake_people = sum(1 for person in prediction_results.keys() if prediction_results.get(person) == 'Fake')
+    overall_conf = sum(prediction_results["confidences"].values()) / len(prediction_results["confidences"])
     overall_result = {
         "person_count" : len(tracker.tracks),
-        "overall_instability" : tracker.overall_instability,
-        "overall_figure" : tracker.overall_figure
+        "overall_instability" : f"{round(tracker.overall_instability * 100, 1)}%",
+        "overall_figure" : tracker.overall_figure,
+        "prediction" : "Unrealistic" if fake_people > real_people else "Realistic",
+        "confidence" : f"{round(overall_conf * 100, 1)}%"
     }
+    results=[]
     for person_id in tracker.tracks.keys():
         result = {
             "person_id" : person_id,
             "result" : prediction_results["results"][person_id],
-            "result_confidence" : prediction_results["confidences"][person_id],
+            "result_confidence" : f"{round(prediction_results['confidences'][person_id] * 100, 1)}%",
             "track_length" : tracker.track_lengths[person_id],
-            "joint_visiblity" : tracker.joint_visiblity[person_id],
             "video_location" : tracker.video_location[person_id],
             "figure_location" : tracker.figure_location[person_id],
-            "overall_figure" : tracker.overall_figure
         }
         results.append(result)
 
