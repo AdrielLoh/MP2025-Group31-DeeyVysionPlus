@@ -71,8 +71,8 @@
                         <circle cx="14.5" cy="13" r="0.5" fill="#764ba2"/>
                     </svg>
                 </div>
-                <h3>Facial Landmark Extraction</h3>
-                <p>MediaPipe Face Mesh detects detailed 3D facial landmarks. These landmarks provide geometric information about the face in every frame.</p>
+                <h3>HOG Feature Extraction</h3>
+                <p>For every face detected, the edges on the face regions, directions and gradients are analyzed. This is known as Histogram of Oriented Gradients (HOG). This captures subtle patterns and textures that can detect digital manipulations or digital artifacts commonly found in deepfakes such as abnormal contours. </p>
                 <div class="method-progress">
                     <div class="progress-bar" style="--progress: 92%"></div>
                 </div>
@@ -86,8 +86,8 @@
                         <path d="M12 2v20" stroke="#f093fb" stroke-width="1.5" opacity="0.7"/>
                     </svg>
                 </div>
-                <h3>DNN Feature Extraction</h3>
-                <p>A neural face detector extracts additional high-dimensional features, capturing pixel-level artifacts invisible to the naked eye.</p>
+                <h3>LBP Feature Extraction</h3>
+                <p>By comparing each pixel to its neighboring pixels and forming a binary pattern, subtle unusual in skin texture can be captured. This is known as a Local Binary Pattern (LBP). Local inconsistencies common in synthetic and altered faces in videos can be captured.</p>
                 <div class="method-progress">
                     <div class="progress-bar" style="--progress: 93%"></div>
                 </div>
@@ -102,8 +102,7 @@
                     </svg>
                 </div>
                 <h3>Multi-Feature Deep Learning</h3>
-                <p>Both sets of features are fused and passed into a neural network, which classifies each frame as real or fake based on visual artifact patterns.</p>
-                <div class="method-progress">
+                <p>Both sets of features are combined into a single feature vector for every frame with a detected face. The vector is passed into a deep neural network (DNN) for analysis, which classifies each frame as either real or fake based on the visual artifacts it detects. Subtle patterns and irregularities are spotted in altered faces, enabling accurate classification.</p>                <div class="method-progress">
                     <div class="progress-bar" style="--progress: 94%"></div>
                 </div>
             </div>
@@ -126,7 +125,7 @@
                     <div class="advantage-icon">🎸</div>
                     <div class="advantage-content">
                         <h4>Multi-Feature Fusion</h4>
-                        <p>Uses both explicit landmark structure and neural features for improved deepfake detection accuracy.</p>
+                        <p>Uses both explicit LBP and HOG features for improved and robust deepfake detection accuracy.</p>
                     </div>
                 </div>
                 <div class="advantage-item">
@@ -145,7 +144,7 @@
                     <div class="challenge-icon">🧙‍♂️</div>
                     <div class="challenge-content">
                         <h4>Face Occlusion Sensitivity</h4>
-                        <p>Obstructed or profile faces reduce the quality of landmark and feature extraction.</p>
+                        <p>Obstructed or profile faces reduce the quality of landmark and feature extraction and affect multi-face tracking accuracy.</p>
                     </div>
                 </div>
                 <div class="challenge-item">
