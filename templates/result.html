@@ -396,7 +396,7 @@
                                 <div class="tab-navigation">
                                     {% for face in face_results %}
                                     <button class="tab-btn{% if loop.first %} active{% endif %}" data-tab="face-{{ face.track_id }}">
-                                        Face #{{ face.display_id }}
+                                        Face #{{ face.track_id }}
                                     </button>
                                     {% endfor %}
                                 </div>
