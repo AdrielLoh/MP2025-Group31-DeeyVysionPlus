@@ -518,6 +518,8 @@
     min-width: 100%;
     text-align: center;
     padding: 1.5rem;
+    object-fit: contain;
+    height: 100%;
 }
 
 .carousel-slide.active {

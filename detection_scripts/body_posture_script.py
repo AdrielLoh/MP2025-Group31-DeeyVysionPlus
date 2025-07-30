@@ -11,13 +11,13 @@ import torch.nn as nn
 import json
 import subprocess
 
+# debug timer
+#import time
+
 # Configuration
 PROCESSED_FOLDER = "static/processed/"
 MODEL_PATH_STATIC = 'models/body_posture_model.pth'
 MODEL_PATH_LIVE = 'models/body_posture_live.keras'
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print("Current device:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU")
 
 # Ensure directories exist
 os.makedirs(PROCESSED_FOLDER, exist_ok=True)
@@ -250,37 +250,34 @@ class PoseClassifier(nn.Module):
         out = self.fc(hn[-1])
         return out
     
-
-# Load model
-model=PoseClassifier().to(device)
-checkpoint = torch.load(MODEL_PATH_STATIC, map_location=torch.device('cpu'))
-model.load_state_dict(checkpoint['model_state_dict'])
-model.eval()
     
 # === Step 0.5: Preprocess Video Frames ===
 def preprocess_frame(frame):
+    # disabled for processing speed
     # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
-    lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
-    l, a, b = cv2.split(lab)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    cl = clahe.apply(l)
-    merged = cv2.merge((cl, a, b))
-    enhanced = cv2.cvtColor(merged, cv2.COLOR_LAB2BGR)
+    #lab = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
+    #l, a, b = cv2.split(lab)
+    #clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    #cl = clahe.apply(l)
+    #merged = cv2.merge((cl, a, b))
+    #enhanced = cv2.cvtColor(merged, cv2.COLOR_LAB2BGR)
 
     # Gamma correction
     gamma = 1.2
     look_up_table = np.array([((i / 255.0) ** gamma) * 255 for i in range(256)]).astype("uint8")
-    gamma_corrected = cv2.LUT(enhanced, look_up_table)
+    gamma_corrected = cv2.LUT(frame, look_up_table)
 
+    # disabled for processing speed
     # White balance correction (OpenCV’s xphoto module)
-    wb = cv2.xphoto.createSimpleWB()
-    white_balanced = wb.balanceWhite(gamma_corrected)
+    #wb = cv2.xphoto.createSimpleWB()
+    #white_balanced = wb.balanceWhite(gamma_corrected)
 
     return gamma_corrected
 
 
 # === Step 1: Extract and Track Keypoints from Video ===
-def extract_keypoints(video_path, show_process=False):
+def extract_keypoints(video_path, scale=0.3, show_process=False, frame_skip=3): # scale = downsize factor, show_process = show pose extraction live, frame_skip = compute every nth frame
+    t0 = time.time()
     predictor = openpifpaf.Predictor(checkpoint='shufflenetv2k16')
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -294,8 +291,12 @@ def extract_keypoints(video_path, show_process=False):
         if not ret:
             break
 
-        # Preprocess the frame
+        if frame_num % frame_skip != 0: # frame skip lol
+            frame_num += 1
+            continue
+
         frame = preprocess_frame(frame)
+        frame = cv2.resize(frame, (0, 0), fx=scale, fy=scale)
 
         # Get keypoints
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # convert to RGB for OpenPifPaf
@@ -305,7 +306,12 @@ def extract_keypoints(video_path, show_process=False):
         detections = []
         for annotation in predictions:
             keypoints = annotation.data # np array shape: (17, 3), COCO keypoints format
-            detections.append(keypoints)
+
+            # rescale to match original res
+            keypoints_rescaled = keypoints.copy()
+            keypoints_rescaled[:, 0] /= scale # x-coords
+            keypoints_rescaled[:, 1] /= scale # y-coords
+            detections.append(keypoints_rescaled)
 
         # Update tracker with new detections
         tracker.update(detections, frame_num)
@@ -340,11 +346,15 @@ def extract_keypoints(video_path, show_process=False):
     cap.release()
     if show_process:
         cv2.destroyAllWindows()
+
+    # debug
+    #print(f'prediction time: {time.time() - t0:2f}s')
+    
     return tracker
 
 
 # === Step 1.1: Plot Keypoints on Video ===
-def plot_keypoints_video(video_path, tracker, results_folder):
+def plot_keypoints_video(video_path, tracker, results_folder, frame_skip=3):
     # prepare video + directory
     filename = os.path.splitext(os.path.basename(video_path))[0]
     os.makedirs(results_folder, exist_ok=True)
@@ -352,7 +362,6 @@ def plot_keypoints_video(video_path, tracker, results_folder):
     fps = cap.get(cv2.CAP_PROP_FPS)
     width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # prepare writers and frame to keypoint map
     writers = {}
@@ -611,6 +620,12 @@ def predict_deepfake(normalized_arr):
         "confidences": confidences,
     }
 
+# Load model
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model=PoseClassifier().to(device)
+checkpoint = torch.load(MODEL_PATH_STATIC, map_location=torch.device(device))
+model.load_state_dict(checkpoint['model_state_dict'])
+model.eval()
 
 # === Full Video Processing Pipeline ===
 def detect_body_posture(video_path, output_dir):

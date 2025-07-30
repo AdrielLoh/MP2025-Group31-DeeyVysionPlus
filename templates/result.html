@@ -511,8 +511,8 @@
                     <div class="result-card body-posture-result tab-panel active">
                         <div class="result-header">
                             <div class="result-status">
-                                <h2 class="status-text" style="color: #1e93d6">
-                                    Overall Results
+                                <h2 class="status-text" style="color: {% if overall_result.prediction == 'Realistic' %}#10b981{% elif overall_result.prediction == 'Unrealistic' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                    {% if overall_result.prediction == 'Realistic' %}Realistic{% elif overall_result.prediction == 'Unrealistic' %}Unrealistic{% elif overall_result.prediction == 'Invalid' %}Video too short{% else %}Inconclusive{% endif %}
                                 </h2>
                                 <div class="metrics-grid">
                                     <div class="metric-item">
@@ -583,13 +583,6 @@
                                     <span>←</span> Return to Analysis
                                 </button>
                             </div>
-                            <div class="video-analysis">
-                                <h3>Analyzed Video</h3>
-                                <video class="analysis-video" controls autoplay loop muted>
-                                    <source src="{{ person.video_location }}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                            </div>
                             <div class="analysis-carousel">
                                 <div class="carousel-header">
                                     <h3 style="color: var(--warning-gradient)">Body Posture Analysis Charts</h3>
@@ -611,6 +604,13 @@
                                         <div class="carousel-slide">
                                             <img src="{{ person.figure_location[2] }}" alt="joint instability" class="analysis-chart">
                                             <p class="chart-description">Joint Instability</p>
+                                        </div>
+                                        <div class="carousel-slide">
+                                            <video class="analysis-video" controls autoplay loop muted>
+                                                <source src="{{ person.video_location }}" type="video/mp4" alt="person video">
+                                                Your browser does not support the video tag.
+                                            </video>
+                                            <p class="chart-description">Extracted Person</p>
                                         </div>
                                     </div>
                                 </div>
