@@ -739,6 +739,53 @@
                             </div>
                         {% endif %}
 
+                        {% if method == 'body_posture' and data.results %}
+                            <div class="face-summary">
+                                <h3>Body Posture Detection Summary</h3>
+                                <div class="overall-metrics">
+                                    <div class="metric-item">
+                                        <span class="metric-label">Person Count:</span>
+                                        <span class="metric-value">{{ data.overall_result.person_count }}</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Overall Prediction:</span>
+                                        <span class="metric-value">{{ data.overall_result.prediction }}</span>
+                                    </div>
+                                    <div class="metric-item">
+                                        <span class="metric-label">Deepfake Probability:</span>
+                                        <span class="metric-value">{{ data.overall_result.confidence }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="face-grid">
+                                    {% for person in data.results %}
+                                        <div class="face-summary-card">
+                                            <div class="face-id">Person #{{ person.person_id }}</div>
+                                            <div class="person-result" style="color: {% if person.result == 'Real' %}#10b981{% elif person.result == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                                {{ person.result }}
+                                            </div>
+                                            <div class="face-confidence">
+                                                Confidence: {{ person.result_confidence }}
+                                            </div>
+                                            <div class="track-length">
+                                                Track Length: {{ person.track_length }} frames
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            {% if data.overall_result.overall_video %}
+                                <div class="video-analysis">
+                                    <h3>Overall Analysis Video</h3>
+                                    <video class="analysis-video" controls autoplay loop muted>
+                                        <source src="{{ data.overall_result.overall_video }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+
                         {% if method in ['physiological', 'visual_artifacts', 'deep_learning', 'deep_learning_static'] and data.face_results %}
                             <div class="face-summary">
                                 <h3>Face Detection Summary</h3>
@@ -756,7 +803,7 @@
                                             {% endif %}
                                             {% if face.confidence is defined %}
                                                 <div class="face-confidence">
-                                                    Confidence: {{ face.confidence }}%
+                                                    Deepfake Probability: {{ face.confidence }}%
                                                 </div>
                                             {% endif %}
                                         </div>

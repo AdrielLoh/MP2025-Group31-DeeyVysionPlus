@@ -63,8 +63,8 @@
                         </svg>
                     </div>
                     <h3>Remote Photoplethysmography</h3>
-                    <p>We use 3 different rPPG algorithms to extract physiological signals from microscopic color variations in facial skin caused by blood circulation. 
-                        These subtle changes create unique physiological fingerprints that are extremely difficult to synthesize.</p>
+                    <p>We use 3 different rPPG methods to extract physiological signals via microscopic color fluctuations in the facial skin caused by blood circulation. 
+                        These subtle changes create unique physiological fingerprints that are difficult to synthesize.</p>
                     <div class="method-progress">
                         <div class="progress-bar" style="--progress: 95%"></div>
                     </div>
@@ -84,8 +84,8 @@
                         </svg>
                     </div>
                     <h3>Signal Processing</h3>
-                    <p>We then process the extracted physiological signals to engineer meaningful and structured statistical and frequency domain features.
-                        These features will then be passed into an AI model to perform predictions.</p>
+                    <p>We then process the extracted rPPG signals to create structured statistics, temporal features, and inter-rPPG method correlations.
+                        These statistics and features will then be stacked and passed into an XGBoost model to perform predictions.</p>
                     <div class="method-progress">
                         <div class="progress-bar" style="--progress: 88%"></div>
                     </div>
@@ -104,7 +104,7 @@
                         </svg>
                     </div>
                     <h3>AI Pattern Recognition</h3>
-                    <p>We have both a deep learning model and a machine learning model, trained on an extensive dataset of authentic and deepfake physiological signals, to determine the authenticity of the physioloical features.</p>
+                    <p>We have both a deep learning model and a machine learning model, trained on an extensive dataset of authentic and deepfake physiological signals to determine the authenticity of the physioloical features.</p>
                     <div class="method-progress">
                         <div class="progress-bar" style="--progress: 92%"></div>
                     </div>
@@ -121,7 +121,7 @@
                         <div class="advantage-icon">✨</div>
                         <div class="advantage-content">
                             <h4>Biological Authenticity</h4>
-                            <p>Physiological signals are biological factors that deepfake generators struggle to replicate authentically.</p>
+                            <p>Physiological signals are biological factors that common deepfake generators struggle to replicate authentically.</p>
                         </div>
                     </div>
                     <div class="advantage-item">
@@ -134,8 +134,8 @@
                     <div class="advantage-item">
                         <div class="advantage-icon">⚡</div>
                         <div class="advantage-content">
-                            <h4>Robust to New Generators</h4>
-                            <p>rPPG doesn't rely on any generator-specific artifacts, and is robust against newer deepfake architectures.</p>
+                            <h4>Robust to Skin Tones</h4>
+                            <p>By stacking 3 rPPG methods (CHROM, POS, GREEN), robustness to different skin tones can be achieved.</p>
                         </div>
                     </div>
                 </div>
@@ -162,7 +162,7 @@
                         <div class="challenge-icon">⚙️</div>
                         <div class="challenge-content">
                             <h4>Sensitive to Manipulations</h4>
-                            <p>Video manipulations such as blur, cropping, and obstructions can interfere with signal detection.</p>
+                            <p>Blur, noise, and video color manipulations can interfere with signal detection and mask deepfakes.</p>
                         </div>
                     </div>
                 </div>

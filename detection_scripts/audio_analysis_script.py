@@ -83,6 +83,8 @@ def save_feature_plot(feature, title, file_path, y_axis='linear'):
         plt.close()
 
 def predict_audio(file_path, output_folder, unique_tag, window_duration=5, window_hop=2.5, use_cache=True):
+    os.makedirs(output_folder, exist_ok=True)
+    
     # ==== CHECK FOR CACHED RESULTS ====
     cache_path = os.path.join(output_folder, "cached_results.json")
     if use_cache and os.path.exists(cache_path):

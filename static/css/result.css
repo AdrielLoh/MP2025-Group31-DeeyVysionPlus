@@ -445,7 +445,7 @@
 
 .analysis-chart {
     width: 100%;
-    height: auto;
+    height: 100%;
     border-radius: 12px;
     transition: all 0.3s ease;
 }
@@ -722,6 +722,29 @@
 .analysis-audio::-webkit-media-controls-pause-button {
     background-color: var(--primary-color);
     border-radius: 50%;
+}
+
+.overall-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.person-result {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.track-length {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
 }
 
 /* Animations */

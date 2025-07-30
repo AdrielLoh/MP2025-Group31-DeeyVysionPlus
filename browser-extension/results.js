@@ -101,28 +101,20 @@ function renderResultCard(method, result) {
         if (result.persons && Array.isArray(result.persons)) {
             faces = `
             <details style="margin-top:10px;">
-            <summary style="cursor:pointer;">Person-level Results</summary>
+            <summary style="cursor:pointer;"><u>Person-level Results</u></summary>
             <table style="width:98%;margin:10px auto;font-size:.96em;border-collapse:collapse;">
                 <tr>
                     <th style="text-align:left;padding:4px;">Person</th>
                     <th style="text-align:left;padding:4px;">Result</th>
                     <th style="text-align:left;padding:4px;">Confidence</th>
                     <th style="text-align:left;padding:4px;">Track Length</th>
-                    <th style="text-align:left;padding:4px;">Visualizations</th>
                 </tr>
                 ${result.persons.map(person => `
                 <tr>
                     <td style="padding:4px;">${"#" + (person.person_id ?? "")}</td>
                     <td style="padding:4px;">${person.result ?? ""}</td>
-                    <td style="padding:4px;">${person.result_confidence !== undefined ? (person.result_confidence + "%") : ""}</td>
+                    <td style="padding:4px;">${person.result_confidence !== undefined ? (person.result_confidence) : ""}</td>
                     <td style="padding:4px;">${person.track_length ?? ""}</td>
-                    <td style="padding:4px;">
-                        ${(person.figure_location && person.figure_location.length)
-                            ? person.figure_location.map(img =>
-                                `<img src="http://localhost:5000/${img}" style="width:60px;max-height:48px;border-radius:6px;margin:2px;">`
-                            ).join("")
-                            : ""}
-                    </td>
                 </tr>
                 `).join("")}
             </table>
@@ -151,7 +143,7 @@ function renderResultCard(method, result) {
         if (result.face_results && Array.isArray(result.face_results)) {
             faces = `
             <details style="margin-top:10px;">
-            <summary style="cursor:pointer;">Face-level Results</summary>
+            <summary style="cursor:pointer;"><u>Face-level Results</u></summary>
             <table style="width:98%;margin:10px auto;font-size:.96em;border-collapse:collapse;">
                 <tr>
                 <th style="text-align:left;padding:4px;">Face</th>

@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import json
+import subprocess
 
 # Configuration
 PROCESSED_FOLDER = "static/processed/"
@@ -34,7 +35,19 @@ def convert_to_python_type(obj):
         return obj.item() if obj.numel() == 1 else obj.detach().cpu().tolist()
     else:
         return obj
-    
+
+def reencode_video_with_ffmpeg(input_path):
+    # Create a temporary output path
+    fixed_output_path = input_path.replace('.mp4', '_fixed.mp4')
+    subprocess.run([
+        'ffmpeg', '-y', '-i', input_path,
+        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
+        fixed_output_path
+    ])
+    if os.path.exists(fixed_output_path):
+        os.remove(input_path)
+        os.rename(fixed_output_path, input_path)
+
 # this tracker tracks people by their keypoints using upper-body joints, if the joints are within max_distance, they are matched as the same person
 class PersonTracker:
     def __init__(self, max_distance=30, matching_joints=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]):
@@ -613,6 +626,11 @@ def detect_body_posture(video_path, output_dir):
     
     # Step 1.1: Plot Keypoints on Video
     tracker = plot_keypoints_video(video_path, tracker, output_dir)
+
+    # Re-encode the videos for better compatibility and compression
+    video_files = [tracker.overall_video] + list(tracker.video_location.values())
+    for vid_path in video_files:
+        reencode_video_with_ffmpeg(vid_path)
 
     # Step 1.2: Retrieve Keypoint Stats
     tracker = get_plot_keypoints(tracker, output_dir)
