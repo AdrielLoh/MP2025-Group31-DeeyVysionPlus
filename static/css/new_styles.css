@@ -9787,12 +9787,12 @@ Protect Yourself Page Specific Styles
 }
 
 .type-body-posture-hx9k2 { 
-    background: linear-gradient(135deg, rgba(30, 144, 255, 0.8) 0%, rgba(0, 119, 190, 0.8) 100%);
+    background: linear-gradient(135deg, rgba(30, 144, 255, 0.8) 0%, rgba(32, 189, 255, 0.8) 100%);
     color: #ffffff;
 }
 
 .type-physiological-hx9k2 { 
-    background: linear-gradient(135deg, rgba(147, 51, 234, 0.8) 0%, rgba(123, 31, 162, 0.8) 100%);
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.8) 0%, rgba(209, 61, 191, 0.8) 100%);
     color: #ffffff;
 }
 
@@ -9808,6 +9808,16 @@ Protect Yourself Page Specific Styles
 
 .type-visual-artifacts-hx9k2 { 
     background: linear-gradient(135deg, rgba(170, 197, 34, 0.8) 0%, rgba(139, 163, 22, 0.8) 100%);
+    color: #ffffff;
+}
+
+.type-deep-learning-hx9k2 { 
+    background: linear-gradient(135deg, rgba(51, 208, 236, 0.8) 0%, rgba(139, 163, 22, 0.8) 100%);
+    color: #ffffff;
+}
+
+.type-deep-physiological-hx9k2 {
+    background: linear-gradient(135deg, rgba(64, 51, 236, 0.8) 0%, rgba(83, 133, 227, 0.8) 100%);
     color: #ffffff;
 }
 

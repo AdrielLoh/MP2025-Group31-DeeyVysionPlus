@@ -12,6 +12,17 @@ import datetime
 from collections import defaultdict
 from flask import send_file
 import uuid
+import tensorflow as tf
+import cv2
+import numpy as np
+
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except Exception as e:
+        print(e)
 
 logging.basicConfig(level=logging.DEBUG)
 from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
@@ -45,15 +56,56 @@ MAX_VIDEO_DURATION = 30 # For URL downloads only
 VALID_VIDEOS = ['.mp4', '.mov', '.avi', '.webm']
 
 # ===== HELPER FUNCTIONS =====
+def create_video_thumbnail(video_path, thumbnail_folder, size=(320, 180)):
+    """
+    Extracts the first frame of the video and saves as a .jpg thumbnail.
+    Returns the relative path to the thumbnail.
+    """
+
+    # Ensure thumbnail folder exists
+    os.makedirs(thumbnail_folder, exist_ok=True)
+
+    vid = cv2.VideoCapture(video_path)
+    success, frame = vid.read()
+    if not success or frame is None:
+        vid.release()
+        raise RuntimeError(f"Could not read frame from {video_path}")
+    # Resize if requested
+    if size is not None:
+        frame = cv2.resize(frame, size)
+    # Save as jpg
+    base = os.path.splitext(os.path.basename(video_path))[0]
+    thumb_path = os.path.join(thumbnail_folder, f"{base}.jpg")
+    cv2.imwrite(thumb_path, frame)
+    vid.release()
+    return thumb_path
+
 def log_detection(filename, sha256, output_folders, uploaded_path, multi_predictions=None):
+    ext = os.path.splitext(str(uploaded_path))[1].lower()
+    is_video = ext in VALID_VIDEOS
+
+    if is_video:
+        # Thumbnail directory
+        thumbnail_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'thumbnails')
+        try:
+            thumb_abs = create_video_thumbnail(uploaded_path, thumbnail_dir)
+            # Use relative path for log
+            thumb_rel = os.path.relpath(thumb_abs, os.getcwd())
+            # Delete the video
+            os.remove(uploaded_path)
+            log_uploaded_path = thumb_rel.replace("\\", "/")  # Consistent paths
+        except Exception as e:
+            log_uploaded_path = f"[thumbnail failed] {uploaded_path}"
+    else:
+        log_uploaded_path = uploaded_path
+
     entry = {
         "uuid": str(uuid.uuid4()),
         "datetime": datetime.datetime.now().astimezone().isoformat(),
         "filename": filename,
-        "uploaded_path": uploaded_path,
+        "uploaded_path": log_uploaded_path,
         "sha256": sha256
     }
-    # output_folders: either a string (single detection) or dict (multi)
     if isinstance(output_folders, dict):
         entry["output_folders"] = output_folders
         entry["multi_predictions"] = multi_predictions
@@ -429,20 +481,6 @@ def view_cached_result(detection_uuid):
             
     except Exception as e:
         return f"Error loading results: {str(e)}", 500
-
-@app.route('/media/<path:filename>')
-def serve_media(filename):
-    """Serve media files from uploads directory"""
-    try:
-        # Security check - ensure the file path is within uploads
-        safe_path = os.path.abspath(filename)
-            
-        if os.path.exists(safe_path):
-            return send_file(safe_path)
-        else:
-            return "File not found", 404
-    except Exception as e:
-        return f"Error serving file: {str(e)}", 500
     
 @app.route('/api/detection-history')
 def api_detection_history():   
@@ -484,7 +522,7 @@ def api_detection_history():
             if 'body_posture' in folder:
                 detection_type = 'Body Posture'
             elif 'physio_deep' in folder:
-                detection_type = 'Deep Physiological (Beta)'
+                detection_type = 'Deep Physiological'
             elif 'physio_ml' in folder:
                 detection_type = 'Physiological'
             elif 'audio' in folder:
@@ -810,6 +848,9 @@ def audio_analysis():
             uploaded_path=uploaded_audio
         )
 
+        if os.path.exists(filename):
+            os.remove(filename)
+
         if request.headers.get('Accept') == 'application/json':
             return jsonify({
                 "prediction": result,
@@ -1097,15 +1138,22 @@ def multi_detection():
             # Body posture returns: (results_list, overall_result)
             if isinstance(result, tuple) and len(result) == 2:
                 results_list, overall_result = result
-                processed_results[method] = {
-                    "person_count": overall_result.get("person_count"),
-                    "overall_instability": overall_result.get("overall_instability"),
-                    "overall_figure": overall_result.get("overall_figure"),
-                    "overall_video" : overall_result.get("overall_video"),
-                    "persons": results_list,
-                    "prediction" : overall_result.get("prediction"),
-                    "type": "body_posture"
-                }
+                if request.headers.get('Accept') == 'application/json':
+                    processed_results[method] = {
+                        "person_count": overall_result.get("person_count"),
+                        "overall_instability": overall_result.get("overall_instability"),
+                        "overall_figure": overall_result.get("overall_figure"),
+                        "overall_video" : overall_result.get("overall_video"),
+                        "persons": results_list,
+                        "prediction" : overall_result.get("prediction"),
+                        "type": "body_posture"
+                    }
+                else:
+                    processed_results[method] = {
+                        "results": results_list,
+                        "overall_result": overall_result,
+                        "type": "body_posture"
+                    }
             else:
                 processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
 

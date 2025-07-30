@@ -656,15 +656,21 @@
                                 <h2 class="status-text" style="color: #f59e0b;">Error</h2>
                                 <p class="error-message">{{ data.error }}</p>
                             {% else %}
-                                <h2 class="status-text" style="color: {% if data.prediction == 'Real' %}#10b981{% elif data.prediction == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
-                                    {% if data.prediction == 'Real' %}Authentic{% elif data.prediction == 'Fake' %}Likely Deepfake{% else %}{{ data.prediction }}{% endif %}
-                                </h2>
+                                {% if method == 'body_posture' %}
+                                    <h2 class="status-text" style="color: {% if data.overall_result.prediction == 'Realistic' %}#10b981{% elif data.overall_result.prediction == 'Unrealistic' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                        {% if data.overall_result.prediction == 'Realistic' %}Authentic{% elif data.overall_result.prediction == 'Unrealistic' %}Likely Deepfake{% else %}{{ data.overall_result.prediction }}{% endif %}
+                                    </h2>
+                                {% else %}
+                                    <h2 class="status-text" style="color: {% if data.prediction == 'Real' %}#10b981{% elif data.prediction == 'Fake' %}#ef4444{% else %}#f59e0b{% endif %};">
+                                        {% if data.prediction == 'Real' %}Authentic{% elif data.prediction == 'Fake' %}Likely Deepfake{% else %}{{ data.prediction }}{% endif %}
+                                    </h2>
+                                {% endif %}
                                 
                                 <!-- Show method-specific metrics -->
-                                {% if method == 'body_posture' and data.confidence is defined %}
+                                {% if method == 'body_posture' and data.overall_result.confidence is defined %}
                                     <div class="confidence-badge">
                                         <span class="confidence-label">Deepfake Probability:</span>
-                                        <span class="confidence-value">{{ (data.confidence * 100) | round }}%</span>
+                                        <span class="confidence-value">{{ data.overall_result.confidence }}</span>
                                     </div>
                                 {% elif method in ['physiological', 'visual_artifacts', 'deep_learning', 'deep_learning_static'] and data.face_results %}
                                     <div class="metrics-grid">

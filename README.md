@@ -2,12 +2,16 @@
 1) Ensure python version 3.10
 2) Recommended to use a virtual environment in Python or Anaconda
 
+---
+
 ### Python Packages Installation:
 1) `cd` to the root directory of this project
 2) run `pip install -r requirements.txt`
 
+---
+
 ### External Dependencies to install (Important)
-#### **1) FFmpeg**
+#### **1) FFmpeg (Windows / Linux)**
 1. Go to https://www.gyan.dev/ffmpeg/builds/
 2. Go to "Release builds"
 3. Download the **release full build** `.zip` file.
@@ -34,10 +38,10 @@
   ```
 
 
-#### **2) Microsoft Visual C++ Redistributable**
+#### **2) Microsoft Visual C++ Redistributable (Windows Only)**
 1. Download and setup using this link: https://aka.ms/vs/17/release/vc_redist.x86.exe
 
-#### **3) Microsoft Visual C++ Build Tools >= v14.0**
+#### **3) Microsoft Visual C++ Build Tools >= v14.0 (Windows Only)**
 1. Download the installer using this link: https://visualstudio.microsoft.com/visual-cpp-build-tools/
 2. Run the installer and select the following option (keep default sub-options):
    
@@ -99,6 +103,70 @@ Setting up this project to be hosted requires some knowledge on how to setup and
 **Running the server**
 
 9. Change the `app.py` to use Waitress's `serve()` instead of `app.run()`.
-10. Open a CMD to nginx installation folder and type `start nginx`.
-11. To restart `nginx -s reload`.
-12. To stop `nginx -s quit`.
+10. Open a CMD to nginx installation folder and type `start nginx` OR `sudo systemctl start nginx`.
+11. To restart `nginx -s reload` OR `sudo systemctl reload nginx`.
+12. To stop `nginx -s quit` OR `sudo systemctl stop nginx`.
+
+---
+
+### If using AMD GPU and you want GPU acceleration:
+**This guide was written on the 30th July 2025. Compatibility may have improved afterwards so do some research before attempting this.**
+
+It is completely fine to run the project on CPU, but if you want to use GPU, this guide will tell you how to do it.
+
+**No guide will be given for Nvidia cards here, as setting up the project to run using CUDA should be more straightforward than ROCm**
+
+Check if your GPU supports ROCm 6.4.2:
+
+- AMD Radeon RX 9070
+- AMD Radeon RX 9070 XT
+- AMD Radeon RX 9070 GRE
+- AMD Radeon AI PRO R9700
+- AMD Radeon RX 9060 XT
+- AMD Radeon RX 7900 XTX
+- AMD Radeon RX 7900 XT
+- AMD Radeon RX 7900 GRE
+- AMD Radeon PRO W7900
+- AMD Radeon PRO W7900 Dual Slot
+- AMD Radeon PRO W7800
+- AMD Radeon PRO W7800 48GB
+- AMD Radeon RX 7800 XT
+- AMD Radeon PRO W7700
+- AMD Radeon RX 7700 XT
+
+#### Dual-boot Windows + Ubuntu 22.04.5 LTS:
+ROCm does NOT provide full acceleration features to WSL2. While TensorFlow will mostly be able to work on ROCm on WSL2 (a little buggy), PyTorch will not work on GPU at all. Hence, to fully utilize GPU acceleration for both TensorFlow and PyTorch, dual-booting Ubuntu is necessary.
+1. Pre-requisites: You will need a USB drive (8GB+), Rufus, and an Ubuntu ISO.
+2. Go to disk manager in Windows and shrink your partition volume by the amount of storage you want to give to the Ubuntu OS (e.g. 120000 MB).
+3. Download the Ubuntu 22.04.5 LTS ISO from the official website, and download Rufus too.
+4. Flash your USB drive with the ISO, using ISO mode. Boot option must be UEFI non-CSM, and partition table is set to GPT. File system is FAT32 with default sector size.
+5. Restart and boot into the USB drive, follow the setup guide and install Ubuntu alongside Windows Boot Manager.
+
+#### Installing ROCm and AMD GPU drivers:
+1. Go to https://rocm.docs.amd.com/projects/radeon/en/latest/docs/install/native_linux/install-radeon.html
+2. Follow the instructions exactly as it shows inside. It will require you to reboot the system a few times.
+
+#### Setting up the python environment:
+1. You will need to ensure python version is 3.10.x, and you have `python3-venv` package installed.
+2. Run `python3 -m venv /path/to/your/env` to create a new virtual environment.
+3. To activate the environment, run `source /path/to/env/bin/activate`
+4. Ensure your current working directory is the root directory of this project.
+4. Install all packages using `pip install -r requirements_rocm.txt --no-deps`
+
+#### Setting up OpenPifPaf:
+Since the pip version of openpifpaf was built using an old version of PyTorch, we cannot use it on the ROCm version of PyTorch. So, we need to build openpifpaf manually.
+
+1. clone the openpifpaf repository using:
+``` bash
+git clone https://github.com/openpifpaf/openpifpaf.git
+cd openpifpaf
+```
+2. Clean any previous builds:
+``` bash
+python setup.py clean
+```
+3. In `pyproject.toml` and `setup.py`, find any strings related to:
+`torch==1.13.1` or `torchvision==0.14.1`
+4. Change those strings to remove the specific version number (e.g. `torch==1.13.1` change to `torch`)
+5. Finally, run to build `pip install --no-build-isolation --no-binary :all: .
+`

@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import json
 import subprocess
+import time
 
 # debug timer
 #import time
@@ -38,15 +39,16 @@ def convert_to_python_type(obj):
 
 def reencode_video_with_ffmpeg(input_path):
     # Create a temporary output path
-    fixed_output_path = input_path.replace('.mp4', '_fixed.mp4')
+    input_path_full = os.path.join(os.getcwd(), input_path)
+    fixed_output_path = os.path.join(os.getcwd(), input_path.replace('.mp4', '_fixed.mp4'))
     subprocess.run([
-        'ffmpeg', '-y', '-i', input_path,
+        'ffmpeg', '-y', '-i', input_path_full,
         '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
         fixed_output_path
     ])
     if os.path.exists(fixed_output_path):
-        os.remove(input_path)
-        os.rename(fixed_output_path, input_path)
+        os.remove(input_path_full)
+        os.rename(fixed_output_path, input_path_full)
 
 # this tracker tracks people by their keypoints using upper-body joints, if the joints are within max_distance, they are matched as the same person
 class PersonTracker:
@@ -276,7 +278,7 @@ def preprocess_frame(frame):
 
 
 # === Step 1: Extract and Track Keypoints from Video ===
-def extract_keypoints(video_path, scale=0.3, show_process=False, frame_skip=3): # scale = downsize factor, show_process = show pose extraction live, frame_skip = compute every nth frame
+def extract_keypoints(video_path, scale=0.3, show_process=False): # scale = downsize factor, show_process = show pose extraction live
     t0 = time.time()
     predictor = openpifpaf.Predictor(checkpoint='shufflenetv2k16')
     cap = cv2.VideoCapture(video_path)
@@ -290,10 +292,6 @@ def extract_keypoints(video_path, scale=0.3, show_process=False, frame_skip=3): 
         ret, frame = cap.read()
         if not ret:
             break
-
-        if frame_num % frame_skip != 0: # frame skip lol
-            frame_num += 1
-            continue
 
         frame = preprocess_frame(frame)
         frame = cv2.resize(frame, (0, 0), fx=scale, fy=scale)
@@ -354,7 +352,7 @@ def extract_keypoints(video_path, scale=0.3, show_process=False, frame_skip=3): 
 
 
 # === Step 1.1: Plot Keypoints on Video ===
-def plot_keypoints_video(video_path, tracker, results_folder, frame_skip=3):
+def plot_keypoints_video(video_path, tracker, results_folder):
     # prepare video + directory
     filename = os.path.splitext(os.path.basename(video_path))[0]
     os.makedirs(results_folder, exist_ok=True)
@@ -372,14 +370,14 @@ def plot_keypoints_video(video_path, tracker, results_folder, frame_skip=3):
     output_path = os.path.join(results_folder, f"overall.mp4")
     tracker.overall_video = output_path
 
-    overall_writer = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'avc1'), fps, (width, height))
+    overall_writer = cv2.VideoWriter(os.path.join(os.getcwd(), output_path), cv2.VideoWriter_fourcc(*'avc1'), fps, (width, height))
 
     for person_id in tracker.tracks.keys():
         # create writers for each person
         output_path = os.path.join(results_folder, f"person_{person_id}.mp4")
         tracker.video_location[person_id] = output_path
 
-        writers[person_id] = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'avc1'), fps, (width, height))
+        writers[person_id] = cv2.VideoWriter(os.path.join(os.getcwd(), output_path), cv2.VideoWriter_fourcc(*'avc1'), fps, (width, height))
 
         # map keypoints to frames
         person_keypoints = tracker.tracks[person_id]

@@ -23,7 +23,7 @@ navigator.mediaDevices.getUserMedia({ video: true })
     })
     .catch(err => {
         getCameras();
-        alert("Camera access denied. Live webcam features may not work.");
+        alert("No cameras detected. Live webcam features will not work.");
     });
 getCameras();
 navigator.mediaDevices.ondevicechange = getCameras; // Refresh if cams plugged/unplugged

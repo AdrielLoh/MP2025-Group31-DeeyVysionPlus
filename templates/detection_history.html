@@ -23,7 +23,7 @@
                             <th class="table-header-hx9k2 col-timestamp-hx9k2">Date & Time</th>
                             <th class="table-header-hx9k2 col-filename-hx9k2">Filename</th>
                             <th class="table-header-hx9k2 col-detection-hx9k2">Detection Type</th>
-                            <th class="table-header-hx9k2 col-media-hx9k2">Media Preview</th>
+                            <th class="table-header-hx9k2 col-media-hx9k2">Preview</th>
                         </tr>
                     </thead>
                     <tbody id="historyBody">
@@ -39,17 +39,6 @@
     <div id="footer-placeholder"></div>
 
     <script>
-        function getMediaPath(uploadedPath) {
-            // Handle both absolute and relative paths
-            if (uploadedPath.includes('static/uploads/')) {
-                // Extract just the filename from the path
-                const filename = uploadedPath.split('/').pop() || uploadedPath.split('\\').pop();
-                return `/media/${filename}`;
-            }
-            // If it's already a relative path or just a filename
-            const filename = uploadedPath.split('/').pop() || uploadedPath.split('\\').pop();
-            return `/media/${filename}`;
-        }
         async function loadDetectionHistory() {
             try {
                 const response = await fetch('/api/detection-history');
@@ -94,27 +83,21 @@
                     
                     // Create media preview
                     let mediaHtml = '';
-                    if (entry.uploaded_path && entry.media_type !== 'unknown') {
-                        // Convert absolute path to relative path for serving
-                        const mediaPath = getMediaPath(entry.uploaded_path);
-                        
-                        if (entry.media_type === 'video') {
+                    console.log(entry.uploaded_path)
+                    if (entry.uploaded_path) {
+                        if (entry.uploaded_path.includes('thumbnails')) {
+                            // Extract just the filename from the path
+                            var filename = entry.uploaded_path.split('/').pop() || entry.uploaded_path.split('\\').pop();
                             mediaHtml = `
-                                <video class="media-preview-hx9k2" controls muted preload="metadata">
-                                    <source src="${mediaPath}" type="video/mp4">
-                                    <div class="media-error-hx9k2">Video not supported</div>
-                                </video>
+                                <img class="media-preview-hx9k2" src="${entry.uploaded_path}" alt="Video thumbnail">
                             `;
-                        } else if (entry.media_type === 'audio') {
+                        } else {
                             mediaHtml = `
                                 <audio class="media-preview-hx9k2" controls preload="metadata">
-                                    <source src="${mediaPath}">
-                                    <div class="media-error-hx9k2">Audio not supported</div>
+                                    <source src="${entry.uploaded_path}">
                                 </audio>
                             `;
                         }
-                    } else {
-                        mediaHtml = '<div class="no-media-hx9k2">No media available</div>';
                     }
                     
                     row.className = 'table-row-hx9k2';

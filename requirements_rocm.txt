@@ -10,6 +10,7 @@ charset-normalizer==3.4.2
 click==8.2.1
 contourpy==1.3.2
 cycler==0.12.1
+Cython==3.1.2
 decorator==5.2.1
 filelock==3.18.0
 Flask==3.1.1
@@ -42,7 +43,7 @@ MarkupSafe==3.0.2
 matplotlib==3.10.3
 mdurl==0.1.2
 mediapipe==0.10.21
-ml-dtypes==0.3.1
+ml_dtypes==0.5.3
 moviepy==2.2.1
 mpmath==1.3.0
 msgpack==1.1.1
@@ -74,7 +75,7 @@ pysparkling==0.6.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 python-json-logger==3.3.0
-pytorch-triton-rocm @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.1/pytorch_triton_rocm-3.2.0%2Brocm6.4.1.git6da9e660-cp310-cp310-linux_x86_64.whl
+pytorch-triton-rocm @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.2/pytorch_triton_rocm-3.2.0%2Brocm6.4.2.git7e948ebf-cp310-cp310-linux_x86_64.whl
 pytz==2025.2
 requests==2.32.4
 rich==14.0.0
@@ -87,17 +88,17 @@ sounddevice==0.5.2
 soundfile==0.13.1
 soxr==0.5.0.post1
 sympy==1.13.1
-tensorboard==2.17.1
+tensorboard==2.18.0
 tensorboard-data-server==0.7.2
 tensorflow-io-gcs-filesystem==0.37.1
-tensorflow-rocm @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.1/tensorflow_rocm-2.17.1-cp310-cp310-manylinux_2_28_x86_64.whl
+tensorflow_rocm @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.2/tensorflow_rocm-2.18.1-cp310-cp310-manylinux_2_28_x86_64.whl
 termcolor==3.1.0
 tf_keras==2.18.0
 threadpoolctl==3.6.0
 tifffile==2025.5.10
-torch @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.1/torch-2.6.0%2Brocm6.4.1.git1ded221d-cp310-cp310-linux_x86_64.whl
-torchaudio @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.1/torchaudio-2.6.0%2Brocm6.4.1.gitd8831425-cp310-cp310-linux_x86_64.whl#sha256=168f4e9e47efc69c07920e022300e117611c3969614123c6e4686e2656eaef07
-torchvision @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.1/torchvision-0.21.0%2Brocm6.4.1.git4040d51f-cp310-cp310-linux_x86_64.whl
+torch @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.2/torch-2.6.0%2Brocm6.4.2.git76481f7c-cp310-cp310-linux_x86_64.whl
+torchaudio @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.2/torchaudio-2.6.0%2Brocm6.4.2.gitd8831425-cp310-cp310-linux_x86_64.whl
+torchvision @ https://repo.radeon.com/rocm/manylinux/rocm-rel-6.4.2/torchvision-0.21.0%2Brocm6.4.2.git4040d51f-cp310-cp310-linux_x86_64.whl
 tqdm==4.67.1
 typing_extensions==4.14.1
 tzdata==2025.2

@@ -6,6 +6,9 @@ from tensorflow.keras.models import load_model
 import json
 import collections
 import subprocess
+from scipy.spatial.distance import cdist
+from scipy.optimize import linear_sum_assignment
+import tensorflow as tf
 
 # Load the pre-trained deepfake detection model
 model = load_model('models/deep_learning_model.keras')
@@ -34,9 +37,6 @@ def iou(boxA, boxB):
     boxAArea = boxA[2] * boxA[3]
     boxBArea = boxB[2] * boxB[3]
     return interArea / float(boxAArea + boxBArea - interArea + 1e-5)
-
-from scipy.spatial.distance import cdist
-from scipy.optimize import linear_sum_assignment
 
 def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=100):
     """
@@ -269,17 +269,18 @@ def static_video_detection(video_path, output_dir, unique_tag):
             'real_vs_fake_plot': real_v_fake_plot_path,
         })
 
-    # (Optional: H.264 conversion as in physio)
+    # Re-encode for compatibility
+    current_wd = os.getcwd()
     fixed_output_path = output_path.replace('.mp4', f'_fixed.mp4')
-    converted_video = subprocess.run([
-        'ffmpeg', '-y', '-i', output_path,
+    original_output = os.path.join(current_wd, output_path)
+    new_output = os.path.join(current_wd, fixed_output_path)
+    subprocess.run([
+        'ffmpeg', '-y', '-i', original_output,
         '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
-        fixed_output_path
+        new_output
     ])
-    if converted_video.returncode != 0:
-        fixed_output_path = output_path
-    if os.path.exists(output_path):
-        os.remove(output_path)
+    if os.path.exists(original_output):
+        os.remove(original_output)
     output_path = fixed_output_path
 
     result_dict = {

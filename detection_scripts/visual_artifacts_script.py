@@ -243,12 +243,15 @@ def run_visual_artifacts_detection(*args, **kwargs):
         writer.write(frame_draw)
     writer.release()
     def reencode_mp4_for_html5(input_path, output_path):
+        current_wd = os.getcwd()
+        input_path_full = os.path.join(current_wd, input_path)
+        output_path_full = os.path.join(current_wd, output_path)
         # Use ffmpeg to reencode with H.264 video and AAC audio for HTML5
         cmd = [
-            "ffmpeg", "-y", "-i", input_path,
+            "ffmpeg", "-y", "-i", input_path_full,
             "-c:v", "libx264", "-pix_fmt", "yuv420p",
             "-movflags", "+faststart",
-            output_path
+            output_path_full
         ]
         subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 

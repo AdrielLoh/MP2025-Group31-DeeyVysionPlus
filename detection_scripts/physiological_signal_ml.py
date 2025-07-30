@@ -887,14 +887,20 @@ def run_detection(video_path, video_tag, output_dir):
         out.write(frame)
     out.release()
     time.sleep(0.2)  # Short pause to ensure file is closed
+
+    # Re-encode for compatibility
+    current_wd = os.getcwd()
     fixed_output_path = output_path.replace('.mp4', f'_fixed.mp4')
+    original_output = os.path.join(current_wd, output_path)
+    new_output = os.path.join(current_wd, fixed_output_path)
     subprocess.run([
-        'ffmpeg', '-y', '-i', output_path,
+        'ffmpeg', '-y', '-i', original_output,
         '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
-        fixed_output_path
+        new_output
     ])
-    if os.path.exists(output_path):
-        os.remove(output_path)
+
+    if os.path.exists(original_output):
+        os.remove(original_output)
     output_path = fixed_output_path
     face_results = []
     MIN_PREDICTIONS = 30

@@ -10,6 +10,10 @@ from tensorflow.keras.models import load_model
 import tensorflow as tf
 import json
 import collections
+from sklearn.decomposition import PCA
+from scipy.spatial.distance import cdist
+from scipy.optimize import linear_sum_assignment
+from scipy.signal import detrend, butter, filtfilt
 
 # ========== Configuration ==========
 FACE_PROTO = 'models/weights-prototxt.txt'
@@ -77,9 +81,6 @@ def iou(boxA, boxB):
     boxAArea = boxA[2] * boxA[3]
     boxBArea = boxB[2] * boxB[3]
     return interArea / float(boxAArea + boxBArea - interArea + 1e-5)
-
-from scipy.spatial.distance import cdist
-from scipy.optimize import linear_sum_assignment
 
 def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=100):
     """
@@ -260,8 +261,6 @@ def extract_roi_means(frame, box, landmarks, rois=ROI_INDICES):
             rgb_means[roi] = [0.0, 0.0, 0.0]
     return rgb_means
 
-from scipy.signal import detrend, butter, filtfilt
-
 def rppg_chrom(rgb):
     S = np.array(rgb)
     if S.ndim != 2 or S.shape[1] < 3 or S.shape[0] < 10:
@@ -284,7 +283,6 @@ def rppg_pos(rgb):
     rppg = Y_norm[:, 0] - alpha * Y_norm[:, 1]
     return rppg.astype(np.float32)
 
-from sklearn.decomposition import PCA
 def rppg_pca(rgb):
     S = np.array(rgb)
     if S.ndim != 2 or S.shape[1] < 3 or S.shape[0] < 10:
@@ -575,17 +573,20 @@ def run_detection(video_path, video_tag, output_dir):
         face_result['roi_signal_plots'] = roi_signal_plot_paths.get(tid, {})
 
     # re-encode as H.264 faststart using ffmpeg
+    current_wd = os.getcwd()
     fixed_output_path = output_path.replace('.mp4', f'_fixed.mp4')
+    original_output = os.path.join(current_wd, output_path)
+    new_output = os.path.join(current_wd, fixed_output_path)
     converted_video = subprocess.run([
-        'ffmpeg', '-y', '-i', output_path,
+        'ffmpeg', '-y', '-i', original_output,
         '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-movflags', 'faststart',
-        fixed_output_path
+        new_output
     ])
     if converted_video.returncode != 0:
         fixed_output_path = output_path
 
-    if os.path.exists(output_path):
-        os.remove(output_path)
+    if os.path.exists(original_output):
+        os.remove(original_output)
     output_path = fixed_output_path
 
     if "mp_face_mesh" in _thread_local:
