@@ -1253,12 +1253,6 @@ footer::after {
     box-shadow: var(--shadow-glow);
 }
 
-.submit-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
 .loading-spinner {
     display: none;
     text-align: center;
@@ -3548,12 +3542,6 @@ Try Page Specific Styles
     box-shadow: var(--shadow-glow);
 }
 
-.analyze-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
 /* Loading Spinner */
 .loading-spinner,
 .webcam-loading {
@@ -3732,12 +3720,6 @@ Try Page Specific Styles
 .webcam-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-}
-
-.webcam-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
 }
 
 .record-indicator {
@@ -4691,6 +4673,7 @@ Case Studies Page Specific Styles
     font-size: 1.2rem;
     color: white;
     flex-shrink: 0;
+    margin: 0 auto;
 }
 
 /* Refinement Techniques */
@@ -5885,6 +5868,10 @@ Identify Deepfakes Page Specific Styles
     overflow: hidden;
 }
 
+.method-icon-edu-container {
+    margin: 0 auto;
+}
+
 .method-icon-edu::before {
     content: "";
     position: absolute;
@@ -6533,11 +6520,17 @@ Identify Deepfakes Page Specific Styles
     transform: translateY(-2px);
 }
 
-.audio-button:disabled {
+.audio-button:disabled,
+.audio-upload-button:disabled,
+.submit-btn:disabled,
+.webcam-button:disabled,
+.analyze-button:disabled,
+.webcam-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
 }
+
 
 .record-indicator {
     width: 8px;
@@ -7697,7 +7690,7 @@ Legal and Ethics Page Specific Styles
     justify-content: center;
 }
 
-.category-icon {
+.category-icon-hpqi2 {
     width: 160px;
     height: 160px;
     background: var(--card-bg);
@@ -7712,7 +7705,7 @@ Legal and Ethics Page Specific Styles
     overflow: hidden;
 }
 
-.category-icon::before {
+.category-icon-hpqi2::before {
     content: "";
     position: absolute;
     top: 50%;
@@ -7729,12 +7722,12 @@ Legal and Ethics Page Specific Styles
     border-radius: 50%;
 }
 
-.ethics-category-card:hover .category-icon::before {
+.ethics-category-card:hover .category-icon-hpqi2::before {
     width: 180px;
     height: 180px;
 }
 
-.category-icon img {
+.category-icon-hpqi2 img {
     width: 100px;
     height: 100px;
     object-fit: contain;
@@ -7742,7 +7735,7 @@ Legal and Ethics Page Specific Styles
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
 }
 
-.ethics-category-card:hover .category-icon img {
+.ethics-category-card:hover .category-icon-hpqi2 img {
     transform: scale(1.1);
     filter: drop-shadow(0 8px 20px rgba(102, 126, 234, 0.3));
 }
@@ -8406,6 +8399,7 @@ Legal and Ethics Page Specific Styles
     flex-shrink: 0;
     z-index: 2;
     border: 3px solid var(--dark-bg);
+    margin: 0 auto;
 }
 
 .trend-item.current .trend-marker {
@@ -8487,13 +8481,13 @@ Legal and Ethics Page Specific Styles
         text-align: center;
     }
 
-    .category-icon {
-        width: 140px;
-        height: 140px;
+    .category-icon-hpqi2 {
+        width: 100px;
+        height: 100px;
         margin: 0 auto;
     }
 
-    .category-icon img {
+    .category-icon-hpqi2 img {
         width: 80px;
         height: 80px;
     }
@@ -8504,6 +8498,7 @@ Legal and Ethics Page Specific Styles
 
     .category-details {
         justify-content: center;
+        flex-direction: column;
     }
 
     .principles-grid {
@@ -8556,7 +8551,7 @@ Legal and Ethics Page Specific Styles
     .global-regulatory-landscape,
     .regulatory-challenges,
     .future-regulatory-trends {
-        padding: 1.5rem;
+        padding: 1rem 0;
     }
 
     .domain-header,
@@ -8819,8 +8814,8 @@ Protect Yourself Page Specific Styles
 .section-icon,
 .category-icon {
     font-size: 2rem;
-    width: 50px;
-    height: 50px;
+    width: 100px;
+    height: 100px;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -9582,23 +9577,23 @@ Protect Yourself Page Specific Styles
 
 @media (max-width: 480px) {
     .protection-strategy-card,
-    .awareness-method,
     .privacy-layer,
     .rights-section,
     .legal-steps,
     .authority-card,
     .tool-category,
-    .awareness-methods,
+    .awareness-method,
     .awareness-scorecard,
-    .privacy-framework,
     .privacy-audit,
     .singapore-authorities,
-    .digital-toolkit,
     .implementation-guide {
         padding: 1.5rem;
     }
+    .digital-toolkit,
+    .privacy-framework,
+    .awareness-methods,
     .legal-framework {
-        padding: 0;
+        padding: 1rem 0;
     }
 
     .strategy-meta h2 {
@@ -9615,6 +9610,19 @@ Protect Yourself Page Specific Styles
     .tool-features {
         flex-direction: column;
         gap: 0.5rem;
+    }
+    .method-header,
+    .layer-header,
+    .section-header,
+    .authority-header,
+    .category-header {
+        flex-direction: column;
+    }
+    .method-icon-protect,
+    .layer-icon,
+    .section-icon,
+    .category-icon {
+        margin: 0 auto;
     }
 }
 
@@ -9974,7 +9982,6 @@ Protect Yourself Page Specific Styles
 @media (max-width: 768px) {
     .page-container-hx9k2 {
         padding: 1rem;
-        margin-top: 60px;
     }
     
     .history-title-hx9k2 {

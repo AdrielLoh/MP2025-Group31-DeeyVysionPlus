@@ -148,9 +148,9 @@ input[type="file"]:focus {
 }
 #result {
     margin-top: 1.1em;
-    font-size: 0.97em;
+    font-size: 1rem;
     word-break: break-word;
-    color: var(--text-secondary);
+    color: red;
     text-align: left;
     max-height: 120px;
     overflow-y: auto;

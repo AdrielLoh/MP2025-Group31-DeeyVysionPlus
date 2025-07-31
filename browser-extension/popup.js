@@ -22,6 +22,11 @@ document.getElementById("detectBtn").onclick = async () => {
         status.textContent = "Select a file or paste a video URL!";
         return;
     }
+    if (fileInput.files.length && videoUrl) {
+        status.textContent = "Please provide either a file OR a video URL, not both.";
+        return;
+    }   
+
     if (methods.length === 0) {
         status.textContent = "Please select at least one method.";
         return;

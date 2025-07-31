@@ -11,12 +11,14 @@
             let form = document.getElementById("upload-form");
             let spinner = document.getElementById("loadingSpinner");
             let submitButton = document.getElementById("submitButton");
+            let dvurlSubmit = document.getElementById("dvurl-submit");
 
             form.addEventListener("submit", function(event) {
                 event.preventDefault();
 
                 // Disable the button and change text
                 submitButton.disabled = true;
+                dvurlSubmit.disabled = true;
                 submitButton.innerText = "Processing...";
                 submitButton.classList.add("processing");
 
@@ -49,14 +51,29 @@
             let dvurlForm = document.getElementById("dvurl-form");
             let dvurlLoading = document.getElementById("dvurl-loading");
             let dvurlSubmit = document.getElementById("dvurl-submit");
+            let submitButton = document.getElementById("submitButton");
 
             if (dvurlForm) {
                 dvurlForm.addEventListener("submit", function(event) {
                     dvurlSubmit.disabled = true;
+                    submitButton.disabled = true;
                     dvurlSubmit.innerHTML = "Processing...";
                     dvurlLoading.style.display = "block";
                 });
             }
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+            let webcamUploadForm = document.getElementById("webcamUploadForm");
+            let webcamSubmitBtn = document.getElementById("webcamSubmit");
+            let dvurlSubmit = document.getElementById("dvurl-submit");
+            let submitButton = document.getElementById("submitButton");
+
+            webcamUploadForm.addEventListener("submit", function(event) {
+                dvurlSubmit.disabled = true;
+                submitButton.disabled = true;
+                webcamSubmitBtn.disabled = true;
+                webcamSubmitBtn.innerHTML = "Processing...";
+            });
         });
     </script>
     <script src="../static/js/handle-upload.js"></script>
@@ -127,7 +144,7 @@
                         <h2 class="method-title">Submit Video URL</h2>
                         <p class="method-description">
                             Paste a YouTube, Twitter, or TikTok video link.<br>
-                            <b>Only public and short videos are accepted (max 30 seconds).</b>
+                            <b>Only public and short videos are accepted (max 90 seconds).</b>
                         </p>
                     </div>
                 </div>
@@ -264,7 +281,7 @@
                 
                 <form id="webcamUploadForm" class="webcam-upload-form" method="POST" enctype="multipart/form-data" action="/physiological_signal_try" style="display:none;">
                     <input type="file" name="file" id="webcamFileInput" style="display: none;">
-                    <button type="submit" class="webcam-button webcam-upload-button">UPLOAD RECORDING</button>
+                    <button type="submit" id="webcamSubmit" class="webcam-button webcam-upload-button">UPLOAD RECORDING</button>
                 </form>
             </div>
         </div>

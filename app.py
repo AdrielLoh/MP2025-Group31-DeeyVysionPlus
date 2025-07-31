@@ -52,8 +52,8 @@ ALLOWED_EXTENSIONS = {'.mp4', '.mov', '.avi', '.webm', '.wav', '.flac', '.mp3', 
 ALLOWED_MIME_TYPES = {'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'audio/mpeg', 
                       'audio/ogg', 'audio/wav', 'audio/vnd.wav',
                       'audio/flac', 'audio/x-flac'}
-MAX_VIDEO_DURATION = 30 # For URL downloads only
 VALID_VIDEOS = ['.mp4', '.mov', '.avi', '.webm']
+MAX_VIDEO_DURATION = 90
 
 # ===== HELPER FUNCTIONS =====
 def create_video_thumbnail(video_path, thumbnail_folder, size=(320, 180)):
@@ -143,17 +143,37 @@ def get_video_fps(video_path, default_fps=30):
     except Exception:
         return default_fps
 
-def convert_webm_to_mp4(original_path, mp4_path):
+def get_video_duration(path):
+    result = subprocess.run(
+        [
+            'ffprobe', '-v', 'error',
+            '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1',
+            path
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    duration_str = result.stdout.strip()
+    if not duration_str:
+        raise Exception(f"Could not read duration from video (may be corrupt)")
+    try:
+        return float(duration_str)
+    except ValueError:
+        raise Exception(f"Invalid duration value (may be corrupt)")
+
+def convert_webm_to_mp4(original_path, mp4_path, max_duration=MAX_VIDEO_DURATION):
     fps = get_video_fps(original_path)
     cmd = [
         'ffmpeg', '-y', '-i', original_path,
-        '-r', str(fps),  # use detected FPS
+        '-r', str(fps),
         '-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p',
         mp4_path
     ]
     subprocess.run(cmd, check=True)
 
-def trim_video(input_path, output_path, duration=30):
+def trim_video(input_path, output_path, duration=MAX_VIDEO_DURATION):
     cmd = [
         'ffmpeg', '-y', '-i', input_path,
         '-t', str(duration),
@@ -162,7 +182,17 @@ def trim_video(input_path, output_path, duration=30):
     ]
     subprocess.run(cmd, check=True)
 
+def fetch_duration(url):
+    with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+        info = ydl.extract_info(url, download=False)
+    return info.get('duration')
+
 def download_video(video_tag, video_url):
+    length = fetch_duration(video_url)
+    if not length:
+        return "Failed to download: No duration metadata extracted for the link"
+    elif length > MAX_VIDEO_DURATION:
+        return f"Failed to download: Video length too long. Maximum {MAX_VIDEO_DURATION} seconds allowed"
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',
         'outtmpl': os.path.join(app.config['UPLOAD_FOLDER'], f'{video_tag}.%(ext)s'),
@@ -174,13 +204,9 @@ def download_video(video_tag, video_url):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=True)
             downloaded_filename = ydl.prepare_filename(info)
-            # trim long videos to 30s
-            trimmed_filename = os.path.splitext(downloaded_filename)[0] + '_trimmed.mp4'
-            trim_video(downloaded_filename, trimmed_filename, duration=30)
-            os.remove(downloaded_filename)
-            return trimmed_filename
+            return downloaded_filename
     except Exception as e:
-        return f"Failed to download video from URL: {e}"
+        return f"Failed to download: Server error"
 
 def detection_disabled_response():
     return render_template('detection_disabled.html'), 403
@@ -578,7 +604,7 @@ def physiological_signal_try():
         if video_url:
             video_path_for_processing = download_video(video_tag, video_url)
             if "Failed to download" in video_path_for_processing:
-                return "Invalid video URL"
+                return video_path_for_processing
             mp4_path = ""
             filename_to_log = video_url
         elif file:
@@ -595,17 +621,33 @@ def physiological_signal_try():
 
             # convert to mp4 for better compatibility
             if not filename.lower().endswith('.mp4'):
-                mp4_path = os.path.splitext(filename)[0] + '.mp4'
-                convert_webm_to_mp4(filename, mp4_path)
-                video_path_for_processing = mp4_path
-                if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
-                    os.remove(filename)
+                try:
+                    mp4_path = os.path.splitext(filename)[0] + '.mp4'
+                    convert_webm_to_mp4(filename, mp4_path)
+                    if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+                        os.remove(filename)
+                    filename = mp4_path
+                except Exception as e:
+                    return f"Failed to process video. Video may be corrupted or invalid. {e}"
+            
+            try:
+                duration = get_video_duration(filename)
+            except Exception as e:
+                return f"Failed to read video duration. Video may be corrupted or invalid."
+            if duration is not None and duration > MAX_VIDEO_DURATION:
+                try:
+                    # trim long videos to MAX_VIDEO_DURATIONs
+                    trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'
+                    trim_video(filename, trimmed_filename, duration=MAX_VIDEO_DURATION)
+                    if os.path.exists(filename):
+                        os.remove(filename)
+                    video_path_for_processing = trimmed_filename
+                except Exception as e:
+                    return f"Failed to trim video. Detection stopped for security reasons. {e}"
             else:
                 video_path_for_processing = filename
-                mp4_path = ""
 
         video_hash = sha256_of_file(video_path_for_processing)
-        path_to_log = video_path_for_processing
 
         if detection_method == "machine":
             output_dir = os.path.join('static', 'results', 'physio_ml', video_hash)
@@ -669,7 +711,7 @@ def deep_learning_static():
         if video_url:
             video_path_for_processing = download_video(video_tag, video_url)
             if "Failed to download" in video_path_for_processing:
-                return "Invalid video URL"
+                return video_path_for_processing
             filename_to_log = video_url
         elif file:
             if not allowed_file(file.filename, file.content_type):
@@ -685,14 +727,32 @@ def deep_learning_static():
 
             # convert to mp4 for better compatibility
             if not filename.lower().endswith('.mp4'):
-                mp4_path = os.path.splitext(filename)[0] + '.mp4'
-                convert_webm_to_mp4(filename, mp4_path)
-                video_path_for_processing = mp4_path
-                if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
-                    os.remove(filename)
+                try:
+                    mp4_path = os.path.splitext(filename)[0] + '.mp4'
+                    convert_webm_to_mp4(filename, mp4_path)
+                    if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+                        os.remove(filename)
+
+                    filenmae = mp4_path
+                except Exception as e:
+                    return f"Failed to process video. Video may be corrupted or invalid. {e}"
+            
+            try:
+                duration = get_video_duration(filename)
+            except Exception as e:
+                return f"Failed to read video duration. Video may be corrupted or invalid."
+            if duration is not None and duration > MAX_VIDEO_DURATION:
+                try:
+                    # trim long videos to MAX_VIDEO_DURATIONs
+                    trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'
+                    trim_video(filename, trimmed_filename, duration=MAX_VIDEO_DURATION)
+                    if os.path.exists(filename):
+                        os.remove(filename)
+                    video_path_for_processing = trimmed_filename
+                except Exception as e:
+                    return f"Failed to trim video. Detection stopped for security reasons. {e}"
             else:
                 video_path_for_processing = filename
-                mp4_path = ""
         
         video_hash = sha256_of_file(video_path_for_processing)
 
@@ -743,7 +803,7 @@ def visual_artifacts_static():
         if video_url:
             video_path_for_processing = download_video(video_tag, video_url)
             if "Failed to download" in video_path_for_processing:
-                return render_template('visual_artifacts_try.html', error="Invalid video URL.")
+                return render_template('visual_artifacts_try.html', error=video_path_for_processing)
             filename = video_path_for_processing
             mp4_path = ""
             filename_to_log = video_url
@@ -761,14 +821,31 @@ def visual_artifacts_static():
 
             # Convert to mp4 if needed
             if not filename.lower().endswith('.mp4'):
-                mp4_path = os.path.splitext(filename)[0] + '.mp4'
-                convert_webm_to_mp4(filename, mp4_path)
-                video_path_for_processing = mp4_path
-                if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
-                    os.remove(filename)
+                try:
+                    mp4_path = os.path.splitext(filename)[0] + '.mp4'
+                    convert_webm_to_mp4(filename, mp4_path)
+                    if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+                        os.remove(filename)
+                    filename = mp4_path
+                except Exception as e:
+                    return f"Failed to process video. Video may be corrupted or invalid. {e}"
+            
+            try:
+                duration = get_video_duration(filename)
+            except Exception as e:
+                return f"Failed to read video duration. Video may be corrupted or invalid."
+            if duration is not None and duration > MAX_VIDEO_DURATION:
+                try:
+                    # trim long videos to MAX_VIDEO_DURATIONs
+                    trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'
+                    trim_video(filename, trimmed_filename, duration=MAX_VIDEO_DURATION)
+                    if os.path.exists(filename):
+                        os.remove(filename)
+                    video_path_for_processing = trimmed_filename
+                except Exception as e:
+                    return f"Failed to trim video. Detection stopped for security reasons. {e}"
             else:
                 video_path_for_processing = filename
-                mp4_path = ""
         else:
             return render_template('visual_artifacts_try.html', error="Please upload a file or provide a URL.")
 
@@ -817,7 +894,7 @@ def audio_analysis():
         if video_url:
             video_path_for_processing = download_video(unique_tag, video_url)
             if "Failed to download" in video_path_for_processing:
-                return "Error getting video. URL may be invalid."
+                return video_path_for_processing
             filename = video_path_for_processing
             filename_to_log = video_url
         elif file:
@@ -913,7 +990,7 @@ def body_posture_detect():
         if video_url:
             filename = download_video(video_tag, video_url)
             if "Failed to download" in filename:
-                return "Invalid video URL"
+                return filename
             filename_to_log = video_url
         elif file:
             if not allowed_file(file.filename, file.content_type):
@@ -927,17 +1004,33 @@ def body_posture_detect():
             new_file_name = video_tag + ext
             filename = os.path.join(app.config['UPLOAD_FOLDER'], new_file_name)
             file.save(filename)
-            video_path_for_processing = filename
             # Convert to mp4 if needed
             if not filename.lower().endswith('.mp4'):
-                mp4_path = os.path.splitext(filename)[0] + '.mp4'
-                convert_webm_to_mp4(filename, mp4_path)
-                video_path_for_processing = mp4_path
-                if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
-                    os.remove(filename)
+                try:
+                    mp4_path = os.path.splitext(filename)[0] + '.mp4'
+                    convert_webm_to_mp4(filename, mp4_path)
+                    if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+                        os.remove(filename)
+                    filename = mp4_path
+                except Exception as e:
+                    return f"Failed to process video. Video may be corrupted or invalid. {e}"
+            
+            try:
+                duration = get_video_duration(filename)
+            except Exception as e:
+                return f"Failed to read video duration. Video may be corrupted or invalid."
+            if duration is not None and duration > MAX_VIDEO_DURATION:
+                try:
+                    # trim long videos to MAX_VIDEO_DURATIONs
+                    trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'
+                    trim_video(filename, trimmed_filename, duration=MAX_VIDEO_DURATION)
+                    if os.path.exists(filename):
+                        os.remove(filename)
+                    video_path_for_processing = trimmed_filename
+                except Exception as e:
+                    return f"Failed to trim video. Detection stopped for security reasons. {e}"
             else:
                 video_path_for_processing = filename
-                mp4_path = ""
 
         video_hash = sha256_of_file(video_path_for_processing)
 
@@ -988,7 +1081,7 @@ def multi_detection():
     if video_url:
         filename = download_video(video_tag, video_url)
         if "Failed to download" in filename:
-            return "Invalid video URL"
+            return filename
         filename_to_log = video_url
     elif file:
         if not allowed_file(file.filename, file.content_type):
@@ -1004,11 +1097,29 @@ def multi_detection():
 
         # Convert to mp4 if needed
         if not filename.lower().endswith('.mp4'):
-            mp4_path = os.path.splitext(filename)[0] + '.mp4'
-            convert_webm_to_mp4(filename, mp4_path)
-            if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
-                os.remove(filename)
-            filename = mp4_path
+            try:
+                mp4_path = os.path.splitext(filename)[0] + '.mp4'
+                convert_webm_to_mp4(filename, mp4_path)
+                if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
+                    os.remove(filename)
+                filename = mp4_path
+            except Exception as e:
+                return f"Failed to process video. Video may be corrupted or invalid. {e}"
+        
+        try:
+            duration = get_video_duration(filename)
+        except Exception as e:
+            return f"Failed to read video duration. Video may be corrupted or invalid."
+        if duration is not None and duration > MAX_VIDEO_DURATION:
+            try:
+                # trim long videos to MAX_VIDEO_DURATIONs
+                trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'
+                trim_video(filename, trimmed_filename, duration=MAX_VIDEO_DURATION)
+                if os.path.exists(filename):
+                    os.remove(filename)
+                filename = trimmed_filename
+            except Exception as e:
+                return f"Failed to trim video. Detection stopped for security reasons. {e}"
     
     video_hash = sha256_of_file(filename)
 

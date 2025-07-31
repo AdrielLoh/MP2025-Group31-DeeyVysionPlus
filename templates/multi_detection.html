@@ -159,7 +159,7 @@
                 
                 <form id="webcamUploadForm" class="webcam-upload-form" method="POST" enctype="multipart/form-data" action="" style="display:none;">
                     <input type="file" name="file" id="webcamFileInput" style="display: none;">
-                    <button type="submit" class="webcam-button webcam-upload-button">UPLOAD RECORDING</button>
+                    <button type="submit" id="webcamSubmit" class="webcam-button webcam-upload-button">UPLOAD RECORDING</button>
                 </form>
             </div>
         </div>
@@ -169,12 +169,21 @@
 
     <script>
 document.addEventListener("DOMContentLoaded", function() {
+    function isMobileDevice() {
+        return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|BlackBerry|webOS/i.test(navigator.userAgent);
+    }
+
+    if (isMobileDevice()) {
+        document.getElementById("webcamSection").style.display="none";
+        document.getElementById("webcamUploadForm").style.display="none";
+    }
     const methodCards = document.querySelectorAll(".method-card-multi");
     const form = document.getElementById("multiUploadForm");
     const spinner = document.getElementById("loadingSpinner");
     const submitButton = document.getElementById("submitButton");
     const fileInput = document.getElementById("file");
     const urlInput = document.getElementById("dvurl-input");
+    const webcamSubmit = document.getElementById("webcamSubmit");
 
     // Method selection UI
     methodCards.forEach(card => {
@@ -197,8 +206,15 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Please choose either a file OR a URL, not both.");
             return false;
         }
+        const checkedMethods = document.querySelectorAll('.method-checkbox:checked');
+        if (checkedMethods.length === 0) {
+            event.preventDefault();
+            alert("Please select at least one detection method.");
+            return false;
+        }
         // Show spinner, disable button
         submitButton.disabled = true;
+        webcamSubmit.disabled = true;
         submitButton.innerText = "Processing...";
         spinner.style.display = "block";
     });
@@ -213,6 +229,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const multiFileInput = document.getElementById("file");
     const loadingSpinner = document.getElementById("loadingSpinner");
     const submitBtn = document.getElementById("submitButton");
+    const urlInput = document.getElementById("dvurl-input");
+    const webcamSubmit = document.getElementById("webcamSubmit");
 
     // Intercept webcamUploadForm's default submission
     webcamForm.addEventListener("submit", function (e) {
@@ -228,8 +246,14 @@ document.addEventListener("DOMContentLoaded", function () {
         dt.items.add(webcamFileInput.files[0]);
         multiFileInput.files = dt.files;
 
-        // Trigger the original multiUploadForm submission
-        submitBtn.disabled = true;
+        const checkedMethods = document.querySelectorAll('.method-checkbox:checked');
+        if (checkedMethods.length === 0) {
+            alert("Please select at least one detection method.");
+            return false;
+        }
+        // Show spinner, disable button
+        submitButton.disabled = true;
+        webcamSubmit.disabled = true;
         submitBtn.innerText = "Processing...";
         loadingSpinner.style.display = "block";
 

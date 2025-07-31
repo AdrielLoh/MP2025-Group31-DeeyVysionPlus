@@ -18,11 +18,13 @@
             let form = document.getElementById("upload-form");
             let spinner = document.getElementById("loadingSpinner");
             let submitButton = document.getElementById("submitButton");
+            let dvurlSubmit = document.getElementById("dvurl-submit");
 
             form.addEventListener("submit", function(event) {
                 event.preventDefault();
 
                 // Disable the button and change text
+                dvurlSubmit.disabled = true;
                 submitButton.disabled = true;
                 submitButton.innerText = "Processing...";
 
@@ -40,14 +42,29 @@
             let dvurlForm = document.getElementById("dvurl-form");
             let dvurlLoading = document.getElementById("dvurl-loading");
             let dvurlSubmit = document.getElementById("dvurl-submit");
+            let submitButton = document.getElementById("submitButton");
 
             if (dvurlForm) {
                 dvurlForm.addEventListener("submit", function(event) {
                     dvurlSubmit.disabled = true;
+                    submitButton.disabled = true;
                     dvurlSubmit.innerHTML = "Processing...";
                     dvurlLoading.style.display = "block";
                 });
             }
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+            let audioUploadForm = document.getElementById("audioUploadForm");
+            let audioSubmitBtn = document.getElementById("audioSubmit");
+            let dvurlSubmit = document.getElementById("dvurl-submit");
+            let submitButton = document.getElementById("submitButton");
+
+            audioUploadForm.addEventListener("submit", function(event) {
+                dvurlSubmit.disabled = true;
+                submitButton.disabled = true;
+                audioSubmitBtn.disabled = true;
+                audioSubmitBtn.innerHTML = "Processing...";
+            });
         });
     </script>
 </head>
@@ -99,7 +116,7 @@
                         <h2 class="method-title">Submit Video URL</h2>
                         <p class="method-description">
                             Paste a YouTube, Twitter, or TikTok video link.<br>
-                            <b>Only public and short videos are accepted (max 30 seconds).</b>
+                            <b>Only public and short videos are accepted (max 90 seconds).</b>
                         </p>
                     </div>
                 </div>
@@ -261,7 +278,7 @@
                 </div>
                 <form id="audioUploadForm" class="audio-upload-form" method="POST" enctype="multipart/form-data" action="/audio_analysis">
                     <input type="file" name="file" id="audioFileInput" style="display: none;">
-                    <button type="submit" class="audio-upload-button">ANALYZE RECORDING</button>
+                    <button type="submit" id="audioSubmit" class="audio-upload-button">ANALYZE RECORDING</button>
                 </form>
             </div>
         </div>
@@ -273,14 +290,6 @@
     <script src="../static/js/audio-recording.js"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     <script>
-        function isMobileDevice() {
-            return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|BlackBerry|webOS/i.test(navigator.userAgent);
-        }
-
-        if (isMobileDevice()) {
-            document.getElementById("microphoneDetection").style.display="none";
-            document.getElementById("audioUploadForm").style.display="none";
-        }
         // Drag and drop for audio upload
     const dropbox = document.getElementById('dropbox');
     const fileInput = document.getElementById('file');
