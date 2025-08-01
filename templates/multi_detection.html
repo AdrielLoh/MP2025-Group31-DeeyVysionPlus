@@ -169,14 +169,6 @@
 
     <script>
 document.addEventListener("DOMContentLoaded", function() {
-    function isMobileDevice() {
-        return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|BlackBerry|webOS/i.test(navigator.userAgent);
-    }
-
-    if (isMobileDevice()) {
-        document.getElementById("webcamSection").style.display="none";
-        document.getElementById("webcamUploadForm").style.display="none";
-    }
     const methodCards = document.querySelectorAll(".method-card-multi");
     const form = document.getElementById("multiUploadForm");
     const spinner = document.getElementById("loadingSpinner");

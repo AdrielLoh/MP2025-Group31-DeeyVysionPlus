@@ -114,3 +114,31 @@ document.addEventListener("DOMContentLoaded", function() {
         submitButton.classList.remove("ready");
     };
 });
+document.addEventListener("DOMContentLoaded", function() {
+    let dvurlForm = document.getElementById("dvurl-form");
+    let dvurlLoading = document.getElementById("dvurl-loading");
+    let submitButton = document.getElementById("submitButton");
+    let dvurlSubmit = document.getElementById("dvurl-submit");
+
+    if (dvurlForm) {
+        dvurlForm.addEventListener("submit", function(event) {
+            dvurlSubmit.disabled = true;
+            submitButton.disabled = true;
+            dvurlSubmit.innerHTML = "Processing...";
+            dvurlLoading.style.display = "block";
+        });
+    }
+});
+document.addEventListener("DOMContentLoaded", function() {
+    let webcamUploadForm = document.getElementById("webcamUploadForm");
+    let webcamSubmitBtn = document.getElementById("webcamSubmit");
+    let dvurlSubmit = document.getElementById("dvurl-submit");
+    let submitButton = document.getElementById("submitButton");
+
+    webcamUploadForm.addEventListener("submit", function(event) {
+        dvurlSubmit.disabled = true;
+        submitButton.disabled = true;
+        webcamSubmitBtn.disabled = true;
+        webcamSubmitBtn.innerHTML = "Processing...";
+    });
+});

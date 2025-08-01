@@ -31,36 +31,7 @@
                 return;
             });
         });
-        document.addEventListener("DOMContentLoaded", function() {
-            let dvurlForm = document.getElementById("dvurl-form");
-            let dvurlLoading = document.getElementById("dvurl-loading");
-            let dvurlSubmit = document.getElementById("dvurl-submit");
-            let submitButton = document.getElementById("submitButton");
-
-            if (dvurlForm) {
-                dvurlForm.addEventListener("submit", function(event) {
-                    dvurlSubmit.disabled = true;
-                    submitButton.disabled = true;
-                    dvurlSubmit.innerHTML = "Processing...";
-                    dvurlLoading.style.display = "block";
-                });
-            }
-        });
-        document.addEventListener("DOMContentLoaded", function() {
-            let webcamUploadForm = document.getElementById("webcamUploadForm");
-            let webcamSubmitBtn = document.getElementById("webcamSubmit");
-            let dvurlSubmit = document.getElementById("dvurl-submit");
-            let submitButton = document.getElementById("submitButton");
-
-            webcamUploadForm.addEventListener("submit", function(event) {
-                dvurlSubmit.disabled = true;
-                submitButton.disabled = true;
-                webcamSubmitBtn.disabled = true;
-                webcamSubmitBtn.innerHTML = "Processing...";
-            });
-        });
     </script>
-    <script src="../static/js/handle-upload.js"></script>
 </head>
 <body>
     <header>
@@ -286,22 +257,12 @@
                 </form>
             </div>
         </div>
-
-        <script src="../static/js/live-webcam.js"></script>
     </section>
     <footer>
         <div id="footer-placeholder"></div>
     </footer>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
-    <script>
-        function isMobileDevice() {
-            return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|BlackBerry|webOS/i.test(navigator.userAgent);
-        }
-
-        if (isMobileDevice()) {
-            document.getElementById("webcamSection").style.display="none";
-            document.getElementById("webcamUploadForm").style.display="none";
-        }
-    </script>
+    <script src="../static/js/handle-upload.js"></script>
+    <script src="../static/js/live-webcam.js"></script>
 </body>
 </html>
