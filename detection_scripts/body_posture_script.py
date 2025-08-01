@@ -16,12 +16,8 @@ import time
 #import time
 
 # Configuration
-PROCESSED_FOLDER = "static/processed/"
 MODEL_PATH_STATIC = 'models/body_posture_model.pth'
 MODEL_PATH_LIVE = 'models/body_posture_live.keras'
-
-# Ensure directories exist
-os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 
 def convert_to_python_type(obj):
     if isinstance(obj, dict):

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 import os
 import logging
 import subprocess
@@ -9,12 +9,10 @@ from waitress import serve
 import yt_dlp
 import hashlib
 import datetime
-from collections import defaultdict
-from flask import send_file
 import uuid
 import tensorflow as tf
 import cv2
-import numpy as np
+import concurrent.futures
 
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
@@ -25,12 +23,6 @@ if gpus:
         print(e)
 
 logging.basicConfig(level=logging.DEBUG)
-from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
-from detection_scripts.physiological_signal_script import run_detection as run_dl_detection
-from detection_scripts.audio_analysis_script import predict_audio
-from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
-from detection_scripts.body_posture_script import detect_body_posture
-from detection_scripts.physiological_signal_ml import run_detection as run_ml_detection
 
 app = Flask(__name__)
 
@@ -650,10 +642,12 @@ def physiological_signal_try():
         video_hash = sha256_of_file(video_path_for_processing)
 
         if detection_method == "machine":
+            from detection_scripts.physiological_signal_ml import run_detection as run_ml_detection
             output_dir = os.path.join('static', 'results', 'physio_ml', video_hash)
             os.makedirs(output_dir, exist_ok=True)
             face_results, output_video = run_ml_detection(video_path_for_processing, video_tag=video_hash, output_dir=output_dir)
         else:
+            from detection_scripts.physiological_signal_script import run_detection as run_dl_detection
             output_dir = os.path.join('static', 'results', 'physio_deep', video_hash)
             os.makedirs(output_dir, exist_ok=True)
             face_results, output_video = run_dl_detection(video_path_for_processing, video_tag=video_hash, output_dir=output_dir)          
@@ -700,6 +694,7 @@ def audio_analysis_page():
 @app.route('/deep_learning_static', methods=['GET', 'POST'])
 def deep_learning_static():
     if request.method == "POST":
+        from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
         if DEMO_MODE:
             return detection_disabled_response()
         mp4_path = ""
@@ -791,6 +786,7 @@ def visual_artifacts_static():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
     if request.method == 'POST':
+        from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection as visual_artifacts_static_detection
         if DEMO_MODE:
             return detection_disabled_response()
         file = request.files.get('file')
@@ -882,6 +878,7 @@ def visual_artifacts_static():
 @app.route('/audio_analysis', methods=['GET', 'POST'])
 def audio_analysis():
     if request.method == 'POST':
+        from detection_scripts.audio_analysis_script import predict_audio
         if DEMO_MODE:
             return detection_disabled_response()
         
@@ -979,6 +976,7 @@ def body_posture_try():
 @app.route('/body_posture_detect', methods=['GET', 'POST'])
 def body_posture_detect():
     if request.method == 'POST':
+        from detection_scripts.body_posture_script import detect_body_posture
         if DEMO_MODE:
             return detection_disabled_response()
         
@@ -1069,6 +1067,56 @@ def body_posture_detect():
 def multi_detect():
     return render_template('multi_detection.html')
 
+# ===== MULTI DETECTION MULTI PROCESSING HELPER FUNCTION =====
+def run_detection_method(method, filename, video_hash, video_tag):
+    if method == "audio":
+        output_folder = os.path.join('static', 'results', 'audio', video_hash)
+        from detection_scripts.audio_analysis_script import predict_audio
+        prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value, uploaded_audio = predict_audio(
+                    filename, output_folder, unique_tag=video_tag
+                )
+        result = {
+            "prediction_class": prediction_class,
+            "mel_spectrogram_path": mel_spectrogram_path,
+            "mfcc_path": mfcc_path,
+            "delta_path": delta_path,
+            "f0_path": f0_path,
+            "prediction_value": prediction_value,
+            "uploaded_audio": uploaded_audio,
+            "type": "audio"
+        }
+        if result.get("prediction_class") is not None:
+            result = {
+                "prediction": "Fake" if result["prediction_class"] == 1 else "Real",
+                "mel_spectrogram_path": result["mel_spectrogram_path"],
+                "mfcc_path": result["mfcc_path"],
+                "delta_path": result["delta_path"],
+                "f0_path": result["f0_path"],
+                "prediction_value": round(result["prediction_value"] * 100),
+                "uploaded_audio": result["uploaded_audio"],
+                "type": "audio"
+            }
+        else:
+            result = {"prediction": "No audio detected", "type": "audio"}
+    elif method == "deep_learning":
+        output_folder = os.path.join('static', 'results', 'deep_learning', video_hash)
+        from detection_scripts.deep_based_learning_script import static_video_detection
+        return static_video_detection(filename, output_folder, unique_tag=video_tag)
+    elif method == "physiological":
+        output_folder = os.path.join('static', 'results', 'physio_ml', video_hash)
+        from detection_scripts.physiological_signal_ml import run_detection
+        return run_detection(filename, video_tag=video_hash, output_dir=output_folder)
+    elif method == "body_posture":
+        output_folder = os.path.join('static', 'results', 'body_posture', video_hash)
+        from detection_scripts.body_posture_script import detect_body_posture
+        return detect_body_posture(filename, output_folder)
+    elif method == "visual_artifacts":
+        output_folder = os.path.join('static', 'results', 'visual_artifacts', video_hash)
+        from detection_scripts.visual_artifacts_script import run_visual_artifacts_detection
+        return run_visual_artifacts_detection(filename, video_tag=video_tag, output_dir=output_folder)
+    else:
+        return "Unknown"
+    
 @app.route('/multi_detection', methods=['POST'])
 def multi_detection():
     if DEMO_MODE:
@@ -1129,45 +1177,23 @@ def multi_detection():
 
     # Run detection methods one after another, not in parallel
     results = {}
-    for method in methods:
-        try:
-            if method == "audio":
-                output_folder = os.path.join('static', 'results', 'audio', video_hash)
-                prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value, uploaded_audio = predict_audio(
-                    filename, output_folder, unique_tag=video_tag
-                )
-                if prediction_class is not None:
-                    result = {
-                        "prediction": "Fake" if prediction_class == 1 else "Real",
-                        "mel_spectrogram_path": mel_spectrogram_path,
-                        "mfcc_path": mfcc_path,
-                        "delta_path": delta_path,
-                        "f0_path": f0_path,
-                        "prediction_value": round(prediction_value * 100),
-                        "uploaded_audio": uploaded_audio,
-                        "type": "audio"
-                    }
-                else:
-                    result = {"prediction": "No audio detected", "type": "audio"}
-            elif method == "deep_learning":
-                output_folder = os.path.join('static', 'results', 'deep_learning', video_hash)
-                result = deep_learning_static_detection(filename, output_folder, unique_tag=video_tag)
-            elif method == "physiological":
-                output_folder = os.path.join('static', 'results', 'physio_ml', video_hash)
-                result = run_ml_detection(filename, video_tag=video_tag, output_dir=output_folder)
-            elif method == "body_posture":
-                output_folder = os.path.join('static', 'results', 'body_posture', video_hash)
-                result = detect_body_posture(filename, output_folder)
-            elif method == "visual_artifacts":
-                output_folder = os.path.join('static', 'results', 'visual_artifacts', video_hash)
-                result = visual_artifacts_static_detection(filename, video_tag=video_tag, output_dir=output_folder)
-            else:
-                result = "Unknown"
+    # Prepare arguments for each method
+    args_list = [(method, filename, video_hash, video_tag) for method in methods]
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=min(5, len(args_list))) as executor:
+        future_to_method = {
+            executor.submit(run_detection_method, *args): args[0]
+            for args in args_list
+        }
+        for future in concurrent.futures.as_completed(future_to_method):
+            method = future_to_method[future]
+            try:
+                result = future.result()
+            except Exception as e:
+                import traceback
+                print(f"[ERROR] {method} crashed:\n{traceback.format_exc()}")
+                result = f"error: {e}"
             results[method] = result
-        except Exception as e:
-            import traceback
-            print(f"[ERROR] {method} crashed:\n{traceback.format_exc()}")
-            results[method] = f"error: {e}"
 
     # Process results to maintain full data structure for each method
     processed_results = {}

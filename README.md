@@ -6,12 +6,13 @@
 
 ### Python Packages Installation:
 1) `cd` to the root directory of this project
-2) run `pip install -r requirements.txt`
+2) run `pip install -r requirements.txt --no-deps`
+3) Manually resolve dependency conflicts if any
 
 ---
 
 ### External Dependencies to install (Important)
-#### **1) FFmpeg (Windows / Linux)**
+#### **1) FFmpeg (Windows/ Linux)**
 1. Go to https://www.gyan.dev/ffmpeg/builds/
 2. Go to "Release builds"
 3. Download the **release full build** `.zip` file.
@@ -36,6 +37,10 @@
   ```
   ffmpeg -version
   ```
+
+**If on Ubuntu:**
+1. Install FFMPEG using `sudo apt install ffmpeg`
+2. Verify using `ffmpeg -version`
 
 
 #### **2) Microsoft Visual C++ Redistributable (Windows Only)**
@@ -62,9 +67,9 @@ These applications are for live demonstration of the project by letting you crea
 ---
 
 ### To start the project:
-1) `cd` to the root directory of this project
+1) `cd` to the root directory of this project (compulsory)
 2) Ensure you are using your intended virtual environemnt / python interpreter
-3) run the command `python app.py`
+3) run the command `python app.py` while your current working directory is the root directory of this project
 
 **If require live deepfake generation:**
 
