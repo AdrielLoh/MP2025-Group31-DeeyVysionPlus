@@ -13,6 +13,8 @@ if (isMobileDevice()) {
 
 if (!isMobileDevice()) {
     const videoSelect = document.getElementById('videoSource');
+    var webcamDetected = true;
+
     // Get list of video input devices
     function getCameras() {
         navigator.mediaDevices.enumerateDevices()
@@ -30,6 +32,8 @@ if (!isMobileDevice()) {
             });
             if (cameraCount === 0) {
                 alert("No webcams detected on this device.");
+                document.getElementById('startWebcamBtn').disabled = true;
+                webcamDetected = false;
             }
         });
     }
@@ -43,51 +47,55 @@ if (!isMobileDevice()) {
         .catch(err => {
             getCameras();
             alert("No webcam permissions. Live webcam features will not work.");
+            document.getElementById('startWebcamBtn').disabled = true;
+            webcamDetected = false;
         });
     getCameras();
     navigator.mediaDevices.ondevicechange = getCameras; // Refresh if cams plugged/unplugged
 
-    let mediaRecorder, recordedChunks = [], stream;
+    if (webcamDetected) {
+        let mediaRecorder, recordedChunks = [], stream;
 
-    document.getElementById('startWebcamBtn').onclick = async function() {
-        const selectedDeviceId = videoSelect.value;
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-                deviceId: { exact: selectedDeviceId },
-                frameRate: { ideal: 30, max: 30 }
-            }, 
-            audio: false
-        });
+        document.getElementById('startWebcamBtn').onclick = async function() {
+            const selectedDeviceId = videoSelect.value;
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { 
+                    deviceId: { exact: selectedDeviceId },
+                    frameRate: { ideal: 30, max: 30 }
+                }, 
+                audio: true
+            });
 
-        document.getElementById('webcam-preview').srcObject = stream;
-        document.getElementById('webcam-preview').style = "";
-        document.getElementById('stopWebcamBtn').disabled = false;
-        document.getElementById('startWebcamBtn').disabled = true;
-        document.getElementsByClassName('preview-placeholder')[0].style.display = "none";
+            document.getElementById('webcam-preview').srcObject = stream;
+            document.getElementById('webcam-preview').style = "";
+            document.getElementById('stopWebcamBtn').disabled = false;
+            document.getElementById('startWebcamBtn').disabled = true;
+            document.getElementsByClassName('preview-placeholder')[0].style.display = "none";
 
-        recordedChunks = [];
-        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-        mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-        mediaRecorder.start();
-    };
-
-    document.getElementById('stopWebcamBtn').onclick = function() {
-        mediaRecorder.stop();
-        stream.getTracks().forEach(track => track.stop());
-        document.getElementById('webcam-preview').srcObject = null;
-        document.getElementById('webcamSpinner').style.display = 'block';
-        document.getElementById('stopWebcamBtn').disabled = true;
-
-        mediaRecorder.onstop = function() {
-            let blob = new Blob(recordedChunks, { type: 'video/webm' });
-            let fileInput = document.getElementById('webcamFileInput');
-            let dataTransfer = new DataTransfer();
-            let file = new File([blob], 'webcam_recording.webm', { type: 'video/webm' });
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files;
-
-            document.getElementById('webcamUploadForm').style.display = 'block';
-            document.getElementById('webcamSpinner').style.display = 'none';
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+            mediaRecorder.start();
         };
-    };
+
+        document.getElementById('stopWebcamBtn').onclick = function() {
+            mediaRecorder.stop();
+            stream.getTracks().forEach(track => track.stop());
+            document.getElementById('webcam-preview').srcObject = null;
+            document.getElementById('webcamSpinner').style.display = 'block';
+            document.getElementById('stopWebcamBtn').disabled = true;
+
+            mediaRecorder.onstop = function() {
+                let blob = new Blob(recordedChunks, { type: 'video/webm' });
+                let fileInput = document.getElementById('webcamFileInput');
+                let dataTransfer = new DataTransfer();
+                let file = new File([blob], 'webcam_recording.webm', { type: 'video/webm' });
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+
+                document.getElementById('webcamUploadForm').style.display = 'block';
+                document.getElementById('webcamSpinner').style.display = 'none';
+            };
+        };
+    }
 }

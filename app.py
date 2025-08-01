@@ -638,6 +638,8 @@ def physiological_signal_try():
                     return f"Failed to trim video. Detection stopped for security reasons. {e}"
             else:
                 video_path_for_processing = filename
+        else:
+            return "No file or video URL provided"
 
         video_hash = sha256_of_file(video_path_for_processing)
 
@@ -728,7 +730,7 @@ def deep_learning_static():
                     if os.path.exists(filename) and os.path.exists(mp4_path) and filename != mp4_path:
                         os.remove(filename)
 
-                    filenmae = mp4_path
+                    filename = mp4_path
                 except Exception as e:
                     return f"Failed to process video. Video may be corrupted or invalid. {e}"
             
@@ -748,6 +750,8 @@ def deep_learning_static():
                     return f"Failed to trim video. Detection stopped for security reasons. {e}"
             else:
                 video_path_for_processing = filename
+        else:
+            return "No file or video URL provided"
         
         video_hash = sha256_of_file(video_path_for_processing)
 
@@ -907,13 +911,27 @@ def audio_analysis():
             filename = os.path.join(app.config['UPLOAD_FOLDER'], random_filename)
             
             file.save(filename)
+        else:
+            return "No file or video URL provided"
 
         video_hash = sha256_of_file(filename)
         output_folder = os.path.join('static', 'results', 'audio', video_hash)
         os.makedirs(output_folder, exist_ok=True)
 
         prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value, uploaded_audio = predict_audio(filename, output_folder, video_hash)
-        result = "Spoof" if prediction_class == 1 else "Bonafide"
+
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        if "Failed" in prediction_class:
+            result = "Audio Too Silent"
+            return render_template(
+                'result.html', analysis_type='audio', 
+                result=result, 
+                uploaded_audio=uploaded_audio
+            )
+        else:
+            result = "Spoof" if prediction_class == 1 else "Bonafide"
 
         log_detection(
             filename=filename_to_log,
@@ -921,9 +939,6 @@ def audio_analysis():
             output_folders=output_folder,
             uploaded_path=uploaded_audio
         )
-
-        if os.path.exists(filename):
-            os.remove(filename)
 
         if request.headers.get('Accept') == 'application/json':
             return jsonify({
@@ -943,27 +958,6 @@ def audio_analysis():
             )
     
     return render_template('audio_analysis_try.html')
-    
-@app.route('/delete_files', methods=['POST'])
-def delete_files():
-    if DEMO_MODE:
-        return detection_disabled_response()
-    try:
-        upload_folder = app.config['UPLOAD_FOLDER']
-        for folder_name in os.listdir(upload_folder):
-            folder_path = os.path.join(upload_folder, folder_name)
-            if os.path.isdir(folder_path):
-                for filename in os.listdir(folder_path):
-                    file_path = os.path.join(folder_path, filename)
-                    if os.path.isfile(file_path):
-                        os.remove(file_path)
-                os.rmdir(folder_path)
-            elif os.path.isfile(folder_path):
-                os.remove(folder_path)
-
-        return jsonify({"status": "success"}), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/body_posture_analysis', methods=['GET'])
 def body_posture_analysis():
@@ -1029,6 +1023,8 @@ def body_posture_detect():
                     return f"Failed to trim video. Detection stopped for security reasons. {e}"
             else:
                 video_path_for_processing = filename
+        else:
+            return "No file or video URL provided"
 
         video_hash = sha256_of_file(video_path_for_processing)
 
@@ -1075,29 +1071,23 @@ def run_detection_method(method, filename, video_hash, video_tag):
         prediction_class, mel_spectrogram_path, mfcc_path, delta_path, f0_path, prediction_value, uploaded_audio = predict_audio(
                     filename, output_folder, unique_tag=video_tag
                 )
-        result = {
-            "prediction_class": prediction_class,
-            "mel_spectrogram_path": mel_spectrogram_path,
-            "mfcc_path": mfcc_path,
-            "delta_path": delta_path,
-            "f0_path": f0_path,
-            "prediction_value": prediction_value,
-            "uploaded_audio": uploaded_audio,
-            "type": "audio"
-        }
-        if result.get("prediction_class") is not None:
-            result = {
-                "prediction": "Fake" if result["prediction_class"] == 1 else "Real",
-                "mel_spectrogram_path": result["mel_spectrogram_path"],
-                "mfcc_path": result["mfcc_path"],
-                "delta_path": result["delta_path"],
-                "f0_path": result["f0_path"],
-                "prediction_value": round(result["prediction_value"] * 100),
-                "uploaded_audio": result["uploaded_audio"],
-                "type": "audio"
-            }
+        if prediction_class is not None:
+            if "Failed" not in str(prediction_class):
+                result = {
+                    "prediction": "Fake" if prediction_class == 1 else "Real",
+                    "mel_spectrogram_path": mel_spectrogram_path,
+                    "mfcc_path": mfcc_path,
+                    "delta_path": delta_path,
+                    "f0_path": f0_path,
+                    "prediction_value": round(prediction_value * 100),
+                    "uploaded_audio": uploaded_audio,
+                    "type": "audio"
+                }
+            else:
+                result = {"prediction": "Audio Too Silent", "uploaded_audio": uploaded_audio, "type": "audio"}
         else:
             result = {"prediction": "No audio detected", "type": "audio"}
+        return result
     elif method == "deep_learning":
         output_folder = os.path.join('static', 'results', 'deep_learning', video_hash)
         from detection_scripts.deep_based_learning_script import static_video_detection
@@ -1168,6 +1158,8 @@ def multi_detection():
                 filename = trimmed_filename
             except Exception as e:
                 return f"Failed to trim video. Detection stopped for security reasons. {e}"
+    else:
+        return "No file or video URL provided"
     
     video_hash = sha256_of_file(filename)
 
@@ -1252,8 +1244,7 @@ def multi_detection():
                 face_results = result.get('face_results', [])
                 output_video = result.get('video_with_boxes')
             elif isinstance(result, tuple) and len(result) >= 2:
-                face_results = result['face_results']
-                output_video = result['video_with_boxes']
+                face_results, output_video = result
             else:
                 processed_results[method] = {"prediction": str(result), "error": "Invalid result format"}
                 continue

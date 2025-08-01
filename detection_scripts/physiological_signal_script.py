@@ -527,7 +527,6 @@ def run_detection(video_path, video_tag, output_dir):
                     roi_rgb_histories[track_id][roi].append([0.0, 0.0, 0.0])
                 prediction_memory[track_id].append(('Unknown', 0))
 
-        # Write annotated frame immediately!
         out.write(frame)
 
     cap.release()

@@ -123,8 +123,7 @@ def predict_audio(file_path, output_folder, unique_tag, window_duration=5, windo
     actual_audio_path = processed_audio_path
 
     if np.max(np.abs(y)) < SILENCE_THRESHOLD or len(y) < sr:
-        logging.warning("Audio too silent or too short. Skipping prediction.")
-        return None, None
+        return "Analysis Failed: Audio too silent or too short.", None, None, None, None, None, actual_audio_path
 
     window_length = int(window_duration * sr)
     hop_length = int(window_hop * sr)
@@ -142,10 +141,6 @@ def predict_audio(file_path, output_folder, unique_tag, window_duration=5, windo
         input_data = scaled_features[..., np.newaxis][np.newaxis, ...]
         pred_prob = model.predict(input_data).flatten()[0]
         pred_probs.append(pred_prob)
-
-    if not pred_probs:
-        logging.warning("No valid windows found (all silent/short).")
-        return None, None
 
     # === Aggregate result ===
     mean_prob = float(np.mean(pred_probs))
