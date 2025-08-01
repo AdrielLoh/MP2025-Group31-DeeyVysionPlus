@@ -9,6 +9,8 @@ import subprocess
 from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
 import tensorflow as tf
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend for matplotlib
 
 # Load the pre-trained deepfake detection model
 model = load_model('models/deep_learning_model.keras')
@@ -38,7 +40,7 @@ def iou(boxA, boxB):
     boxBArea = boxB[2] * boxB[3]
     return interArea / float(boxAArea + boxBArea - interArea + 1e-5)
 
-def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=100):
+def robust_track_faces(all_boxes, max_lost=10, iou_threshold=0.3, max_distance=100):
     """
     Improved IoU and centroid-based tracker to maintain IDs.
     Args:

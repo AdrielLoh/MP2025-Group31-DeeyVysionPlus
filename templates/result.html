@@ -669,7 +669,7 @@
                                 <!-- Show method-specific metrics -->
                                 {% if method == 'body_posture' and data.overall_result.confidence is defined %}
                                     <div class="confidence-badge">
-                                        <span class="confidence-label">Deepfake Probability:</span>
+                                        <span class="confidence-label">Average Confidence:</span>
                                         <span class="confidence-value">{{ data.overall_result.confidence }}</span>
                                     </div>
                                 {% elif method in ['physiological', 'visual_artifacts', 'deep_learning', 'deep_learning_static'] and data.face_results %}
@@ -758,7 +758,7 @@
                                         <span class="metric-value">{{ data.overall_result.prediction }}</span>
                                     </div>
                                     <div class="metric-item">
-                                        <span class="metric-label">Deepfake Probability:</span>
+                                        <span class="metric-label">Average Confidence:</span>
                                         <span class="metric-value">{{ data.overall_result.confidence }}</span>
                                     </div>
                                 </div>

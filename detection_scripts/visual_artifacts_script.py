@@ -382,9 +382,6 @@ def run_visual_artifacts_detection(*args, **kwargs):
             "charts": charts
         })
 
-    if not face_results:
-        return {"success": False, "reason": "No faces detected in the video."}
-    
     # --- SAVE TO CACHE ---
     with open(cache_file, "w") as f:
         json.dump({
@@ -393,6 +390,9 @@ def run_visual_artifacts_detection(*args, **kwargs):
             "video_with_boxes": rel_video_path
         }, f)
 
+    if not face_results:
+        return {"success": False, "reason": "No faces detected in the video."}
+    
     return {
         "success": True,
         "face_results": face_results,

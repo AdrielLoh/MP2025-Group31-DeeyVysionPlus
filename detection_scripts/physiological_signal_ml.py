@@ -12,6 +12,9 @@ from scipy.optimize import linear_sum_assignment
 import mediapipe as mp
 from antropy import sample_entropy
 import json
+import matplotlib
+matplotlib.use('Agg')
+import gc
 
 # Model and face detection setup
 clf = joblib.load('models/physio_detection_xgboost_best.pkl')
@@ -45,7 +48,7 @@ def iou(boxA, boxB):
     boxBArea = boxB[2] * boxB[3]
     return interArea / float(boxAArea + boxBArea - interArea + 1e-5)
 
-def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=100):
+def robust_track_faces(all_boxes, max_lost=10, iou_threshold=0.3, max_distance=400):
     """
     Improved IoU and centroid-based tracker to maintain IDs.
     Args:
@@ -794,38 +797,46 @@ def run_detection(video_path, video_tag, output_dir):
     output_path = os.path.join(output_dir, f'physio_output.mp4')
     os.makedirs(output_dir, exist_ok=True)
 
+    TARGET_FPS = 30
     cap = cv2.VideoCapture(video_path)
-    fps = get_video_fps(cap)
+    input_fps = get_video_fps(cap)
+    if input_fps > TARGET_FPS:
+        rendering_fps = TARGET_FPS
+    else:
+        rendering_fps = input_fps
+    frame_interval = max(1, int(round(input_fps / TARGET_FPS)))
+    frames = []
+    all_boxes = []
+    frame_idx = 0
     width, height = int(cap.get(3)), int(cap.get(4))
     try:
         fourcc = cv2.VideoWriter_fourcc(*'avc1')
-        test_writer = cv2.VideoWriter('test_h264.mp4', fourcc, fps, (width, height))
+        test_writer = cv2.VideoWriter('test_h264.mp4', fourcc, rendering_fps, (width, height))
         if not test_writer.isOpened():
             raise RuntimeError('H.264 codec not available.')
         test_writer.release()
     except Exception:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    out = cv2.VideoWriter(output_path, fourcc, rendering_fps, (width, height))
     all_boxes = []
     frames = []
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
-        # 1. Letterbox the frame
-        padded_frame, scale, (pad_left, pad_top) = letterbox_resize(frame, target_size=(640, 360), pad_color=0)
-        boxes = detect_faces_dnn(padded_frame)
-        # 2. Map detected boxes back to original frame coordinates
-        orig_boxes = []
-        for x, y, w, h in boxes:
-            # Remove padding, scale back to original
-            x_orig = int((x - pad_left) / scale)
-            y_orig = int((y - pad_top) / scale)
-            w_orig = int(w / scale)
-            h_orig = int(h / scale)
-            orig_boxes.append((x_orig, y_orig, w_orig, h_orig))
-        all_boxes.append(orig_boxes)
-        frames.append(frame)  # keep original frame for overlay/output
+        if frame_idx % frame_interval == 0:
+            padded_frame, scale, (pad_left, pad_top) = letterbox_resize(frame, target_size=(640, 360), pad_color=0)
+            boxes = detect_faces_dnn(padded_frame)
+            orig_boxes = []
+            for x, y, w, h in boxes:
+                x_orig = int((x - pad_left) / scale)
+                y_orig = int((y - pad_top) / scale)
+                w_orig = int(w / scale)
+                h_orig = int(h / scale)
+                orig_boxes.append((x_orig, y_orig, w_orig, h_orig))
+            all_boxes.append(orig_boxes)
+            frames.append(frame)
+        frame_idx += 1
 
     cap.release()
     # Track faces after collecting all boxes
@@ -874,7 +885,7 @@ def run_detection(video_path, video_tag, output_dir):
                     face_rgb_history[track_id].append(rgb_mean)
 
                     rgb_window = np.array(face_rgb_history[track_id][-150:])
-                    features, hr_bpm, _, _, _ = compute_rppg_features_multi(rgb_window, fs=fps)
+                    features, hr_bpm, _, _, _ = compute_rppg_features_multi(rgb_window, fs=rendering_fps)
 
                     features_scaled = scaler.transform([features])
                     prob = clf.predict_proba(features_scaled)[0][1]
@@ -883,7 +894,7 @@ def run_detection(video_path, video_tag, output_dir):
                     face_pred_history[track_id].append(prediction)
                     face_prob_history[track_id].append(prob)
                     face_hr_history[track_id].append(hr_bpm)
-                    frame = draw_output(frame, (x, y, w, h), prediction, prob, hr_bpm, frame_idx // int(fps), track_id)
+                    frame = draw_output(frame, (x, y, w, h), prediction, prob, hr_bpm, frame_idx // int(rendering_fps), track_id)
         out.write(frame)
     out.release()
     time.sleep(0.2)  # Short pause to ensure file is closed
@@ -929,7 +940,7 @@ def run_detection(video_path, video_tag, output_dir):
             else:
                 avg_face_area = float(np.mean(area_arr))
                 med_face_area = float(np.median(area_arr))
-            features, hr_bpm, rppg_sig, f, pxx = compute_rppg_features_multi(rgb_arr, fs=fps)
+            features, hr_bpm, rppg_sig, f, pxx = compute_rppg_features_multi(rgb_arr, fs=rendering_fps)
             features = np.concatenate([features, [valid_ratio, avg_face_area, med_face_area, window_length_feat]])
             plots = plot_rppg_analysis(
                 rppg_sig, f, pxx, n_real, n_fake, 
@@ -938,7 +949,7 @@ def run_detection(video_path, video_tag, output_dir):
                 uid=video_tag,
                 hr_history=face_hr_history[track_id],
                 # band_power_features=band_power_features,
-                fps=fps
+                fps=rendering_fps
             )
             signal_plot, spectrum_plot, pred_count_plot, hr_trace_plot, hr_dist_plot, band_power_plot = plots
         else:

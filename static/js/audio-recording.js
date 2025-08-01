@@ -146,7 +146,6 @@ if (audioDetected) {
         // Show spinner
         document.getElementById('audioSpinner').style.display = 'block';
         document.getElementById('stopAudioBtn').disabled = true;
-        
         // Reset timer
         startTime = null;
         recordingTimer.style.display = 'none';
@@ -176,7 +175,6 @@ if (audioDetected) {
                 // Reset UI
                 document.getElementById('audio-preview-placeholder').style.display = 'block';
                 document.getElementById('volume-meter').style.display = 'none';
-                document.getElementById('startAudioBtn').disabled = false;
                 
                 // Reset volume bars
                 volumeBars.forEach(bar => bar.classList.remove('active'));

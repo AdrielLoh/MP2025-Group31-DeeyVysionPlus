@@ -5,6 +5,8 @@ import pandas as pd
 import openpifpaf
 import tensorflow as tf
 from scipy.spatial import distance
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn

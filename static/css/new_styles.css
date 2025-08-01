@@ -6554,7 +6554,7 @@ Identify Deepfakes Page Specific Styles
 
 .audio-upload-button {
     background: linear-gradient(135deg, #4facfe, #00f2fe);
-    color: white;
+    color: var(--dark-bg);
     padding: 12px 24px;
     border: none;
     border-radius: 8px;

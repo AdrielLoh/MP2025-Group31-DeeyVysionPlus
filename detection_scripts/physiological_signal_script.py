@@ -14,6 +14,8 @@ from sklearn.decomposition import PCA
 from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
 from scipy.signal import detrend, butter, filtfilt
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend for matplotlib
 
 # ========== Configuration ==========
 FACE_PROTO = 'models/weights-prototxt.txt'
