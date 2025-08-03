@@ -19,9 +19,9 @@ PROTO_PATH = "models/weights-prototxt.txt"
 MODEL_CAFFE_PATH = "models/res_ssd_300Dim.caffeModel"
 FACE_SIZE = 64
 FRAME_INTERVAL = 0.5
-MIN_FRAMES = 30
-
-DEFAULT_OUTPUT_DIR = "static/results"
+MIN_FRAMES = 30 
+#default output directory for results
+DEFAULT_OUTPUT_DIR = "static/results" 
 
 print(f"[DEBUG] Loading detection model: {MODEL_PATH}")
 model = tf.keras.models.load_model(MODEL_PATH)
@@ -131,7 +131,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         output_dir = "./static/artifact_outputs"
     os.makedirs(output_dir, exist_ok=True)
 
-    # --- CACHING ---
+    # caching results into json file
     cache_file = os.path.join(output_dir, "cached_results.json")
     if os.path.exists(cache_file):
         with open(cache_file, "r") as f:
@@ -173,7 +173,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
                     x1, y1 = max(0, x1), max(0, y1)
                     x2, y2 = min(w, x2), min(h, y2)
                     bw, bh = x2 - x1, y2 - y1
-                    if bw > 32 and bh > 32:   # << FILTER SMALL BOXES
+                    if bw > 32 and bh > 32:   # filter out bounding boxes that are too small to minimize false positive face detections
                         frame_boxes.append([x1, y1, bw, bh])
                         face = frame[y1:y2, x1:x2]
                         if face.size == 0:
@@ -219,7 +219,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
                 per_face_data[tid]["features"].append(feat_vec)
     per_face_data = {tid: d for tid, d in per_face_data.items() if len(d["probs"]) >= MIN_FRAMES}
 
-    # Make overlay video with all faces/IDs
+    # creating video with all faces/IDs overlay which is shown as bounding boxes around the face
     color_palette = [
         (255,0,0), (0,255,0), (0,0,255), (255,255,0), (255,0,255),
         (0,255,255), (128,0,128), (128,128,0), (0,128,128), (0,0,0)
@@ -246,7 +246,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         current_wd = os.getcwd()
         input_path_full = os.path.join(current_wd, input_path)
         output_path_full = os.path.join(current_wd, output_path)
-        # Use ffmpeg to reencode with H.264 video and AAC audio for HTML5
+        # ffmpeg to reencode with H.264 video and AAC audio for HTML5
         cmd = [
             "ffmpeg", "-y", "-i", input_path_full,
             "-c:v", "libx264", "-pix_fmt", "yuv420p",
@@ -255,14 +255,14 @@ def run_visual_artifacts_detection(*args, **kwargs):
         ]
         subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    # After writer.release(), re-encode to guarantee browser compatibility
+    # After writer.release(), re-encode to guarantee browser compatibility to enable displaying of overlay video 
     h264_overlay = os.path.join(output_dir, "visual_artifact_overlay_h264.mp4")
     reencode_mp4_for_html5(video_temp, h264_overlay)
     # Now update rel_video_path accordingly
     rel_video_path = os.path.relpath(h264_overlay, "static").replace("\\", "/")
     if os.path.exists(video_temp):
         os.remove(video_temp)
-    # Per-face analysis and charts
+    # analysis for every face and charts expaining the results
     face_results = []
     for tid, d in per_face_data.items():
         if len(d["probs"]) < MIN_FRAMES:
@@ -283,7 +283,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         plt.savefig(framewise_path)
         plt.close()
         charts.append(os.path.relpath(framewise_path, "static").replace("\\", "/"))
-        # Histogram
+        # histogram of fake probabilities
         plt.figure(figsize=(10,5))
         plt.hist(d["probs"], bins=20, color='orange', edgecolor='k')
         plt.axvline(np.mean(d["probs"]), color='b', linestyle='--', label=f"Mean={avg_prob:.2f}")
@@ -296,7 +296,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         plt.savefig(prob_hist_path)
         plt.close()
         charts.append(os.path.relpath(prob_hist_path, "static").replace("\\", "/"))
-        # Real vs Fake Bar
+        # real vs fake frame count bar chart
         plt.figure(figsize=(10,5))
         plt.bar(['Fake', 'Real'], [num_fake, num_real], color=['red', 'green'], alpha=0.7)
         plt.xlabel('Label')
@@ -307,7 +307,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         plt.close()
         charts.append(os.path.relpath(bar_path, "static").replace("\\", "/"))
 
-        # Smoothed
+        # smoothed fake probability, it is for
         window = 5
         if len(d["probs"]) >= window:
             smoothed_probs = np.convolve(d["probs"], np.ones(window)/window, mode='valid')
@@ -335,7 +335,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         plt.close()
         charts.append(os.path.relpath(cdf_path, "static").replace("\\", "/"))
 
-        # Variance (Rolling)
+        # prediction variance chart
         if len(d["probs"]) >= window:
             variances = [np.var(d["probs"][max(0,i-window):i+1]) for i in range(len(d["probs"]))]
             plt.figure(figsize=(10,5))
@@ -347,7 +347,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
             plt.savefig(variance_path)
             plt.close()
             charts.append(os.path.relpath(variance_path, "static").replace("\\", "/"))
-        # Scatter
+        # scatter chart showing prediction results for each frame
         colors = ['red' if p >= 0.5 else 'green' for p in d["probs"]]
         plt.figure(figsize=(10,5))
         plt.scatter(d["frame_indices"], d["probs"], c=colors, alpha=0.7)
@@ -382,7 +382,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
             "charts": charts
         })
 
-    # --- SAVE TO CACHE ---
+    # caching of results
     with open(cache_file, "w") as f:
         json.dump({
             "success": True,

@@ -3,23 +3,27 @@ import cv2
 import numpy as np
 from skimage.feature import hog, local_binary_pattern
 from multiprocessing import Pool, cpu_count
-from tqdm import tqdm   # progress bar
+from tqdm import tqdm
+import random
+# For JPEG compression
+from PIL import Image
+import io
 
-# Configuration
+# directories for storage
 FAKE_VID_DIR = "/mnt/d/fake_videos"
 REAL_VID_DIR = "/mnt/d/real_videos"
 OUTPUT_DIR = "/mnt/d/preprocessed_data"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-MAX_VIDEOS = None    # Set to an integer to limit total videos (e.g., 6000 for 3000 each class). None = use all.
-FRAME_INTERVAL = 0.5 # seconds between sampled frames (keyframe interval)
-FACE_SIZE = 64       # width and height to resize face crops for feature extraction
+MAX_VIDEOS = None
+FRAME_INTERVAL = 0.5
+FACE_SIZE = 64
 
-AUGMENT_PROB = 0.3   # probability to apply a special augmentation (blur or noise) on a given frame
+AUGMENT_PROB = 0.5  # 50% of dataset is augmented
 BLUR_KERNEL = (3, 3)
-NOISE_STDDEV = 5.0
+NOISE_STDDEV = 7.0  
 
-# Load OpenCV DNN face detector (ResNet10-SSD model in Caffe format)
+# Load OpenCV DNN face detector 
 PROTO_PATH = "models/weights-prototxt.txt"  # path to deploy.prototxt file
 MODEL_PATH = "models/res_ssd_300Dim.caffeModel"    # path to caffemodel
 if not os.path.isfile(PROTO_PATH) or not os.path.isfile(MODEL_PATH):
@@ -29,12 +33,75 @@ face_net = cv2.dnn.readNetFromCaffe(PROTO_PATH, MODEL_PATH)
 face_net.setPreferableBackend(cv2.dnn.DNN_BACKEND_DEFAULT)
 face_net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
-# --- Feature extraction functions ---
-def extract_hog_features(img_gray):
-    hog_vec = hog(img_gray, orientations=9, pixels_per_cell=(8, 8),
-                  cells_per_block=(2, 2), block_norm='L2-Hys', feature_vector=True)
-    return hog_vec
+#jpeg compression augmentation to imitate common lower resolution videos
+def random_jpeg_compression(image, quality_range=(10, 90)):
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), random.randint(*quality_range)]
+    _, encimg = cv2.imencode('.jpg', image, encode_param)
+    return cv2.imdecode(encimg, 1)
 
+#gaussian blur to imitate --
+def random_gaussian_blur(image, sigma_range=(0.5, 1.5)):
+    if random.random() < 0.5:
+        sigma = random.uniform(*sigma_range)
+        ksize = int(2 * round(sigma * 2) + 1)
+        return cv2.GaussianBlur(image, (ksize, ksize), sigma)
+    return image
+#random brightness adjustments
+def random_brightness_contrast(image, brightness_range=(-32, 32), contrast_range=(0.5, 1.5)):
+    if random.random() < 0.5:
+        brightness = random.randint(*brightness_range)
+        contrast = random.uniform(*contrast_range)
+        image = image.astype(np.float32) * contrast + brightness
+        image = np.clip(image, 0, 255).astype(np.uint8)
+    return image
+
+def random_noise(image, mean=0, stddev=10):
+    if random.random() < 0.5:
+        noise = np.random.normal(mean, stddev, image.shape).astype(np.float32)
+        noisy_img = image.astype(np.float32) + noise
+        noisy_img = np.clip(noisy_img, 0, 255).astype(np.uint8)
+        return noisy_img
+    return image
+
+def apply_brightness_contrast(image, brightness=0, contrast=0):
+    beta = np.random.randint(-30, 30) if brightness == 0 else brightness
+    alpha = 1 + 0.2 * (np.random.rand() - 0.5) if contrast == 0 else contrast
+    image = image.astype(np.float32) * alpha + beta
+    return np.clip(image, 0, 255).astype('uint8')
+
+def apply_cutout(image, size=12):
+    h, w = image.shape[:2]  # get height and width (works for both grayscale and color)
+    top = np.random.randint(0, h - size)
+    left = np.random.randint(0, w - size)
+    if image.ndim == 2:  # grayscale image (2D)
+        image[top:top+size, left:left+size] = 0
+    else:  # color image (3D)
+        image[top:top+size, left:left+size, :] = 0
+    return image
+
+
+def apply_random_augmentations(image):
+    # Applies multiple augmentations in random order
+    aug_image = image.copy()
+    funcs = [
+        apply_brightness_contrast,
+        apply_cutout,
+        random_jpeg_compression,
+        random_gaussian_blur,
+        random_brightness_contrast,
+        random_noise
+    ]
+    random.shuffle(funcs)
+    for func in funcs:
+        aug_image = func(aug_image)
+    return aug_image
+
+#extracting HOG from faces 
+def extract_hog_features(img_gray):
+    return hog(img_gray, orientations=9, pixels_per_cell=(8, 8),
+               cells_per_block=(2, 2), block_norm='L2-Hys', feature_vector=True)
+
+#extracting LBP from faces
 def extract_lbp_features(img_gray):
     lbp_r1 = local_binary_pattern(img_gray, P=8, R=1, method='uniform')
     lbp_r2 = local_binary_pattern(img_gray, P=16, R=2, method='uniform')
@@ -46,20 +113,8 @@ def extract_lbp_features(img_gray):
         hist_r1 /= hist_r1.sum()
     if hist_r2.sum() != 0:
         hist_r2 /= hist_r2.sum()
-    lbp_features = np.concatenate([hist_r1, hist_r2])
-    return lbp_features
+    return np.concatenate([hist_r1, hist_r2])
 
-# --- Augmentation functions ---
-def apply_gaussian_blur(img):
-    return cv2.GaussianBlur(img, BLUR_KERNEL, 0)
-
-def apply_gaussian_noise(img):
-    noise = np.random.normal(0, NOISE_STDDEV, img.shape).astype('float32')
-    noisy_img = img.astype('float32') + noise
-    noisy_img = np.clip(noisy_img, 0, 255).astype('uint8')
-    return noisy_img
-
-# --- Video processing function ---
 def process_video(video_path, label, batch_index):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -70,7 +125,6 @@ def process_video(video_path, label, batch_index):
     features_list = []
     frame_count = 0
     success = True
-
     while success:
         success = cap.grab()
         if not success:
@@ -81,7 +135,8 @@ def process_video(video_path, label, batch_index):
                 frame_count += 1
                 continue
             (h, w) = frame.shape[:2]
-            blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), (104.0, 117.0, 123.0), swapRB=False, crop=False)
+            blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300),
+                                         (104.0, 117.0, 123.0), swapRB=False, crop=False)
             face_net.setInput(blob)
             detections = face_net.forward()
             best_conf = 0
@@ -104,20 +159,20 @@ def process_video(video_path, label, batch_index):
             face_resized = cv2.resize(face, (FACE_SIZE, FACE_SIZE))
             face_gray = cv2.cvtColor(face_resized, cv2.COLOR_BGR2GRAY)
             if np.random.rand() < AUGMENT_PROB:
-                if np.random.rand() < 0.5:
-                    face_gray = apply_gaussian_blur(face_gray)
-                else:
-                    face_gray = apply_gaussian_noise(face_gray)
+                # apply augmentations if random number generation is < 0.5
+                # Convert back to 3 channels for JPEG, then to gray again
+                face_rgb = cv2.cvtColor(face_gray, cv2.COLOR_GRAY2BGR)
+                face_rgb = apply_random_augmentations(face_rgb)
+                face_gray = cv2.cvtColor(face_rgb, cv2.COLOR_BGR2GRAY)
             hog_vec = extract_hog_features(face_gray)
             lbp_vec = extract_lbp_features(face_gray)
+            #combine extracted HOG and LBP into one feature vector
             feat_vec = np.concatenate([hog_vec, lbp_vec]).astype('float32')
-            # ----- Filter: skip near-constant features -----
             if np.var(feat_vec) < 1e-6:
                 frame_count += 1
                 continue
             features_list.append(feat_vec)
         frame_count += 1
-
     cap.release()
     if not features_list:
         return None
@@ -131,7 +186,7 @@ def process_video(video_path, label, batch_index):
 def process_video_wrapper(args):
     return process_video(*args)
 
-# --- Main execution ---
+# main execution
 if __name__ == "__main__":
     fake_videos = sorted([os.path.join(FAKE_VID_DIR, f) for f in os.listdir(FAKE_VID_DIR) if f.lower().endswith(('.mp4', '.avi', '.mov'))])
     real_videos = sorted([os.path.join(REAL_VID_DIR, f) for f in os.listdir(REAL_VID_DIR) if f.lower().endswith(('.mp4', '.avi', '.mov'))])
@@ -148,6 +203,7 @@ if __name__ == "__main__":
     real_videos = real_videos[:total_reals]
     print(f"Processing {len(fake_videos)} fake videos and {len(real_videos)} real videos...")
 
+#storing preprocessed data in npz files for smaller size and fixed naming system to differentiate deepfake and original data (mainly for readability)
     tasks = []
     batch_index = 0
     for vid in fake_videos:
@@ -165,8 +221,7 @@ if __name__ == "__main__":
         tasks.append((vid, 0, batch_index))
         batch_index += 1
 
-    # ---- tqdm progress bar for Pool mapping ----
-    num_workers = 8
+    num_workers = 8 #use 8 threads for preprocessing
     with Pool(processes=num_workers) as pool:
         for _ in tqdm(pool.imap_unordered(process_video_wrapper, tasks),
                       total=len(tasks), desc="Preprocessing Videos"):
