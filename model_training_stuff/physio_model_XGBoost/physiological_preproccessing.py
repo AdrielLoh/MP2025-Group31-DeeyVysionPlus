@@ -419,7 +419,7 @@ def validate_rppg_features_simple(features, method_hr_bpm_values, method_snr_val
             inf_count = np.sum(np.isinf(features))
             return False, f"NaN/Inf in features (NaN: {nan_count}, Inf: {inf_count})"
         
-        # 3. At least one method should detect reasonable HR (using NaN-aware operations)
+        # 3. At least one method should detect reasonable HR 
         hr_values = np.array(method_hr_bpm_values)
         # Remove NaN values before checking validity
         hr_values_clean = hr_values[~np.isnan(hr_values)]
@@ -430,24 +430,24 @@ def validate_rppg_features_simple(features, method_hr_bpm_values, method_snr_val
         if valid_hr_count == 0:
             return False, f"No valid HR detected (range: {np.min(hr_values_clean):.1f}-{np.max(hr_values_clean):.1f})"
         
-        # 4. At least one method should have decent SNR (using NaN-aware operations)
+        # 4. At least one method should have decent SNR
         snr_values = np.array(method_snr_values)
         # Remove NaN values before checking validity
         snr_values_clean = snr_values[~np.isnan(snr_values)]
         if len(snr_values_clean) == 0:
             return False, "All SNR values are NaN"
         
-        # 5. Features shouldn't be all zeros (dead signal) - use NaN-aware operations
+        # 5. Features shouldn't be all zeros (dead signal)
         feature_abs_sum = np.nansum(np.abs(features))
         if feature_abs_sum < 1e-6:
             return False, "Zero features"
         
-        # 6. Features should have some variance (not all identical) - use NaN-aware operations
+        # 6. Features should have some variance (not all identical)
         feature_std = np.nanstd(features)
         if feature_std < 1e-6:
             return False, "No feature variance"
         
-        # 7. Check that we don't have too many extreme outliers in features
+        # 7. Check that dont have too many extreme outliers in features
         finite_features = features[np.isfinite(features)]
         if len(finite_features) < len(features) * 0.7:
             return False, f"Too many non-finite features ({len(finite_features)}/{len(features)})"

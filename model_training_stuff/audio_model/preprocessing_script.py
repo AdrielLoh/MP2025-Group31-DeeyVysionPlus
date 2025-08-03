@@ -8,6 +8,7 @@ import multiprocessing
 import random
 from datetime import datetime
 import time
+import re
 # ===== DO NOT MODIFY UNLESS YOU WANT TO RETRAIN MODEL =====
 SAMPLE_RATE = 16000
 DURATION = 5
@@ -55,12 +56,6 @@ def normalize_volume(y):
     return y / peak if peak > 0 else y
 
 def augment_audio(y, sr):
-    """
-    Augment the audio data with various transformations based on random probabilities and conditions.
-    @param y - the audio data
-    @param sr - the sample rate of the audio data
-    @return The augmented audio data
-    """
     if random.random() < 0.4:
         noise = np.random.normal(0, 0.002, size=y.shape) # Noise - Tune values to adjust strength
         y += noise
@@ -83,12 +78,6 @@ def augment_audio(y, sr):
     return y
 
 def extract_combined_features(y, sr=SAMPLE_RATE):
-    """
-    Extract various audio features from the input audio signal.
-    @param y - the input audio signal
-    @param sr - the sample rate of the audio signal (default is SAMPLE_RATE)
-    @returns a tuple containing the extracted features and the mean energy of the audio signal
-    """
     features = []
     mel = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=N_MELS)
     mel_db = librosa.power_to_db(mel, ref=np.max)
@@ -104,20 +93,12 @@ def extract_combined_features(y, sr=SAMPLE_RATE):
     return np.vstack(features), np.mean(energy)
 
 def extract_windows(y_audio, window_size, step_size):
-    """
-    Extracts 5 second windows from longer audio
-    """
     windows = []
     for start in range(0, len(y_audio) - window_size + 1, step_size):
         windows.append(y_audio[start:start+window_size])
     return windows
 
 def get_file_label_pairs(path):
-    """
-    Generate pairs of file paths and their corresponding labels from the given path.
-    @param path - The directory path containing the files
-    @return Two lists of file-label pairs for two classes
-    """
     class0, class1 = [], []
     for class_dir in ["real", "fake"]:
         label = 0 if class_dir == "real" else 1
@@ -143,12 +124,6 @@ def append_to_processed_log(log_path, files):
             f.write(file + "\n")
 
 def get_next_batch_index(cache_dir):
-    """
-    Get the index for the next batch of data to be processed based on the existing cached files in the directory.
-    @param cache_dir - The directory where the cached files are stored.
-    @return The index for the next batch to be processed.
-    """
-    import re
     indices = []
     for fname in os.listdir(cache_dir):
         match = re.match(r'X_batch_(\d+)\.npy', fname)
@@ -171,11 +146,6 @@ get_replacement_real_files = lambda: get_replacement_files(REPLACEMENT_REAL_PATH
 get_replacement_fake_files = lambda: get_replacement_files(REPLACEMENT_FAKE_PATH, 1)
 
 def process_single_file(args):
-    """
-    Process a single audio file by extracting features and labels for training.
-    @param args - a tuple containing file_path, label, and scaler
-    @return feature_label_pairs - a list of tuples containing features and labels
-    """
     file_path, label, scaler = args
     try:
         y_audio, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True)
@@ -207,27 +177,13 @@ def process_single_file(args):
         return None
 
 def preprocess_and_cache_balanced(real_samples, fake_samples, scaler, output_dir, processed_real, processed_fake, log_real, log_fake):
-    """
-    Preprocess and cache real and fake samples for training.
-    @param real_samples - List of real samples
-    @param fake_samples - List of fake samples
-    @param scaler - Scaler for normalizing samples
-    @param output_dir - Directory to save processed samples
-    @param processed_real - List of processed real samples
-    @param processed_fake - List of processed fake samples
-    @param log_real - Log file for real samples
-    @param log_fake - Log file for fake samples
-    """
     # ===== 1) Get batch index and replacement files =====
     batch_index = get_next_batch_index(output_dir)
     replacement_real_pool = get_replacement_real_files()
     replacement_fake_pool = get_replacement_fake_files()
     used_replacements_real = 0
     used_replacements_fake = 0
-    
-    """ 2) Filter out processed real and fake samples, then determine the minimum class size between the real and fake samples.
-    Iterate over the samples in batch sizes, ensuring replacements are used when necessary. If `SKIP_INCOMPLETE_BATCH` is enabled, skip incomplete batches.
-    """
+
     real_samples = [pair for pair in real_samples if pair[0] not in processed_real]
     fake_samples = [pair for pair in fake_samples if pair[0] not in processed_fake]
     min_class_size = min(len(real_samples), len(fake_samples))
@@ -254,11 +210,6 @@ def preprocess_and_cache_balanced(real_samples, fake_samples, scaler, output_dir
                     flat_results.extend(r)
             return flat_results
             
-        """
-        Process real and fake batches of data, ensuring that each batch has a sufficient number of samples. If a batch is incomplete, 
-        retry with replacement samples until the batch is filled. 
-        Shuffle the data within each batch and save the X and y arrays as numpy files. Update logs with the processed file paths.
-        """
         real_results = try_processing(real_batch)
         fake_results = try_processing(fake_batch)
         X_real, y_real = zip(*[res for res in real_results if res is not None]) if any(real_results) else ([], [])

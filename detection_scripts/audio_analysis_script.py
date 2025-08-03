@@ -103,6 +103,7 @@ def predict_audio(file_path, output_folder, unique_tag, window_duration=5, windo
     # Always convert to .wav and save in output_folder
     processed_audio_path = os.path.join(output_folder, f"audio_{unique_tag}.wav")
 
+    # ==== Load and normalize audio (splits audio from video if file is a video) ====
     if file_path.endswith(('.mp4', '.mov')):
         # Extract audio from video, then convert to .wav
         video_clip = VideoFileClip(file_path)
@@ -122,6 +123,7 @@ def predict_audio(file_path, output_folder, unique_tag, window_duration=5, windo
 
     actual_audio_path = processed_audio_path
 
+    # ==== Check if audio is silent or too short ====
     if np.max(np.abs(y)) < SILENCE_THRESHOLD or len(y) < sr:
         return "Analysis Failed: Audio too silent or too short.", None, None, None, None, None, actual_audio_path
 
@@ -131,6 +133,7 @@ def predict_audio(file_path, output_folder, unique_tag, window_duration=5, windo
     pred_probs = []
     num_skipped = 0
 
+    # === Process audio in windows ===
     for start in range(0, total_samples - window_length + 1, hop_length):
         window_y = y[start : start + window_length]
         features, avg_energy, mel_db, mfcc, delta, f0, energy = extract_combined_features(window_y)

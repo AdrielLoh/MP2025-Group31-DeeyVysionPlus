@@ -5,11 +5,9 @@ import sys
 # Number of allowed consecutive segfaults before giving up
 MAX_ATTEMPTS = 100
 
-# Python executable and path to your training script
 PYTHON_EXEC = sys.executable  # Use current Python
 TRAIN_SCRIPT = "model_training_stuff/physio_model_deeplearning/training.py"
 
-# Any arguments to your training script (adjust if needed)
 TRAIN_ARGS = [
     "--data_dir", "/root/model_training/cache/batches/physio-deep-v1/for-training",
     "--model_dir", "/root/model_training/physiological-model/deep-learning-1-1",

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory, abort
 import os
 import logging
 import subprocess
@@ -13,6 +13,9 @@ import uuid
 import tensorflow as tf
 import cv2
 import concurrent.futures
+import re
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
@@ -25,6 +28,17 @@ if gpus:
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["25 per second"]
+)
+
+# Whitelist IP for local development
+@limiter.request_filter
+def ip_whitelist():
+    return request.remote_addr == "127.0.0.1"
 
 # Dynamically get the absolute path to the 'static/uploads/' directory
 upload_folder = os.path.join(os.getcwd(), 'static', 'uploads')
@@ -47,8 +61,76 @@ ALLOWED_MIME_TYPES = {'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/
 VALID_VIDEOS = ['.mp4', '.mov', '.avi', '.webm']
 MAX_VIDEO_DURATION = 30
 MAX_DOWNLOAD_DURATION = 90
+SAFE_MEDIA_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.mp4', '.webm', '.wav', '.mp3', '.ogg', '.flac'} # This is for the secure_static endpoint to allow only these extensions
+ALLOWED_DOMAINS = [
+    # YouTube
+    r'(?:^|\.)youtube\.com$',
+    r'(?:^|\.)youtu\.be$',
+    # Vimeo
+    r'(?:^|\.)vimeo\.com$',
+    # TikTok
+    r'(?:^|\.)tiktok\.com$',
+    r'(?:^|\.)douyin\.com$',
+    # Facebook & Instagram
+    r'(?:^|\.)facebook\.com$',
+    r'(?:^|\.)fb\.watch$',
+    r'(?:^|\.)instagram\.com$',
+    r'(?:^|\.)cdninstagram\.com$',
+    # Twitter/X
+    r'(?:^|\.)twitter\.com$',
+    r'(?:^|\.)x\.com$',
+    # Reddit
+    r'(?:^|\.)reddit\.com$',
+    r'(?:^|\.)redd\.it$',
+    # Twitch
+    r'(?:^|\.)twitch\.tv$',
+    r'(?:^|\.)clips\.twitch\.tv$',
+    # Dailymotion
+    r'(?:^|\.)dailymotion\.com$',
+    r'(?:^|\.)dai\.ly$',
+    # LinkedIn
+    r'(?:^|\.)linkedin\.com$',
+    # Pinterest
+    r'(?:^|\.)pinterest\.com$',
+    r'(?:^|\.)pinimg\.com$',
+    # Tumblr
+    r'(?:^|\.)tumblr\.com$',
+    # Kick.com
+    r'(?:^|\.)kick\.com$',
+    # Vimeo alternatives
+    r'(?:^|\.)vid\.io$',
+    # Streamable
+    r'(?:^|\.)streamable\.com$',
+    # BitChute
+    r'(?:^|\.)bitchute\.com$',
+    # Odysee
+    r'(?:^|\.)odysee\.com$',
+    # Vimeo alternatives
+    r'(?:^|\.)viddler\.com$',
+    # TED
+    r'(?:^|\.)ted\.com$',
+    # Archive.org
+    r'(?:^|\.)archive\.org$',
+    # ESPN
+    r'(?:^|\.)espn\.com$',
+    # NBC (many local subsites)
+    r'(?:^|\.)nbc\.com$',
+    # Vice
+    r'(?:^|\.)vice\.com$',
+]
 
 # ===== HELPER FUNCTIONS =====
+def is_allowed_url(url):
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    if parsed.scheme not in ['http', 'https']:
+        return False
+    host = parsed.hostname or ""
+    for pattern in ALLOWED_DOMAINS:
+        if re.search(pattern, host, re.IGNORECASE):
+            return True
+    return False
+
 def create_video_thumbnail(video_path, thumbnail_folder, size=(320, 180)):
     """
     Extracts the first frame of the video and saves as a .jpg thumbnail.
@@ -137,7 +219,7 @@ def get_video_fps(video_path, default_fps=30):
         video_path
     ]
     try:
-        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True, timeout=30)
         info = json.loads(result.stdout)
         fps_str = info['streams'][0]['avg_frame_rate']
         num, denom = map(int, fps_str.split('/'))
@@ -158,7 +240,8 @@ def get_video_duration(path):
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
+        timeout=30
     )
     duration_str = result.stdout.strip()
     if not duration_str:
@@ -176,7 +259,7 @@ def convert_webm_to_mp4(original_path, mp4_path, max_duration=MAX_VIDEO_DURATION
         '-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p',
         mp4_path
     ]
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=True, timeout=90)
 
 def trim_video(input_path, output_path, duration=MAX_VIDEO_DURATION):
     cmd = [
@@ -185,7 +268,7 @@ def trim_video(input_path, output_path, duration=MAX_VIDEO_DURATION):
         '-c', 'copy',
         output_path
     ]
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=True, timeout=90)
 
 def fetch_duration(url):
     with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
@@ -193,6 +276,8 @@ def fetch_duration(url):
     return info.get('duration')
 
 def download_video(video_tag, video_url):
+    if not is_allowed_url(video_url):
+        return "Failed to download: The given URL is not allowed. Please use a direct link to a supported social media platform."
     length = fetch_duration(video_url)
     if not length:
         return "Failed to download: No duration metadata extracted for the link"
@@ -368,9 +453,36 @@ def load_multi_detection_results(history_entry):
     )
 
 # ===== ENDPOINTS =====
+@app.route('/static/<folder>/<path:filename>')
+def secure_static(folder, filename):
+    # Only restrict 'uploads' and 'results'
+    if folder not in ['uploads', 'results']:
+        # Return file if not within restricted folders
+        return send_from_directory(os.path.join(app.root_path, 'static', folder), filename)
+
+    # Restrict to allowed extensions
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in SAFE_MEDIA_EXTENSIONS:
+        abort(403)
+
+    # Prevent path traversal
+    media_dir = os.path.join(app.root_path, 'static', folder)
+    safe_path = os.path.normpath(os.path.join(media_dir, filename))
+    if not safe_path.startswith(media_dir):
+        abort(403)
+
+    if not os.path.exists(safe_path):
+        abort(404)
+
+    return send_from_directory(media_dir, filename)
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/allowed_urls')
+def allowed_urls():
+    return render_template('allowed_urls.html')
 
 @app.route('/wip')
 def wip():
@@ -483,6 +595,7 @@ def detection_history():
     return render_template('detection_history.html')
 
 @app.route('/<detection_uuid>')
+@limiter.limit("30 per minute;3 per second")
 def view_cached_result(detection_uuid):
     """Load and display cached results for a detection history entry"""
     try:
@@ -514,6 +627,7 @@ def view_cached_result(detection_uuid):
         return f"Error loading results: {str(e)}", 500
     
 @app.route('/api/detection-history')
+@limiter.limit("30 per minute;3 per second")
 def api_detection_history():   
     history = []
     
@@ -594,6 +708,7 @@ def api_detection_history():
     return jsonify(final_entries)
 
 @app.route('/physiological_signal_try', methods=['GET', 'POST'])
+@limiter.limit("5 per minute;2 per second")
 def physiological_signal_try():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
@@ -633,7 +748,7 @@ def physiological_signal_try():
                         os.remove(filename)
                     filename = mp4_path
                 except Exception as e:
-                    return f"Failed to process video. Video may be corrupted or invalid. {e}"
+                    return f"Failed to process video. Video may be corrupted or invalid. "
         else:
             return "No file or video URL provided"
         
@@ -650,7 +765,7 @@ def physiological_signal_try():
                     os.remove(filename)
                 video_path_for_processing = trimmed_filename
             except Exception as e:
-                return f"Failed to trim video. Detection stopped for security reasons. {e}"
+                return f"Failed to trim video. Detection stopped for security reasons. "
         else:
             video_path_for_processing = filename
 
@@ -707,6 +822,7 @@ def audio_analysis_page():
     return render_template('audio_analysis.html')
     
 @app.route('/deep_learning_static', methods=['GET', 'POST'])
+@limiter.limit("5 per minute;2 per second")
 def deep_learning_static():
     if request.method == "POST":
         from detection_scripts.deep_based_learning_script import static_video_detection as deep_learning_static_detection
@@ -745,7 +861,7 @@ def deep_learning_static():
 
                     filename = mp4_path
                 except Exception as e:
-                    return f"Failed to process video. Video may be corrupted or invalid. {e}"
+                    return f"Failed to process video. Video may be corrupted or invalid. "
         else:
             return "No file or video URL provided"
 
@@ -762,7 +878,7 @@ def deep_learning_static():
                     os.remove(filename)
                 video_path_for_processing = trimmed_filename
             except Exception as e:
-                return f"Failed to trim video. Detection stopped for security reasons. {e}"
+                return f"Failed to trim video. Detection stopped for security reasons. "
         else:
             video_path_for_processing = filename
         
@@ -799,6 +915,7 @@ def deep_learning_static():
             )
 
 @app.route('/visual_artifacts_static', methods=['GET', 'POST'])
+@limiter.limit("5 per minute;2 per second")
 def visual_artifacts_static():
     output_folder = 'static/results'
     os.makedirs(output_folder, exist_ok=True)
@@ -840,7 +957,7 @@ def visual_artifacts_static():
                         os.remove(filename)
                     filename = mp4_path
                 except Exception as e:
-                    return f"Failed to process video. Video may be corrupted or invalid. {e}"
+                    return f"Failed to process video. Video may be corrupted or invalid. "
         else:
             return render_template('visual_artifacts_try.html', error="Please upload a file or provide a URL.")
 
@@ -857,7 +974,7 @@ def visual_artifacts_static():
                     os.remove(filename)
                 video_path_for_processing = trimmed_filename
             except Exception as e:
-                return f"Failed to trim video. Detection stopped for security reasons. {e}"
+                return f"Failed to trim video. Detection stopped for security reasons. "
         else:
             video_path_for_processing = filename
 
@@ -892,6 +1009,7 @@ def visual_artifacts_static():
     return render_template('visual_artifacts_try.html')
 
 @app.route('/audio_analysis', methods=['GET', 'POST'])
+@limiter.limit("5 per minute;2 per second")
 def audio_analysis():
     if request.method == 'POST':
         from detection_scripts.audio_analysis_script import predict_audio
@@ -939,12 +1057,12 @@ def audio_analysis():
                     '-c', 'copy',
                     trimmed_filename
                 ]
-                subprocess.run(cmd, check=True)
+                subprocess.run(cmd, check=True, timeout=90)
                 if os.path.exists(filename):
                     os.remove(filename)
                 filename = trimmed_filename
         except Exception as e:
-            return f"Failed to trim file. Detection stopped for security reasons. {e}"
+            return f"Failed to trim file. Detection stopped for security reasons. "
 
         video_hash = sha256_of_file(filename)
         output_folder = os.path.join('static', 'results', 'audio', video_hash)
@@ -1000,6 +1118,7 @@ def body_posture_try():
     return render_template('body_posture_try.html')
 
 @app.route('/body_posture_detect', methods=['GET', 'POST'])
+@limiter.limit("5 per minute;2 per second")
 def body_posture_detect():
     if request.method == 'POST':
         from detection_scripts.body_posture_script import detect_body_posture
@@ -1037,7 +1156,7 @@ def body_posture_detect():
                         os.remove(filename)
                     filename = mp4_path
                 except Exception as e:
-                    return f"Failed to process video. Video may be corrupted or invalid. {e}"
+                    return f"Failed to process video. Video may be corrupted or invalid. "
         else:
             return "No file or video URL provided"
 
@@ -1054,7 +1173,7 @@ def body_posture_detect():
                     os.remove(filename)
                 video_path_for_processing = trimmed_filename
             except Exception as e:
-                return f"Failed to trim video. Detection stopped for security reasons. {e}"
+                return f"Failed to trim video. Detection stopped for security reasons. "
         else:
             video_path_for_processing = filename
 
@@ -1140,6 +1259,7 @@ def run_detection_method(method, filename, video_hash, video_tag):
         return "Unknown"
     
 @app.route('/multi_detection', methods=['POST'])
+@limiter.limit("5 per minute;2 per second")
 def multi_detection():
     if DEMO_MODE:
         return detection_disabled_response()
@@ -1174,7 +1294,7 @@ def multi_detection():
                     os.remove(filename)
                 filename = mp4_path
             except Exception as e:
-                return f"Failed to process video. Video may be corrupted or invalid. {e}"
+                return f"Failed to process video. Video may be corrupted or invalid. "
     else:
         return "No file or video URL provided"
     
@@ -1191,7 +1311,7 @@ def multi_detection():
                 os.remove(filename)
             filename = trimmed_filename
         except Exception as e:
-            return f"Failed to trim video. Detection stopped for security reasons. {e}"
+            return f"Failed to trim video. Detection stopped for security reasons. "
     
     video_hash = sha256_of_file(filename)
 
@@ -1209,14 +1329,14 @@ def multi_detection():
             executor.submit(run_detection_method, *args): args[0]
             for args in args_list
         }
-        for future in concurrent.futures.as_completed(future_to_method):
+        for future in concurrent.futures.as_completed(future_to_method, timeout=180):
             method = future_to_method[future]
             try:
                 result = future.result()
             except Exception as e:
                 import traceback
                 print(f"[ERROR] {method} crashed:\n{traceback.format_exc()}")
-                result = f"error: {e}"
+                result = f"an error occured. Sorry for the inconvenience. Please try again later"
             results[method] = result
 
     # Process results to maintain full data structure for each method

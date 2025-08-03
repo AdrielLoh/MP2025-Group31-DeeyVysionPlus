@@ -13,7 +13,7 @@ SCALER_PATH = 'models/physio_scaler.pkl'
 model = joblib.load(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
 
-# Helper: Load test batches
+# Load test batches
 def load_batches(batch_dir):
     X, y = [], []
     x_files = sorted(glob.glob(os.path.join(batch_dir, '*_Xrppg_batch_*.npy')))
@@ -25,9 +25,6 @@ def load_batches(batch_dir):
         return np.concatenate(X, axis=0), np.concatenate(y, axis=0)
     else:
         return np.empty((0, 57)), np.empty((0,))
-
-# Set your test dirs here
-# Example: Replace with your actual paths
 
 test_dir_real = 'D:/model_training/cache/batches/test/real'
 test_dir_fake = 'D:/model_training/cache/batches/test/fake'

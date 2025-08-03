@@ -675,6 +675,11 @@ footer::after {
     line-height: 1.6;
 }
 
+.dvurl-hint a {
+    color: #00d4fe;
+    text-decoration: underline;
+}
+
 /* Purpose Section */
 .purpose-section {
     padding: 5rem 2rem;

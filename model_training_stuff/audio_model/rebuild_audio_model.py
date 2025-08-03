@@ -2,11 +2,10 @@ import os
 import tensorflow as tf
 from tensorflow.keras import regularizers
 
-# Constants
 INPUT_HEIGHT = 170
 INPUT_WIDTH = 157
 INPUT_CHANNELS = 1
-MODEL_WEIGHTS_PATH = "models/training-8-fixed-compatability/stage-1/audio_model_alcj.keras"  # Your saved model with weights from TF 2.10
+MODEL_WEIGHTS_PATH = "models/training-8-fixed-compatability/stage-1/audio_model_alcj.keras"  # the saved model with weights from TF 2.10
 RESAVED_MODEL_PATH = "models/audio_model_tf217_alcj.keras"
 
 # TCN residual block
@@ -52,7 +51,7 @@ def build_model():
 
 # Rebuild & load weights
 model = build_model()
-model.load_weights(MODEL_WEIGHTS_PATH)  # Only loads weights, not optimizer
+model.load_weights(MODEL_WEIGHTS_PATH)
 
 print("Weights loaded successfully.")
 

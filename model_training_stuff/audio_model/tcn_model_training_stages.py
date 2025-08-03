@@ -32,19 +32,28 @@ def generate_cached_batches(cache_dir):
 #### Focal Loss Compatible with TensorFlow 2.17.0 ####
 class CustomFocalLoss(tf.keras.losses.Loss):
     def __init__(self, gamma=2.0, alpha=0.25, **kwargs):
+        # gamma: focusing parameter for modulating factor (1-p)
+        # alpha: balancing factor for positive/negative classes
         super().__init__(**kwargs)
         self.gamma = gamma
         self.alpha = alpha
 
     def call(self, y_true, y_pred):
+        # Convert labels to float32 for computation
         y_true = tf.cast(y_true, tf.float32)
+        # Clip predictions to avoid log(0) errors
         y_pred = tf.clip_by_value(y_pred, 1e-7, 1 - 1e-7)
 
+        # Compute binary cross-entropy for each sample
         bce = - (y_true * tf.math.log(y_pred) + (1 - y_true) * tf.math.log(1 - y_pred))
+        # p_t: probability of the true class
         p_t = y_true * y_pred + (1 - y_true) * (1 - y_pred)
+        # alpha_t: class balancing factor
         alpha_t = y_true * self.alpha + (1 - y_true) * (1 - self.alpha)
+        # Focal loss: down-weights easy examples, focuses on hard ones
         loss = alpha_t * tf.pow(1 - p_t, self.gamma) * bce
 
+        # Return mean loss over the batch
         return tf.reduce_mean(loss)
 
 # --- TCN Residual Block ---

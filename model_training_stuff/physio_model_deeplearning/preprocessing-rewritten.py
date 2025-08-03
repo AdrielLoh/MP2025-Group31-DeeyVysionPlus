@@ -20,11 +20,14 @@ import gc
 
 # ==================== CONFIGURATION =========================
 
+"""
+NOTE: SOME COMMENTS HERE ARE GENERATED AUTOMATICALLY USING READABLE AI IN VSCODE CAUSE I'M TOO LAZY TO WRITE THEM MYSELF (not all though)
+"""
 # Model paths (edit as needed)
 FACE_PROTO = 'models/weights-prototxt.txt'
 FACE_MODEL = 'models/res_ssd_300Dim.caffeModel'
 
-# 5 ROIs with MediaPipe 468 landmarks indices (adjustable)
+# 5 manually tuned ROIs with MediaPipe facemesh indices
 ROI_INDICES = {
     'left_cheek': [207, 216, 206, 203, 129, 209, 126, 47, 121,
                    120, 119, 118, 117, 111, 116, 123, 147, 187],
@@ -44,7 +47,7 @@ HOP_SIZE = 75      # Overlap step (e.g. 50% overlap)
 BATCH_SIZE = 40    # Videos per output HDF5 file
 MIN_REAL_FRAMES = int(0.6 * WINDOW_SIZE)  # Reject if <60% valid frames
 
-# Suppress MediaPipe logs
+# Suppress MediaPipe logs or your console will be flooded
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
@@ -188,7 +191,7 @@ def robust_track_faces(all_boxes, max_lost=5, iou_threshold=0.3, max_distance=10
 
 # =============== ROI & rPPG EXTRACTION =======================
 
-# Thread/process-local storage for FaceMesh
+# Thread/process-local storage for FaceMesh (use to ensure safe multiprocessing)
 _thread_local = threading.local()
 
 def get_facemesh():
@@ -203,7 +206,7 @@ def get_facemesh():
     return _thread_local.mp_face_mesh
 
 def cleanup_facemesh():
-    """Optional cleanup function for MediaPipe resources"""
+    """cleanup function for MediaPipe resources to save memory"""
     if hasattr(_thread_local, "mp_face_mesh"):
         _thread_local.mp_face_mesh.close()
         del _thread_local.mp_face_mesh
@@ -222,7 +225,7 @@ def extract_landmarks(frame, box):
         if roi.shape[0] < 40 or roi.shape[1] < 40:  # Avoid too-small faces
             return None
         
-        # Convert to RGB (MediaPipe expects RGB)
+        # Convert to RGB (MediaPipe expects RGB, we have BGR)
         rgb_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
         
         # Process with MediaPipe
@@ -368,9 +371,8 @@ def apply_signal_preprocessing(signal, fs=30, apply_filtering=True):
         if apply_filtering and len(signal) > 30:
             filter_order = 3
             
-            # Critical: Check minimum signal length for filtfilt
-            # filtfilt needs signal length >= 3 * filter_order for stability
-            min_length_for_filtfilt = 3 * filter_order * 2  # Conservative: 18 samples
+            # Check minimum signal length for reliable use of filtfilt
+            min_length_for_filtfilt = 3 * filter_order * 2
             
             if len(signal) >= min_length_for_filtfilt:
                 nyquist = fs / 2.0
@@ -406,7 +408,6 @@ def apply_signal_preprocessing(signal, fs=30, apply_filtering=True):
                 logger.info(f"Signal too short for filtfilt ({len(signal)} < {min_length_for_filtfilt}), skipping filtering")
         
         # 3. Robust normalization with outlier protection
-        # Remove extreme outliers first (beyond 5 standard deviations)
         mean_val = np.mean(processed)
         std_val = np.std(processed)
         
@@ -487,7 +488,7 @@ def extract_window_signals(frames, boxes, start, end, fps=30, augment=True):
             # Extract landmarks using MediaPipe
             lms = extract_landmarks(f, b)
             
-            # Extract ROI means (handles None landmarks gracefully)
+            # Extract ROI means
             roi_rgb = extract_roi_means(f, b, lms)
             
             for roi in ROI_INDICES:
@@ -546,7 +547,7 @@ def interpolate_corrupted_frames(frames):
     if not valid_indices:
         raise ValueError("No valid frames found in video.")
 
-    # Make a copy to avoid modifying in-place
+    # Make a copy to avoid modifying original
     out_frames = list(frames)
 
     for idx in range(n):
@@ -708,7 +709,7 @@ def process_video(video_path, augment=True):
             if not ret:
                 break
             frames.append(frame)
-        # Defensive: release as soon as possible
+        
         cap.release()
         cap = None
 
