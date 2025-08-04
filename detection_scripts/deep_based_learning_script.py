@@ -11,12 +11,16 @@ from scipy.optimize import linear_sum_assignment
 import tensorflow as tf
 import matplotlib
 from filterpy.kalman import KalmanFilter
+import sys
 matplotlib.use('Agg')  # Use non-interactive backend for matplotlib
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 # Load the pre-trained deepfake detection model
 model = load_model('models/deep_learning_model.keras')
 
-def detect_faces(frame, net, conf=0.6):
+def detect_faces(frame, net, conf=0.5):
     h, w = frame.shape[:2]
     blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
     net.setInput(blob)
@@ -227,6 +231,16 @@ def static_video_detection(video_path, output_dir, unique_tag):
 
     # Face detection model
     face_net = cv2.dnn.readNetFromCaffe('models/weights-prototxt.txt', 'models/res_ssd_300Dim.caffeModel')
+    def crop_square(frame, x, y, w, h):
+        # Center-crop to a square box around the detected face
+        size = max(w, h)
+        center_x = x + w // 2
+        center_y = y + h // 2
+        x1 = max(center_x - size // 2, 0)
+        y1 = max(center_y - size // 2, 0)
+        x2 = min(center_x + size // 2, frame.shape[1])
+        y2 = min(center_y + size // 2, frame.shape[0])
+        return frame[y1:y2, x1:x2]
 
     # === Pass 1: Get all face boxes per frame ===
     all_boxes = []
@@ -253,12 +267,14 @@ def static_video_detection(video_path, output_dir, unique_tag):
     tracks = robust_track_faces(all_boxes, frames)
     frame_count = len(all_boxes)
     prediction_memory = collections.defaultdict(list)
-
+    
     cap = cv2.VideoCapture(video_path)
     for frame_idx in range(frame_count):
         ret, frame = cap.read()
-        if not ret:
+        if not ret or frame is None:
+            print(f"Frame read failed at frame {frame_idx if 'frame_idx' in locals() else '?'}")
             break
+
 
         for track_id, detections in tracks.items():
             # Find box in this frame
@@ -269,7 +285,7 @@ def static_video_detection(video_path, output_dir, unique_tag):
                     break
             if this_box is not None:
                 x, y, w, h = this_box
-                face_img = frame[y:y+h, x:x+w]
+                face_img = crop_square(frame, x, y, w, h)
                 if face_img.size == 0:
                     continue
                 preprocessed_face = preprocess_frame(face_img)
@@ -334,8 +350,10 @@ def static_video_detection(video_path, output_dir, unique_tag):
         "face_results": face_results,
         "output_path": output_path
     }
-    with open(result_path, "w") as f:
-        json.dump(result_dict, f)
+    with open(result_path, "w", encoding="utf-8") as f:
+        json.dump(result_dict, f, ensure_ascii=False)
+
+
 
     return face_results, output_path
 
