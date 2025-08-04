@@ -60,6 +60,7 @@ ALLOWED_MIME_TYPES = {'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/
                       'audio/flac', 'audio/x-flac'}
 VALID_VIDEOS = ['.mp4', '.mov', '.avi', '.webm']
 MAX_VIDEO_DURATION = 30
+MIN_VIDEO_DURATION = 5
 MAX_DOWNLOAD_DURATION = 90
 SAFE_MEDIA_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.mp4', '.webm', '.wav', '.mp3', '.ogg', '.flac'} # This is for the secure_static endpoint to allow only these extensions
 ALLOWED_DOMAINS = [
@@ -756,7 +757,10 @@ def physiological_signal_try():
             duration = get_video_duration(filename)
         except Exception as e:
             return f"Failed to read video duration. Video may be corrupted or invalid."
-        if duration is not None and duration > MAX_VIDEO_DURATION:
+        
+        if duration is not None and duration < MIN_VIDEO_DURATION:
+            return f"Video is too short. Minimum duration is {MIN_VIDEO_DURATION} seconds."
+        elif duration is not None and duration > MAX_VIDEO_DURATION:
             try:
                 # trim long videos to MAX_VIDEO_DURATIONs
                 trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'
@@ -869,7 +873,9 @@ def deep_learning_static():
             duration = get_video_duration(filename)
         except Exception as e:
             return f"Failed to read video duration. Video may be corrupted or invalid."
-        if duration is not None and duration > MAX_VIDEO_DURATION:
+        if duration is not None and duration < MIN_VIDEO_DURATION:
+            return f"Video is too short. Minimum duration is {MIN_VIDEO_DURATION} seconds."
+        elif duration is not None and duration > MAX_VIDEO_DURATION:
             try:
                 # trim long videos to MAX_VIDEO_DURATIONs
                 trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'
@@ -965,7 +971,9 @@ def visual_artifacts_static():
             duration = get_video_duration(filename)
         except Exception as e:
             return f"Failed to read video duration. Video may be corrupted or invalid."
-        if duration is not None and duration > MAX_VIDEO_DURATION:
+        if duration is not None and duration < MIN_VIDEO_DURATION:
+            return f"Video is too short. Minimum duration is {MIN_VIDEO_DURATION} seconds."
+        elif duration is not None and duration > MAX_VIDEO_DURATION:
             try:
                 # trim long videos to MAX_VIDEO_DURATIONs
                 trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'
@@ -1048,7 +1056,9 @@ def audio_analysis():
             ext = os.path.splitext(filename)[1].lower()
             duration = get_video_duration(filename)
 
-            if duration is not None and duration > MAX_VIDEO_DURATION:
+            if duration is not None and duration < 3:
+                return f"Audio / Video is too short. Minimum duration for audio detection is 3 seconds."
+            elif duration is not None and duration > MAX_VIDEO_DURATION:
                 trimmed_filename = os.path.splitext(filename)[0] + '_trimmed' + ext
                 # Use ffmpeg to trim, keeping original format
                 cmd = [
@@ -1164,7 +1174,9 @@ def body_posture_detect():
             duration = get_video_duration(filename)
         except Exception as e:
             return f"Failed to read video duration. Video may be corrupted or invalid."
-        if duration is not None and duration > MAX_VIDEO_DURATION:
+        if duration is not None and duration < MIN_VIDEO_DURATION:
+            return f"Video is too short. Minimum duration is {MIN_VIDEO_DURATION} seconds."
+        elif duration is not None and duration > MAX_VIDEO_DURATION:
             try:
                 # trim long videos to MAX_VIDEO_DURATIONs
                 trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'
@@ -1302,7 +1314,9 @@ def multi_detection():
         duration = get_video_duration(filename)
     except Exception as e:
         return f"Failed to read video duration. Video may be corrupted or invalid."
-    if duration is not None and duration > MAX_VIDEO_DURATION:
+    if duration is not None and duration < MIN_VIDEO_DURATION:
+        return f"Video is too short. Minimum duration is {MIN_VIDEO_DURATION} seconds."
+    elif duration is not None and duration > MAX_VIDEO_DURATION:
         try:
             # trim long videos to MAX_VIDEO_DURATIONs
             trimmed_filename = os.path.splitext(filename)[0] + '_trimmed.mp4'

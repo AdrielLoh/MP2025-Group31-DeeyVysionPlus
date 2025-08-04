@@ -89,7 +89,7 @@ function renderResultCard(method, result) {
         <div style="margin-top:12px;padding:12px;background:rgba(0,0,0,0.2);border-radius:8px;">
             <div style="font-weight:600;margin-bottom:8px;color:#fff;">🎵 Audio Sample</div>
             <audio controls style="width:100%;height:40px;border-radius:6px;background:rgba(0,0,0,0.3);">
-                <source src="http://localhost:5000/${result.uploaded_audio}" type="audio/wav">
+                <source src="https://deepvysion.ddns.net/${result.uploaded_audio}" type="audio/wav">
                 Your browser does not support the audio element.
             </audio>
         </div>`;
@@ -125,7 +125,7 @@ function renderResultCard(method, result) {
         if (result.overall_video) {
             let videoPath = result.overall_video;
             video = `
-            <video src="http://localhost:5000/${videoPath}" controls style="width:97%;margin-top:11px;border-radius:13px;box-shadow:0 2px 12px #00f2fe2a;"></video>
+            <video src="https://deepvysion.ddns.net/${videoPath}" controls style="width:97%;margin-top:11px;border-radius:13px;box-shadow:0 2px 12px #00f2fe2a;"></video>
             `;
         }
         return `
@@ -166,20 +166,20 @@ function renderResultCard(method, result) {
         if (result.output_video) {
             let videoPath = result.output_video;
             video = `
-            <video src="http://localhost:5000/${videoPath}" controls style="width:97%;margin-top:11px;border-radius:13px;box-shadow:0 2px 12px #00f2fe2a;"></video>
+            <video src="https://deepvysion.ddns.net/${videoPath}" controls style="width:97%;margin-top:11px;border-radius:13px;box-shadow:0 2px 12px #00f2fe2a;"></video>
             `;
         }
 
         // Plots/images
         let plots = "";
         if (result.rvf_plot)    // Can replace localhost with actual domain if our app is hosted 
-            plots += `<img src="http://localhost:5000/${result.rvf_plot}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #667eea2a;">`;
+            plots += `<img src="https://deepvysion.ddns.net/${result.rvf_plot}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #667eea2a;">`;
         if (result.conf_plot)
-            plots += `<img src="http://localhost:5000/${result.conf_plot}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #764ba22a;">`;
+            plots += `<img src="https://deepvysion.ddns.net/${result.conf_plot}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #764ba22a;">`;
         if (result.mel_spectrogram_path)
-            plots += `<img src="http://localhost:5000/static/${result.mel_spectrogram_path}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #764ba22a;">`;
+            plots += `<img src="https://deepvysion.ddns.net/static/${result.mel_spectrogram_path}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #764ba22a;">`;
         if (result.mfcc_path)
-            plots += `<img src="http://localhost:5000/static/${result.mfcc_path}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #764ba22a;">`;
+            plots += `<img src="https://deepvysion.ddns.net/static/${result.mfcc_path}" style="width:90%;margin-top:7px;border-radius:14px;box-shadow:0 2px 12px #764ba22a;">`;
         
         return `
             <div style=" 

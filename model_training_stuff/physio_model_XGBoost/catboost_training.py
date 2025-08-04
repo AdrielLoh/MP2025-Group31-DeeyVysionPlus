@@ -1,8 +1,8 @@
 import os
 import numpy as np
 import glob
-from xgboost import XGBClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve, precision_recall_curve
+from catboost import CatBoostClassifier, Pool
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve
 from sklearn.utils import compute_sample_weight, compute_class_weight
 from sklearn.preprocessing import StandardScaler
 import joblib
@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import optuna
 import random
-
-# np.random.seed(42)
 
 # --- Helper: Load batches and concatenate ---
 def load_batches(batch_dir):
@@ -26,7 +24,6 @@ def load_batches(batch_dir):
     else:
         return np.empty((0, 110)), np.empty((0,))
 
- # ===== Batch loading and stratified splitting =====
 train_dir_real = 'C:/model_training/physio_ml/real'
 train_dir_fake = 'C:/model_training/physio_ml/fake'
 
@@ -46,35 +43,9 @@ print(f"[INFO] Train samples: {X_train.shape[0]}, Validation samples: {X_val.sha
 print(f"Train class distribution: {np.bincount(y_train.astype(int))}")
 print(f"Val class distribution:   {np.bincount(y_val.astype(int))}")
 
-# # --- Manual Splitting ---
-# train_dir_real = 'C:/model_training/physio_ml/split/real'
-# train_dir_fake = 'C:/model_training/physio_ml/split/fake/validation'
-# val_dir_real = 'C:/model_training/physio_ml/split/real/validation'
-# val_dir_fake = 'C:/model_training/physio_ml/split/fake/validation'
-
-# print("[INFO] Loading batches...")
-# X_real_train, y_real_train = load_batches(train_dir_real)
-# X_fake_train, y_fake_train = load_batches(train_dir_fake)
-# X_real_val, y_real_val = load_batches(val_dir_real)
-# X_fake_val, y_fake_val = load_batches(val_dir_fake)
-
-# X_train = np.concatenate([X_real_train, X_fake_train], axis=0)
-# y_train = np.concatenate([y_real_train, y_fake_train], axis=0)
-# X_val = np.concatenate([X_real_val, X_fake_val], axis=0)
-# y_val = np.concatenate([y_real_val, y_fake_val], axis=0)
-
-# print(f"[INFO] Training samples: {X_train.shape[0]}, Validation samples: {X_val.shape[0]}")
-
 # ===== Feature trimming to mitigate overfitting =====
-# Exclude the last 4 features
 X_train = X_train[:, :-4]
 X_val = X_val[:, :-4]
-# Exclude zero-importance features
-# zero_importance_indices = [6, 16, 17, 20, 21, 28, 30, 36, 42, 44, 45, 46, 47, 49, 50, 51, 57, 64, 74, 75, 78, 79, 86, 98, 105]
-# mask = np.ones(X_train.shape[1], dtype=bool)
-# mask[zero_importance_indices] = False
-# X_train = X_train[:, mask]
-# X_val = X_val[:, mask]
 
 print(f"[INFO] Feature shape after trimming: {X_train.shape}")
 
@@ -84,8 +55,8 @@ scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_val = scaler.transform(X_val)
 os.makedirs('models', exist_ok=True)
-joblib.dump(scaler, 'model_training_stuff/physio_model_XGBoost/physio_scaler.pkl')
-print("[INFO] Feature scaler saved to model_training_stuff/physio_model_XGBoost/physio_scaler.pkl")
+joblib.dump(scaler, 'models/physio_scaler.pkl')
+print("[INFO] Feature scaler saved to models/physio_scaler.pkl")
 
 # ===== Calculating class weights automatically =====
 scale_pos_weight = float(np.sum(y_train == 0)) / np.sum(y_train == 1)
@@ -96,70 +67,58 @@ class_weight_dict = {cls: w for cls, w in zip(classes, class_weights)}
 print(f"Auto-calculated class weights: {class_weight_dict}")
 sample_weights = compute_sample_weight(class_weight=class_weight_dict, y=y_train)
 
-# ===== Optuna Hyperparameter tuning =====
+# ===== Optuna Hyperparameter tuning for CatBoost =====
 def objective(trial):
     params = {
-        'n_estimators': trial.suggest_int('n_estimators', 200, 500),
-        'max_depth': trial.suggest_int('max_depth', 3, 6),
-        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.2, log=True),
-        'subsample': trial.suggest_float('subsample', 0.7, 1.0),
-        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.7, 1.0),
-        'reg_alpha': trial.suggest_float('reg_alpha', 0, 2.0),
-        'reg_lambda': trial.suggest_float('reg_lambda', 0.5, 5.0),
-        'gamma': trial.suggest_float('gamma', 0, 5.0),
-        'scale_pos_weight': scale_pos_weight,
-        'use_label_encoder': False,
-        'eval_metric': 'logloss',
-        'random_state': random.randint(1, 10000),
-        'n_jobs': -1,
+        "iterations": trial.suggest_int("iterations", 200, 500),
+        "depth": trial.suggest_int("depth", 3, 6),
+        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.2, log=True),
+        "l2_leaf_reg": trial.suggest_float("l2_leaf_reg", 1.0, 5.0),
+        "random_strength": trial.suggest_float("random_strength", 0, 2),
+        "bagging_temperature": trial.suggest_float("bagging_temperature", 0, 1),
+        "border_count": trial.suggest_int("border_count", 32, 255),
+        "scale_pos_weight": scale_pos_weight,
+        "eval_metric": "AUC",
+        "loss_function": "Logloss",
+        "random_seed": random.randint(1, 10000),
+        "verbose": False,
+        "task_type": "CPU",
     }
-    clf = XGBClassifier(**params)
+    clf = CatBoostClassifier(**params)
     clf.fit(
         X_train, y_train,
         sample_weight=sample_weights,
-        eval_set=[(X_val, y_val)],
-        verbose=False
+        eval_set=(X_val, y_val),
+        use_best_model=True
     )
     y_score = clf.predict_proba(X_val)[:, 1]
     auc = roc_auc_score(y_val, y_score)
     return auc
 
-print("[INFO] Running Optuna hyperparameter search...")
+print("[INFO] Running Optuna hyperparameter search (CatBoost)...")
 study = optuna.create_study(direction='maximize')
-study.optimize(objective, n_trials=400, show_progress_bar=True)
+study.optimize(objective, n_trials=40, show_progress_bar=True)
 print("[INFO] Best hyperparameters found:")
 print(study.best_params)
 
-# --- Train XGBoost Classifier with Best Parameters ---
-print("[INFO] Training XGBoost with best parameters...")
+# --- Train CatBoost Classifier with Best Parameters ---
+print("[INFO] Training CatBoost with best parameters...")
 best_params = study.best_params
 best_params.update({
-    'scale_pos_weight': scale_pos_weight,
-    'use_label_encoder': False,
-    'eval_metric': 'logloss',
-    'random_state': random.randint(1, 10000),
-    'n_jobs': -1
+    "scale_pos_weight": scale_pos_weight,
+    "eval_metric": "AUC",
+    "loss_function": "Logloss",
+    "random_seed": random.randint(1, 10000),
+    "verbose": False,
+    "task_type": "CPU"
 })
-clf = XGBClassifier(**best_params)
-
-# ===== Manual tuning =====
-# clf = XGBClassifier(
-#     colsample_bytree=1.0,
-#     gamma=2,
-#     learning_rate=0.05,
-#     max_depth=5,
-#     n_estimators=500,
-#     subsample=0.9,
-#     scale_pos_weight=scale_pos_weight,
-#     reg_alpha = 2,
-#     reg_lambda = 3,
-#     use_label_encoder=False,
-#     eval_metric='logloss',
-#     random_state=random.randint(1, 10000),
-#     n_jobs=-1
-# )
-
-clf.fit(X_train, y_train, sample_weight=sample_weights)
+clf = CatBoostClassifier(**best_params)
+clf.fit(
+    X_train, y_train,
+    sample_weight=sample_weights,
+    eval_set=(X_val, y_val),
+    use_best_model=True
+)
 
 # --- Standard Validation ---
 y_pred = clf.predict(X_val)
@@ -168,7 +127,7 @@ print("\n[RESULTS] Classification Report:\n", classification_report(y_val, y_pre
 print("\n[RESULTS] Confusion Matrix:\n", confusion_matrix(y_val, y_pred))
 
 # --- ROC Curve & AUC ---
-if hasattr(clf, 'predict_proba'):
+if hasattr(clf, "predict_proba"):
     y_score = clf.predict_proba(X_val)[:, 1]
     auc = roc_auc_score(y_val, y_score)
     print(f"[RESULTS] ROC AUC: {auc:.4f}")
@@ -193,11 +152,12 @@ if hasattr(clf, 'predict_proba'):
     print("\n[Optimal Threshold] Confusion Matrix:\n", confusion_matrix(y_val, y_pred_optimal))
 
 # --- Feature Importances ---
-if hasattr(clf, 'feature_importances_'):
+if hasattr(clf, "get_feature_importance"):
     print("\n[INFO] Feature Importances:")
-    for i, imp in enumerate(clf.feature_importances_):
+    importances = clf.get_feature_importance()
+    for i, imp in enumerate(importances):
         print(f"Feature {i}: {imp:.4f}")
 
 # --- Save Model ---
-joblib.dump(clf, 'model_training_stuff/physio_model_XGBoost/physio_detection_xgboost_best.pkl')
-print("[INFO] Model saved as model_training_stuff/physio_model_XGBoost/physio_detection_xgboost_best.pkl")
+joblib.dump(clf, "models/physio_detection_catboost_best.pkl")
+print("[INFO] Model saved as models/physio_detection_catboost_best.pkl")

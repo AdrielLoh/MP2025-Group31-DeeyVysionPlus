@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://deepvysion.ddns.net";
 
 function getSelectedMethods() {
     return Array.from(document.querySelectorAll(".method:checked")).map(
