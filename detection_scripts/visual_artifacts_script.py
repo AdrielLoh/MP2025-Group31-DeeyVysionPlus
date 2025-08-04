@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import logging
-logging.getLogger('matplotlib').setLevel(logging.ERROR)
+logging.getLogger('matplotlib').setLevel(logging.ERROR) #block logging spam
 from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
 import itertools
@@ -18,7 +18,6 @@ MODEL_PATH = "models/visual_artifacts_model.keras"
 PROTO_PATH = "models/weights-prototxt.txt"
 MODEL_CAFFE_PATH = "models/res_ssd_300Dim.caffeModel"
 FACE_SIZE = 64
-FRAME_INTERVAL = 0.5
 MIN_FRAMES = 30 
 #default output directory for results
 DEFAULT_OUTPUT_DIR = "static/results" 
@@ -28,22 +27,29 @@ model = tf.keras.models.load_model(MODEL_PATH)
 print(f"[DEBUG] Loading face detector: {PROTO_PATH}, {MODEL_CAFFE_PATH}")
 face_net = cv2.dnn.readNetFromCaffe(PROTO_PATH, MODEL_CAFFE_PATH)
 
+#same extraction functions as preprocessing script
 def extract_hog_features(img_gray):
-    return hog(img_gray, orientations=9, pixels_per_cell=(8, 8),
-               cells_per_block=(2, 2), block_norm='L2-Hys', feature_vector=True)
+    return hog(img_gray, orientations=9, pixels_per_cell=(8, 8), #9 possible gradient directions with 8x8 pixel size per cell
+               cells_per_block=(2, 2), block_norm='L2-Hys', feature_vector=True) #each block = 2x2 cells and output results as single feature vector
 
+#extracting LBP from faces
 def extract_lbp_features(img_gray):
-    lbp_r1 = local_binary_pattern(img_gray, P=8, R=1, method='uniform')
-    lbp_r2 = local_binary_pattern(img_gray, P=16, R=2, method='uniform')
-    hist_r1, _ = np.histogram(lbp_r1, bins=np.arange(0, 8+2), range=(0, 8+1))
-    hist_r2, _ = np.histogram(lbp_r2, bins=np.arange(0, 16+2), range=(0, 16+1))
+    #small scale lbp code extraction for every pixel for capturing finer details
+    lbp_r1 = local_binary_pattern(img_gray, P=8, R=1, method='uniform') #each pixel gets an lbp code after being compared to its 8 neighboring pixels within 1 pixel radius
+    #larger scale lbp code extraction for every pixel for capturing larger details
+    lbp_r2 = local_binary_pattern(img_gray, P=16, R=2, method='uniform')  #each pixel gets an lbp code after being compared to its 16 neighboring pixels within 2 pixel radius
+    #np.histogram counts frequency for each lbp code and puts them into a histogram
+    hist_r1, _ = np.histogram(lbp_r1, bins=np.arange(0, 8+2), range=(0, 8+1)) #10 bins for the histogram. 0 to 8 is for uniform patterns (transition from 0 to 1/ 1 to 0) while 9 is for non-uniform patterns where there are multiple transitions
+    hist_r2, _ = np.histogram(lbp_r2, bins=np.arange(0, 16+2), range=(0, 16+1)) #18 bins for the histogram with the same rationale as the previous histogram
+    #convert both histograms to  float32 for later usage
     hist_r1 = hist_r1.astype('float32')
     hist_r2 = hist_r2.astype('float32')
+    #ensure that maximum sum of the histogram is 1
     if hist_r1.sum() != 0:
         hist_r1 /= hist_r1.sum()
     if hist_r2.sum() != 0:
         hist_r2 /= hist_r2.sum()
-    return np.concatenate([hist_r1, hist_r2])
+    return np.concatenate([hist_r1, hist_r2]) #combine both histograms into one feature vector
 
 def iou(boxA, boxB):
     xA = max(boxA[0], boxB[0])
@@ -220,10 +226,6 @@ def run_visual_artifacts_detection(*args, **kwargs):
     per_face_data = {tid: d for tid, d in per_face_data.items() if len(d["probs"]) >= MIN_FRAMES}
 
     # creating video with all faces/IDs overlay which is shown as bounding boxes around the face
-    color_palette = [
-        (255,0,0), (0,255,0), (0,0,255), (255,255,0), (255,0,255),
-        (0,255,255), (128,0,128), (128,128,0), (0,128,128), (0,0,0)
-    ]
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     video_temp = os.path.join(output_dir, "visual_artifact_overlay.mp4").replace("\\", "/")
     writer = cv2.VideoWriter(video_temp, fourcc, fps, (frames[0].shape[1], frames[0].shape[0]))
