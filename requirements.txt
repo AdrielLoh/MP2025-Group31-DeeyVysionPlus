@@ -22,6 +22,7 @@ decorator==5.2.1
 Deprecated==1.2.18
 dill==0.3.8
 filelock==3.18.0
+filterpy == 1.4.5
 Flask==2.3.2
 Flask-Limiter==3.12
 flatbuffers==25.2.10

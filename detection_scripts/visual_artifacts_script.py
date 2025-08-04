@@ -53,6 +53,7 @@ def extract_lbp_features(img_gray):
     return np.concatenate([hist_r1, hist_r2]) #combine both histograms into one feature vector
 
 def iou(boxA, boxB):
+    #top left and bottom right corner coordinates of intersecting rectangle 
     xA = max(boxA[0], boxB[0])
     yA = max(boxA[1], boxB[1])
     xB = min(boxA[0] + boxA[2], boxB[0] + boxB[2])
@@ -60,20 +61,20 @@ def iou(boxA, boxB):
     interArea = max(0, xB - xA) * max(0, yB - yA)
     boxAArea = boxA[2] * boxA[3]
     boxBArea = boxB[2] * boxB[3]
-    return interArea / float(boxAArea + boxBArea - interArea + 1e-5)
+    return interArea / float(boxAArea + boxBArea - interArea + 1e-5) #calculate intersection over union 
 
 def extract_histogram(frame, box):
     x, y, w, h = box
-    roi = frame[y:y+h, x:x+w]
+    roi = frame[y:y+h, x:x+w] #obtain color histogram from region of interest (ROI) in frame defined by bounding box
     if roi.size == 0:
         return np.zeros(32)
-    hist = cv2.calcHist([roi], [0, 1, 2], None, [8, 8, 8], [0,256,0,256,0,256])
-    hist = cv2.normalize(hist, hist).flatten()
+    hist = cv2.calcHist([roi], [0, 1, 2], None, [8, 8, 8], [0,256,0,256,0,256]) #3d color histogram
+    hist = cv2.normalize(hist, hist).flatten() #flatten it to 1d
     return hist
 class TrackKF:
     def __init__(self, box, frame_idx, frame=None):
-        # State: [x, y, w, h, vx, vy, vw, vh]
-        self.kf = KalmanFilter(dim_x=8, dim_z=4)
+        # state: [x, y, w, h, vx, vy, vw, vh]
+        self.kf = KalmanFilter(dim_x=8, dim_z=4) #setup Kalman filter
         self.kf.F = np.eye(8)
         for i in range(4):
             self.kf.F[i, i+4] = 1  # Position + velocity
@@ -84,68 +85,68 @@ class TrackKF:
         self.kf.H[3,3] = 1
         self.kf.x[:4] = np.array(box).reshape(4, 1)
         self.kf.P *= 10
-        self.last_box = box
+        self.last_box = box #most recent position
         self.last_frame = frame_idx
-        self.lost_count = 0
+        self.lost_count = 0 #count of missed frames
         self.appearance = extract_histogram(frame, box) if frame is not None else None
-        self.hit_streak = 1
+        self.hit_streak = 1 #number of times detected face matches the current face being tracked
         self.confirmed = False
 
     def predict(self):
-        self.kf.predict()
+        self.kf.predict() #predict next state of the bounding box for the current track via kalman filter
         pred_box = self.kf.x[:4]
-        return tuple(pred_box.astype(int))
+        return tuple(pred_box.astype(int)) #return predicted bounding box state as tuple
 
     def update(self, box, frame=None):
+        #update filter with new detected box
         self.kf.update(box)
         self.last_box = box
         self.lost_count = 0
         self.hit_streak += 1
-        if self.hit_streak >= 3:  # Confirm after 3 consecutive matches
+        if self.hit_streak >= 3:  # confirm after 3 consecutive matches that the track is accurate
             self.confirmed = True
         if frame is not None:
             self.appearance = extract_histogram(frame, box)
 
     def mark_missed(self):
         self.lost_count += 1
-        self.hit_streak = 0
+        self.hit_streak = 0 #reset hit streak
 
 def robust_track_faces(all_boxes, frames, max_lost=10, iou_threshold=0.3, max_distance=400):
     tracks = {}
     active_tracks = {}  # face_id: TrackKF
     face_id_counter = 0
     for frame_idx, boxes in enumerate(all_boxes):
-        # Predict all tracks
+        # predict all tracks next position
         for tid, track in active_tracks.items():
             track.predict()
-        # Handle empty frame
+        # remove old tracks if no faces are detected
         if not boxes:
             for tid in list(active_tracks.keys()):
                 active_tracks[tid].mark_missed()
                 if active_tracks[tid].lost_count > max_lost:
                     del active_tracks[tid]
             continue
-        # Handle first frame or no active tracks
+        # if its first frame / no active tracks then every detected box is a new track
         if not active_tracks:
             for b in boxes:
                 tracks[face_id_counter] = [(frame_idx, b)]
                 active_tracks[face_id_counter] = TrackKF(b, frame_idx)
                 face_id_counter += 1
             continue
-        # Get current track info
+        # prep new boxes to match current tracks
         track_ids = list(active_tracks.keys())
         track_boxes = np.array([active_tracks[tid].predict() for tid in track_ids])
         n_tracks = len(track_ids)
         n_boxes = len(boxes)
         cost_matrix = np.ones((n_tracks, n_boxes)) * 1000
+        #center of detected boxes and tracks
         box_centroids = np.array([[x + w/2, y + h/2] for (x, y, w, h) in boxes], dtype=np.float32)
         track_centroids = np.array([[b[0] + b[2]/2, b[1] + b[3]/2] for b in track_boxes], dtype=np.float32)
-
+        #obtain distance between all tracks and detections
         if box_centroids.shape[0] == 0 or track_centroids.shape[0] == 0:
-            # If either is empty, create a (N, 2) empty array
             distances = np.zeros((track_centroids.shape[0], box_centroids.shape[0]))
         else:
-            # Always ensure shape (N, 2)
             box_centroids = box_centroids.reshape(-1, 2)
             track_centroids = track_centroids.reshape(-1, 2)
             distances = cdist(track_centroids, box_centroids)
@@ -153,21 +154,21 @@ def robust_track_faces(all_boxes, frames, max_lost=10, iou_threshold=0.3, max_di
             for j, box in enumerate(boxes):
                 iou_score = iou(track_box, box)
                 distance = distances[i, j]
-                # Appearance cost
+                # appearance cost
                 track_hist = active_tracks[track_ids[i]].appearance
                 box_hist = extract_histogram(frames[frame_idx], box)
                 hist_dist = np.linalg.norm(track_hist - box_hist) if track_hist is not None else 0
-                # Combine costs
+                # combine costs
                 if iou_score > iou_threshold or distance < max_distance:
                     iou_cost = 1 - iou_score
                     dist_cost = distance / max_distance
-                    hist_cost = hist_dist / 10.0  # Normalize histogram distance
+                    hist_cost = hist_dist / 10.0  # normalize histogram distance by using small value
                     cost_matrix[i, j] = 0.5 * iou_cost + 0.3 * dist_cost + 0.2 * hist_cost
         if n_tracks > 0 and n_boxes > 0:
             row_indices, col_indices = linear_sum_assignment(cost_matrix)
             matched_boxes = set()
             for row, col in zip(row_indices, col_indices):
-                if cost_matrix[row, col] < 0.9:
+                if cost_matrix[row, col] < 0.9: #only accept good matches
                     tid = track_ids[row]
                     box = boxes[col]
                     tracks.setdefault(tid, []).append((frame_idx, box))
@@ -176,15 +177,18 @@ def robust_track_faces(all_boxes, frames, max_lost=10, iou_threshold=0.3, max_di
                 else:
                     tid = track_ids[row]
                     active_tracks[tid].mark_missed()
+            # tracks unmatched with detections = track is considered missed 
             for i, tid in enumerate(track_ids):
                 if i not in row_indices or cost_matrix[i, col_indices[list(row_indices).index(i)]] >= 0.9:
                     if active_tracks[tid].last_frame != frame_idx:
                         active_tracks[tid].mark_missed()
+            #detections unmatched to tracks -> start new tracks for detection
             for j, box in enumerate(boxes):
                 if j not in matched_boxes:
                     tracks[face_id_counter] = [(frame_idx, box)]
                     active_tracks[face_id_counter] = TrackKF(box, frame_idx)
                     face_id_counter += 1
+        #remove tracks that have been lost for too long
         for tid in list(active_tracks.keys()):
             track = active_tracks[tid]
             allowed_lost = max_lost if not track.confirmed else max_lost * 2
@@ -193,6 +197,7 @@ def robust_track_faces(all_boxes, frames, max_lost=10, iou_threshold=0.3, max_di
     return tracks
 
 def run_visual_artifacts_detection(*args, **kwargs):
+    #get video path from function arguments
     if len(args) > 0:
         video_path = args[0]
     else:
@@ -210,6 +215,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
 
     # caching results into json file
     cache_file = os.path.join(output_dir, "cached_results.json")
+    #if video was already processed and results were returned, cached results are fetched and returned
     if os.path.exists(cache_file):
         with open(cache_file, "r") as f:
             cache = json.load(f)
@@ -219,6 +225,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
     if not cap.isOpened():
         return {"success": False, "reason": f"Cannot open video: {video_path}"}
 
+    #get video fps or default to 30
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     frame_interval_frames = 1
     frame_count = 0
@@ -236,6 +243,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
                 frame_count += 1
                 continue
             (h, w) = frame.shape[:2]
+            #prepare frame for face detection by the caffe model
             blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300),
                                          (104.0, 117.0, 123.0), swapRB=False, crop=False)
             face_net.setInput(blob)
@@ -260,7 +268,9 @@ def run_visual_artifacts_detection(*args, **kwargs):
                         face_gray = cv2.cvtColor(face_resized, cv2.COLOR_BGR2GRAY)
                         hog_vec = extract_hog_features(face_gray)
                         lbp_vec = extract_lbp_features(face_gray)
+                        #combine extracted HOG and LBP features 
                         feat_vec = np.concatenate([hog_vec, lbp_vec]).astype('float32')
+                        #skip face if features are invalid
                         if np.var(feat_vec) < 1e-6 or np.any(np.isnan(feat_vec)):
                             face_feats.append(None)
                             continue
@@ -276,7 +286,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
 
     tracks = robust_track_faces(all_frame_boxes, frames)
 
-    # Per face (track_id), collect features, indices, probs
+    # for each track, collect the frame indices, bounding boxes, predictions, and features
     per_face_data = {}
     for tid, track in tracks.items():
         per_face_data[tid] = {"frame_indices": [], "boxes": [], "probs": [], "features": []}
@@ -294,6 +304,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
                 per_face_data[tid]["boxes"].append(box)
                 per_face_data[tid]["probs"].append(prob)
                 per_face_data[tid]["features"].append(feat_vec)
+    #keep track with enough frames
     per_face_data = {tid: d for tid, d in per_face_data.items() if len(d["probs"]) >= MIN_FRAMES}
 
     # creating video with all faces/IDs overlay which is shown as bounding boxes around the face
@@ -319,7 +330,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         current_wd = os.getcwd()
         input_path_full = os.path.join(current_wd, input_path)
         output_path_full = os.path.join(current_wd, output_path)
-        # ffmpeg to reencode with H.264 video and AAC audio for HTML5
+        # ffmpeg to reencode with H.264 video and AAC audio for HTML5 compatibility
         cmd = [
             "ffmpeg", "-y", "-i", input_path_full,
             "-c:v", "libx264", "-pix_fmt", "yuv420p",
@@ -328,10 +339,10 @@ def run_visual_artifacts_detection(*args, **kwargs):
         ]
         subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    # After writer.release(), re-encode to guarantee browser compatibility to enable displaying of overlay video 
+    # after writer.release(), re-encode to guarantee browser compatibility to enable displaying of overlay video 
     h264_overlay = os.path.join(output_dir, "visual_artifact_overlay_h264.mp4")
     reencode_mp4_for_html5(video_temp, h264_overlay)
-    # Now update rel_video_path accordingly
+    # update rel_video_path accordingly
     rel_video_path = os.path.relpath(h264_overlay, "static").replace("\\", "/")
     if os.path.exists(video_temp):
         os.remove(video_temp)
@@ -345,7 +356,7 @@ def run_visual_artifacts_detection(*args, **kwargs):
         num_real = sum(1 for p in d["probs"] if p < 0.5)
         num_fake = sum(1 for p in d["probs"] if p >= 0.5)
         charts = []
-        # Framewise Probability
+        # framewise Probability
         plt.figure(figsize=(10,5))
         plt.plot(d["frame_indices"], d["probs"], marker='o')
         plt.axhline(0.5, color='gray', linestyle='--')
@@ -471,21 +482,4 @@ def run_visual_artifacts_detection(*args, **kwargs):
         "face_results": face_results,
         "video_with_boxes": rel_video_path
     }
-
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 2:
-        print("Usage: python visual_artifacts_script.py /path/to/video.mp4")
-        exit(1)
-    video_path = sys.argv[1]
-    out_dir = DEFAULT_OUTPUT_DIR
-    result = run_visual_artifacts_detection(video_path, out_dir)
-    if not result["success"]:
-        print("Detection failed:", result["reason"])
-    else:
-        print(f"Results saved in {out_dir}")
-        for face in result["face_results"]:
-            print(f"Face ID {face['track_id']} classified as: {face['result']}")
-            print(f"  Confidence: {face['confidence']}%  Real frames: {face['real_count']}  Fake frames: {face['fake_count']}")
 
